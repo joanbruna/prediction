@@ -1,12 +1,13 @@
-function param=audio_config()
+function params=audio_config()
 % function param=audio_config()
 
-param=struct;
-param.fs=16000;
-param.window_type='sinebell';
+params=struct;
+params.fs=16000;
+params.window_type='sinebell';
 params.NFFT = 1024;
-param.winsize=params.NFFT;
-param.hop=params.NFFT/4;
+params.winsize=params.NFFT;
+params.hop=params.NFFT/4;
+params.scf = 2/3;
 
 
 end
