@@ -13,7 +13,7 @@ end
 
 
 iters=getoptions(options,'alpha_iters',50);
-iters_encoder=getoptions(options,'alpha_iters_encoder',60);
+% iters_encoder=getoptions(options,'alpha_iters_encoder',60);
 
 t0 = t0 / options.time_groupsize;
 
