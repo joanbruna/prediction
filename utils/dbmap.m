@@ -1,2 +1,2 @@
 function B = dbmap(A)
-B = log10(A+eps);
+B = log10(abs(A)+eps);
