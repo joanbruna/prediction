@@ -1,4 +1,4 @@
-function [D,D0,verbo] = nmf_linear_dynamic(X, options)
+function [D,W,verbo] = nmf_linear_dynamic(X, options)
 %this function performs a dictionary learning using 
 %the proximal toolbox and iterated gradient descent
 %from Mairal et Al (2010)
@@ -21,7 +21,7 @@ K = getoptions(options, 'K', 2*N);
 %M: number of examples
 %K output dimension
 
-groupsize = getoptions(options,'groupsize',2);
+% groupsize = getoptions(options,'groupsize',2);
 
 %initial dictionary
 II=randperm(M-1);
@@ -33,25 +33,35 @@ D=rho*D + (1-rho)*randn(size(D));
 D=getoptions(options,'initdictionary',D);
 D = mexNormalize(D);
 
+% No dynamics at init.
+W = eye(K);
+
 
 %D(:,2:2:end) = D(:,1:2:end);
 rho=0.9;
 D=rho*D + (1-rho)*randn(size(D))/sqrt(N);
 
-B=0*D;
-A=zeros(size(D,2));
+beta =getoptions(options,'beta',0.95);
+
+
+Bd=0*D;
+Ad=zeros(size(D,2));
+
+Bw=zeros(size(D,2));
+Aw=zeros(size(D,2));
 
 nepochs=getoptions(options,'epochs',4);
 batchsize=getoptions(options,'batchsize',128);
 niters=nepochs*M/batchsize;
 
 %verbose variables
-chunks=100;
+chunks=5;
 ch = floor(niters/chunks);
 
 
 % tot_tested=0;
 lambda = getoptions(options,'lambda',0.1);
+mu = getoptions(options,'mu',0.5);
 
 D0=D;
 rast=1;
@@ -72,7 +82,7 @@ Bd = beta * Bd + (1-beta)*(data*alpha');
 
 alphat1 = alpha(:,2:end);
 Aw = beta * Aw + (1-beta)*(alphat1*alphat1');
-Bw = beta * Bw + (1-beta)*(alphat1*alpha(:,end-1)');
+Bw = beta * Bw + (1-beta)*(alphat1*alpha(:,1:end-1)');
 
 
 %%dictionary update
@@ -81,29 +91,29 @@ D = dictionary_update( D,Ad,Bd,options);
 % dynamic matrix update
 W = dictionary_update( W,Aw,Bw,options);
 
-
 if mod(n,ch)==ch-1
 fprintf('done chunk %d of %d\n',ceil(n/ch),chunks )
 %compute error 
-modulus = modphas_decomp(alpha,groupsize);
+% modulus = modphas_decomp(alpha,groupsize);
 rec = D * alpha;
 c1 = .5 * norm(rec(:)-data(:))^2/batchsize;
-c2 = lambda * sum(modulus(:))/batchsize;
-aux=modulus(:);
-c2bis=sum(aux>0)/length(aux);
-currerr = c1 + c2;
+c2 = lambda * sum(alpha(:))/batchsize;
+dyn = W * alpha(:,1:end-1);
+alphat = alpha(:,2:end);
+c3 = .5 * mu * norm(dyn(:)-alphat(:))^2/batchsize;
+currerr = c1 + c2 + c3;
 verbo(rast) = currerr;rast=rast+1;
-fprintf('current error is %f (%f %f l0=%f) \n', currerr, c1, c2, c2bis)
+fprintf('current error is %f (%f %f l0=%f) \n', currerr, c1, c2, c3)
 
-rho=0.025; 
-deadunits=find(diag(A)<rho);
-dead=length(deadunits);
-if dead > 0
-fprintf('%d dead elements out of %d (%f, %f) \n', dead, K, max(diag(A)), min(diag(A)) )
-%Itmp =randperm(M);
-%D(:, deadunits) = X(:,Itmp(1:dead));
-%D = ortho_pools(D',2)';
-end
+% rho=0.025; 
+% deadunits=find(diag(A)<rho);
+% dead=length(deadunits);
+% if dead > 0
+% fprintf('%d dead elements out of %d (%f, %f) \n', dead, K, max(diag(A)), min(diag(A)) )
+% %Itmp =randperm(M);
+% %D(:, deadunits) = X(:,Itmp(1:dead));
+% %D = ortho_pools(D',2)';
+% end
 end
 end
 
@@ -174,7 +184,7 @@ else
 D=D0;
 end
  
-D = ortho_pools(D',2)';
+% D = ortho_pools(D',2)';
 
 end
 
