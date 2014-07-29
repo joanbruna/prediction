@@ -1,7 +1,7 @@
 
 addpath ../../../Multimodal' Sparsity'/code/spams-matlab/build/
 speech = 'data/swin7p.wav';
-noise = 'data/noise_sample_.wav';
+noise = 'data/noise_sample_21.wav';
 
 
 params = audio_config();
@@ -9,12 +9,12 @@ params = audio_config();
 SNR_dB = 0;
 
 [x,Fs] = audioread(speech);
-x = resample(x,Fs,params.fs);
+x = resample(x,params.fs,Fs);
 x = x(:);
 
 
 [n,Fs] = audioread(noise);
-n = resample(n,Fs,params.fs);
+n = resample(n,params.fs,Fs);
 n = n(:);
 
 
