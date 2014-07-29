@@ -52,7 +52,7 @@ ch = floor(niters/chunks);
 
 t0 = getoptions(options,'alpha_step',0.25);
 t0 = t0 * (1/max(svd(D))^2);
-tot_tested=0;
+% tot_tested=0;
 tgroups=getoptions(options,'time_groupsize',2);
 options.batchsize=batchsize;
 options.time_groupsize=tgroups;
@@ -80,16 +80,19 @@ end
 alpha = nmf_linear_dynamic_pursuit( data, D, W , options);
 
 
-Ad = alpha * Ad + (1-alpha)*(alpha*alpha');
-Bd = alpha * Bd + (1-alpha)*(data*alpha');
+Ad = beta * Ad + (1-beta)*(alpha*alpha');
+Bd = beta * Bd + (1-beta)*(data*alpha');
 
 alphat1 = alpha(:,2:end);
-Aw = alpha * Aw + (1-alpha)*(alphat1*alphat1');
-Bw = alpha * Bw + (1-alpha)*(data*alpha');
+Aw = beta * Aw + (1-beta)*(alphat1*alphat1');
+Bw = beta * Bw + (1-beta)*(alphat1*alpha(:,end-1)');
 
 
 %%dictionary update
-D = dictionary_update( D,A,B,options);
+D = dictionary_update( D,Ad,Bd,options);
+
+% dynamic matrix update
+W = dictionary_update( W,Aw,Bw,options);
 
 
 if mod(n,ch)==ch-1
@@ -129,7 +132,7 @@ end
 end
 
 
-function D= dictionary_update(Din, A,B,C, options)
+function D= dictionary_update(Din, A,B, options)
 
 iters=getoptions(options,'dict_iters',2);
 
