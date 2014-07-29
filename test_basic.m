@@ -14,7 +14,7 @@ p = 1;
 [x,Fs] = audioread('data/bbbj8n.wav');
 
 % resample to 16K 
-x = resample(x,Fs,fs);
+x = resample(x,fs,Fs);
 x = x(:); 
 
 % Compute spectral representation
