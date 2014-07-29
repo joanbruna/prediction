@@ -26,8 +26,9 @@ t0 = .5 * (1/(norm(D,2)^2 + norm(A,2)^2)) ;
 out = y;
 
 tparam.regul='l1';
-lambda = 0.1;%getoptions(options,'lambda',0.1);
-mu = 0.5;
+lambda = getoptions(options,'lambda',0.1);
+mu = getoptions(options,'mu',0.5);
+
 
 %tparam.regul='l1';
 % tparam.groups=int32(mod(floor([0:KK-1]/groupsize),K/groupsize) )+1;
