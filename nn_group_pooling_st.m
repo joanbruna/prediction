@@ -1,4 +1,4 @@
-function [D,D0,verbo,outchunk] = group_pooling_st(X, options)
+function [D,D0,verbo,outchunk] = nn_group_pooling_st(X, options)
 %this function performs a dictionary learning using 
 %the proximal toolbox and iterated gradient descent
 %from Mairal et Al (2010)

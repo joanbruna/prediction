@@ -1,4 +1,4 @@
-function [Aout,Bout,out]= time_coeffs_update( D, X, options, Ain,Bin, t0)
+function [Aout,Bout,out]= nn_time_coeffs_update( D, X, options, Ain,Bin, t0)
 
 %this is where I need to do all the changes
 %reshape input, redefine the groups, apply the FISTA algo, 
