@@ -5,7 +5,7 @@ function [D,W,verbo] = nmf_linear_dynamic(X, options)
 %requires the spams proximal operator toolbox 
 
 
-renorm=getoptions(options,'renorm_input', 1);
+renorm=getoptions(options,'renorm_input', 0);
 if renorm
     norms = sqrt(sum(X.^2));
     I0=find(norms>0);
@@ -24,8 +24,9 @@ K = getoptions(options, 'K', 2*N);
 % groupsize = getoptions(options,'groupsize',2);
 
 %initial dictionary
-II=randperm(M-1);
-D=X(:,II(1:K));
+batchsize=getoptions(options,'batchsize',128);
+II=randperm(floor(M/batchsize)-1);
+D=X(:,batchsize*II(1:K));
 
 rho=0;
 D=rho*D + (1-rho)*randn(size(D));
@@ -51,11 +52,11 @@ Bw=zeros(size(D,2));
 Aw=zeros(size(D,2));
 
 nepochs=getoptions(options,'epochs',4);
-batchsize=getoptions(options,'batchsize',128);
+%batchsize=getoptions(options,'batchsize',128);
 niters=nepochs*M/batchsize;
 
 % use first batch as validation set.
-I0 = II(1:batchsize);
+I0 = (II(10)+1):(II(10)+1)+batchsize;
 datav=X(:,I0);
 
 
@@ -71,10 +72,26 @@ mu = getoptions(options,'mu',0.5);
 D0=D;
 rast=1;
 
+% compute initial validation cost 
+alpha = nmf_linear_dynamic_pursuit( datav, D, W , options);
+rec = D * alpha;
+c1 = .5 * norm(rec(:)-datav(:))^2/batchsize;
+c2 = lambda * sum(alpha(:))/batchsize;
+dyn = W * alpha(:,1:end-1);
+alphat = alpha(:,2:end);
+c3 = .5 * mu * norm(dyn(:)-alphat(:))^2/batchsize;
+currerr = c1 + c2 + c3;
+verbo(rast) = currerr;rast=rast+1;
+fprintf('current error is %f (%f %f l0=%f) \n', currerr, c1, c2, c3)
+
+
+
+
+
 for n=1:niters
 %update synthesis coefficients
-init= mod( (n-1)*batchsize, M-batchsize+1); 
-I0 = II(1+init:batchsize+init-1);
+init= mod( n, floor(M/batchsize)); 
+I0 = II(1+init):(II(1+init)+batchsize-1);
 data=X(:,I0);
 
 %data = X(:,1+init:batchsize+init);

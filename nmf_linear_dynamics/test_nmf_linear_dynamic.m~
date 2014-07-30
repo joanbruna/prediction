@@ -1,0 +1,18 @@
+
+
+
+
+
+param = struct;
+
+
+
+param.K = 2*N;
+param.lambda = 0.1;
+param.mu = 0.5;
+param.epochs = 2;
+
+
+[D,W,verbo] = nmf_linear_dynamic(X, param);
+
+
