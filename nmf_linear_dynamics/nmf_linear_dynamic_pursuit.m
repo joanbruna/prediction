@@ -4,7 +4,7 @@ function out= nmf_linear_dynamic_pursuit( X,D,A, options)
 %reshape input, redefine the groups, apply the FISTA algo, 
 %and then reshape again to produce the corresponding Aout,Bouts, alphas
 
-iters=1000;
+iters=100;
 % iters_encoder=getoptions(options,'alpha_iters_encoder',60);
 
 

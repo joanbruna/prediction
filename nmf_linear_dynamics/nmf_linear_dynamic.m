@@ -41,7 +41,7 @@ W = eye(K);
 rho=0.9;
 D=rho*D + (1-rho)*randn(size(D))/sqrt(N);
 
-beta =getoptions(options,'beta',0.95);
+rho =getoptions(options,'rho',15);
 
 
 Bd=0*D;
@@ -54,8 +54,13 @@ nepochs=getoptions(options,'epochs',4);
 batchsize=getoptions(options,'batchsize',128);
 niters=nepochs*M/batchsize;
 
+% use first batch as validation set.
+I0 = II(1:batchsize);
+datav=X(:,I0);
+
+
 %verbose variables
-chunks=5;
+chunks=100;
 ch = floor(niters/chunks);
 
 
@@ -76,13 +81,14 @@ data=X(:,I0);
 
 alpha = nmf_linear_dynamic_pursuit( data, D, W , options);
 
+beta = (1-1/n).^rho;
 
-Ad = beta * Ad + (1-beta)*(alpha*alpha');
-Bd = beta * Bd + (1-beta)*(data*alpha');
+Ad = beta * Ad + (alpha*alpha');
+Bd = beta * Bd + (data*alpha');
 
 alphat1 = alpha(:,2:end);
-Aw = beta * Aw + (1-beta)*(alphat1*alphat1');
-Bw = beta * Bw + (1-beta)*(alphat1*alpha(:,1:end-1)');
+Aw = beta * Aw + (alphat1*alphat1');
+Bw = beta * Bw + (alphat1*alpha(:,1:end-1)');
 
 
 %%dictionary update
@@ -95,8 +101,9 @@ if mod(n,ch)==ch-1
 fprintf('done chunk %d of %d\n',ceil(n/ch),chunks )
 %compute error 
 % modulus = modphas_decomp(alpha,groupsize);
+alpha = nmf_linear_dynamic_pursuit( datav, D, W , options);
 rec = D * alpha;
-c1 = .5 * norm(rec(:)-data(:))^2/batchsize;
+c1 = .5 * norm(rec(:)-datav(:))^2/batchsize;
 c2 = lambda * sum(alpha(:))/batchsize;
 dyn = W * alpha(:,1:end-1);
 alphat = alpha(:,2:end);
