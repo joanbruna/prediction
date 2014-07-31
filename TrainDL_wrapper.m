@@ -4,8 +4,9 @@ function D=TrainDL_wrapper(X, param)
 param0 = param;
 
 verb = getoptions(param,'verb', 500);
+iter = getoptions(param,'iter', 5000);
 param0.iter = verb;
-L=round(param.iter/verb);
+L=round(iter/verb);
 
 
 I=randperm(size(X,2));
