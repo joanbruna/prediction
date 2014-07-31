@@ -1,12 +1,8 @@
-function [D,W,verbo] = nmf_linear_dynamic(X, options)
+function [D,W,verbo] = nmf_linear_dynamic_batch(X, options)
 %this function performs a dictionary learning using 
 %the proximal toolbox and iterated gradient descent
 %from Mairal et Al (2010)
 %requires the spams proximal operator toolbox 
-
-
-% shuffle the trainig data in blocks of size 60
-X = randblock(X,[size(X,1),60]);
 
 
 renorm=getoptions(options,'renorm_input', 0);
@@ -30,8 +26,7 @@ K = getoptions(options, 'K', 2*N);
 %initial dictionary
 batchsize=getoptions(options,'batchsize',128);
 II=randperm(floor(M/batchsize)-1);
-idx = randperm(M);
-D=X(:,idx(1:K));
+D=X(:,batchsize*II(1:K));
 
 rho=0;
 D=rho*D + (1-rho)*randn(size(D));
@@ -58,7 +53,7 @@ Aw=zeros(size(D,2));
 
 nepochs=getoptions(options,'epochs',4);
 %batchsize=getoptions(options,'batchsize',128);
-niters=nepochs*floor(M/batchsize);
+niters=nepochs*M/batchsize;
 
 % use first batch as validation set.
 I0 = (II(10)+1):(II(10)+1)+batchsize;
@@ -74,7 +69,7 @@ ch = floor(niters/chunks);
 lambda = getoptions(options,'lambda',0.1);
 mu = getoptions(options,'mu',0.5);
 
-D0=D;
+
 rast=1;
 
 % compute initial validation cost 
@@ -88,8 +83,6 @@ c3 = .5 * mu * norm(dyn(:)-alphat(:))^2/batchsize;
 currerr = c1 + c2 + c3;
 verbo(rast) = currerr;rast=rast+1;
 fprintf('current error is %f (%f %f l0=%f) \n', currerr, c1, c2, c3)
-
-
 
 for n=1:niters
 %update synthesis coefficients
@@ -214,5 +207,3 @@ end
 % D = ortho_pools(D',2)';
 
 end
-
-

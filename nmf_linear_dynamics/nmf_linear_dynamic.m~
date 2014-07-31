@@ -5,8 +5,7 @@ function [D,W,verbo] = nmf_linear_dynamic(X, options)
 %requires the spams proximal operator toolbox 
 
 
-% shuffle the trainig data in blocks of size 60
-X = randblock(X,[size(X,1),60]);
+X = randblock(X,[size(X,1)3)
 
 
 renorm=getoptions(options,'renorm_input', 0);
@@ -66,7 +65,7 @@ datav=X(:,I0);
 
 
 %verbose variables
-chunks=100;
+chunks=10;
 ch = floor(niters/chunks);
 
 

@@ -20,14 +20,15 @@ Dsq = D'*D;
 Asq = A'*A;
 y = zeros(K,M);
 
+mu = getoptions(options,'mu',0.5);
 
-t0 = .5 * (1/(norm(D,2)^2 + norm(A,2)^2)) ;
+t0 = .5 * (1/(norm(D,2)^2 + mu^2*norm(A,2)^2 + mu^2 )) ;
 
 out = y;
 
 tparam.regul='l1';
 lambda = getoptions(options,'lambda',0.1);
-mu = getoptions(options,'mu',0.5);
+
 
 
 %tparam.regul='l1';
@@ -48,11 +49,12 @@ t=1;
 % rr=KK*MM/ss;
 
 for i=1:iters
-
+    
      yt = y; yt(:,end) = 0;
      yt1 = [y(:,2:end) zeros(K,1)];
+     ym = [zeros(K,1) y(:,1:end-1)];
     
-	aux = y - t0*(Dsq * y - DX) - t0*mu*(Asq*yt - A'*yt1);
+	aux = y - t0*(Dsq * y - DX) - t0*mu*(Asq*yt - A'*yt1) - t0*mu*(y - A*ym );
 	newout = mexProximalFlat(aux, tparam);
 
 	newt = (1+ sqrt(1+4*t^2))/2;
@@ -63,31 +65,5 @@ end
 
 
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

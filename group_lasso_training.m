@@ -9,6 +9,7 @@ addpath stft
 numspeakers=20;
 samples_speaker=10000;
 
+
 X=zeros(321,numspeakers*samples_speaker);
 for i=1:numspeakers
 tmp = load(sprintf('/misc/vlgscratch3/LecunGroup/bruna/grid_data/spect_640/class_s%d.mat',i));
