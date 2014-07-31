@@ -9,7 +9,7 @@ function [D,D0,verbo,outchunk] = group_pooling_st(X, options)
 
 %Joan Bruna 2013 Courant Institute
 
-renorm=getoptions(options,'renorm_input', 1);
+renorm=getoptions(options,'renorm_input', 0);
 if renorm
 norms = sqrt(sum(X.^2));
 I0=find(norms>0);
