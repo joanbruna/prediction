@@ -20,6 +20,8 @@ X=zeros(1+NFFT/2,maxexamples);
 meta=zeros(1,maxexamples);
 for d=3:size(files,1)
 	if files(d).isdir == true
+		rien = files(d).name;
+		if strcmp(rien,'s29')
 		fprintf('processing folder %s \n', files(d).name)
 		inside = dir(fullfile(didi,files(d).name));
 		if d-2 > maxlabels
@@ -53,6 +55,7 @@ for d=3:size(files,1)
 		met = meta(1:r-1);
 		save(sprintf('/misc/vlgscratch3/LecunGroup/bruna/grid_data/spect_%d/class_%s.mat',NFFT,files(d).name),'Xc','met','-v7.3');
 		%cd(didi)
+		end
 	end
 end
 

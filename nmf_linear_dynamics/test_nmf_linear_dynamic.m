@@ -25,6 +25,7 @@ param.K = 512;
 param.lambda = 0.05;
 param.mu = 0.5;
 param.epochs = 2;
+param.batchsize = 2048;
 
 
 [D,W,verbo] = nmf_linear_dynamic(X, param);

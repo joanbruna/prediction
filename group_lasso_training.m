@@ -3,8 +3,10 @@ clear all
 
 addpath utils
 addpath stft
+addpath grouplasso
 
 %this script tries a group lasso training. 
+
 
 numspeakers=20;
 samples_speaker=10000;
@@ -24,7 +26,8 @@ options.renorm_input = 1;
 options.K=400;
 options.lambda=0.05;
 options.time_groupsize = 2;
-options.batchsize = 2000;
+options.batchsize = 512;
+options.epochs=2;
 
 [D, D0, verbo] = group_pooling_st(X, options);
 
