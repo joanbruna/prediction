@@ -21,13 +21,52 @@ clear param
 
 param = struct;
 %param.D = Dini;
-param.K = 512;
+param.K = 1000;
 param.lambda = 0.05;
-param.mu = 0.5;
+param.mu = 10;
 param.epochs = 2;
-param.batchsize = 2048;
+param.batchsize = 5000;
 
 
 [D,W,verbo] = nmf_linear_dynamic(X, param);
+
+
+%%
+
+Xt = mexNormalize(Xt_same);
+
+
+
+%%
+
+n=200;
+temp_sup = 2;
+idx = randperm(size(Xt,2));
+
+for i=1:n
+
+   chunk = Xt(:,idx(i):idx(i)+temp_sup);
+   alpha = nmf_linear_dynamic_pursuit( chunk, D, W , param);
+    
+   r(i) = sum( (Xt(:,idx(i)+temp_sup+1) - D*W*alpha(:,end)).^2 );
+   
+   m(i) = sum( (Xt(:,idx(i)+temp_sup+1) - Xt(:,idx(i)+temp_sup)).^2);
+   
+end
+[sqrt(mean(r)) sqrt(mean(m))]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
