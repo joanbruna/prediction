@@ -40,9 +40,10 @@ D=getoptions(options,'initdictionary',D);
 norms = sqrt(sum(D.^2));
 D = D./ repmat(norms,[size(D,1) 1]);
 
-%D(:,2:2:end) = D(:,1:2:end);
+D(:,2:2:end) = D(:,1:2:end);
 rho=0.9;
 D=rho*D + (1-rho)*randn(size(D))/sqrt(N);
+D = ortho_pools(D',2)';
 
 B=0*D;
 A=zeros(size(D,2));
@@ -53,7 +54,7 @@ niters=nepochs*M/batchsize;
 
 %verbose variables
 chunks=100;
-ch = floor(niters/chunks);
+ch = ceil(niters/chunks);
 
 t0 = getoptions(options,'alpha_step',0.25);
 t0 = t0 * (1/max(svd(D))^2)
@@ -92,7 +93,8 @@ end
 %%dictionary update
 D = dictionary_update( D,  A,B,options);
 
-measure_cost(alpha, D, data, lambda, groupsize, 'after dict update');
+verbo(rast)=measure_cost(alpha, D, data, lambda, groupsize, 'after dict update');
+rast=rast+1;
 
 if mod(n,ch)==ch-1
 fprintf('done chunk %d of %d\n',ceil(n/ch),chunks )
@@ -150,6 +152,7 @@ D=Din;
 N=size(B,1);
 dia = diag(A)';
 
+lr=1e-2;
 tol=1e-6;
 I=find(dia>tol);
 fix=0;
@@ -180,7 +183,7 @@ else
 
 for j=1:K
 
-u = D0(:,j) + (B(:,j) - D0*(A(:,j)))*At(j);
+u = D0(:,j) + lr*(B(:,j) - D0*(A(:,j)))*At(j);
 D0(:,j) = u / max(1, norm(u));
 
 end
@@ -194,7 +197,11 @@ else
 D=D0;
 end
  
-%D = ortho_pools(D',2)';
+D = ortho_pools(D',2)';
+%Ds1 = D(:,1:2:end);
+%Ds2 = D(:,2:2:end);
+%corrs = abs(sum(Ds1.*Ds2));
+%fprintf('dictionary group coherence: %f %f %f \n',min(corrs), max(corrs), mean(corrs))
 
 end
 
@@ -206,7 +213,7 @@ rec = D * alpha;
 modulus = modphas_decomp(alpha,groupsize);
 c1 = norm(rec(:)-data(:))^2;
 c2 = lambda * sum(modulus(:));
-
+out=c1+c2;
 fprintf( '%s...%f (%f %f)\n', str, c1+c2,c1,c2)
 
 end

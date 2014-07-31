@@ -63,10 +63,12 @@ end
 
 out=reshape(out,K,numel(out)/K);
 
-%Aout = ((iter-1)*Ain + out*out')/iter;
-%Bout = ((iter-1)*Bin + X*out')/iter;
-Aout = alpha * Ain + (1-alpha)*(out*out');
-Bout = alpha * Bin + (1-alpha)*(X*out');
+rho=3;
+
+Aout = (((iter-1)/iter)^rho)*Ain + out*out';
+Bout = (((iter-1)/iter)^rho)*Bin + X*out';
+%Aout = alpha * Ain + (1-alpha)*(out*out');
+%Bout = alpha * Bin + (1-alpha)*(X*out');
 
 end
 
