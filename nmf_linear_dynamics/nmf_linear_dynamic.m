@@ -5,15 +5,12 @@ function [D,W,verbo] = nmf_linear_dynamic(X, options)
 %requires the spams proximal operator toolbox 
 
 
-% shuffle the trainig data in blocks of size 60
-X = randblock(X,[size(X,1),60]);
-
-
 renorm=getoptions(options,'renorm_input', 0);
 if renorm
+    th = 1;
     norms = sqrt(sum(X.^2));
     I0=find(norms>0);
-    norms=norms(I0);
+    norms=norms(I0)+th;
     X(:,I0)=X(:,I0) ./ repmat(norms,[size(X,1) 1]);
 end
 
@@ -28,7 +25,8 @@ K = getoptions(options, 'K', 2*N);
 % groupsize = getoptions(options,'groupsize',2);
 
 %initial dictionary
-batchsize=getoptions(options,'batchsize',128);
+batchsize=getoptions(options,'batchsize',100);
+p=getoptions(options,'p',50);
 II=randperm(floor(M/batchsize)-1);
 idx = randperm(M);
 D=X(:,idx(1:K));
@@ -55,6 +53,12 @@ Ad=zeros(size(D,2));
 
 Bw=zeros(size(D,2));
 Aw=zeros(size(D,2));
+
+Adaux= zeros(size(Ad));
+Bdaux= zeros(size(Bd));
+
+Awaux= zeros(size(Aw));
+Bwaux= zeros(size(Bw));
 
 nepochs=getoptions(options,'epochs',4);
 %batchsize=getoptions(options,'batchsize',128);
@@ -101,14 +105,24 @@ data=X(:,I0);
 
 alpha = nmf_linear_dynamic_pursuit( data, D, W , options);
 
-beta = (1-1/n).^rho;
+aux = (alpha*alpha');
+Adaux = Adaux + aux; 
+Bdaux = Bdaux + (data*alpha');
 
-Ad = beta * Ad + (alpha*alpha');
-Bd = beta * Bd + (data*alpha');
+Awaux = Awaux + (aux - alpha(:,1)*alpha(:,1)');
+Bwaux = Bwaux + (alphat(:,2:end)*alpha(:,1:end-1)');
 
-alphat1 = alpha(:,2:end);
-Aw = beta * Aw + (alphat1*alphat1');
-Bw = beta * Bw + (alphat1*alpha(:,1:end-1)');
+% update the dictionary every p mini-batches
+if mod(n,p)==p-1
+
+beta = (1-(p-1)/n).^rho;
+
+Ad = beta * Ad + 1/p/batchsize*Adaux;
+Bd = beta * Bd + 1/p/batchsize*Bdaux;
+
+Aw = beta * Aw + 1/p/batchsize*Awaux;
+Bw = beta * Bw + 1/p/batchsize*Bwaux;
+
 
 
 %%dictionary update
@@ -117,8 +131,19 @@ D = dictionary_update( D,Ad,Bd,options);
 % dynamic matrix update
 W = dictionary_update( W,Aw,Bw,options);
 
-if mod(n,ch)==ch-1
-fprintf('done chunk %d of %d\n',ceil(n/ch),chunks )
+
+Adaux= zeros(size(Adaux));
+Bdaux= zeros(size(Bdaux));
+
+Awaux= zeros(size(Awaux));
+Bwaux= zeros(size(Bwaux));
+
+% compute validation after every dic_update
+%
+% end
+% 
+% if mod(n,ch)==ch-1
+fprintf('done chunk %d of %d\n',ceil(n/p),niters/p )
 %compute error 
 % modulus = modphas_decomp(alpha,groupsize);
 alpha = nmf_linear_dynamic_pursuit( datav, D, W , options);
@@ -132,26 +157,12 @@ currerr = c1 + c2 + c3;
 verbo(rast) = currerr;rast=rast+1;
 fprintf('current error is %f (%f %f %f) \n', currerr, c1, c2, c3)
 
-% rho=0.025; 
-% deadunits=find(diag(A)<rho);
-% dead=length(deadunits);
-% if dead > 0
-% fprintf('%d dead elements out of %d (%f, %f) \n', dead, K, max(diag(A)), min(diag(A)) )
-% %Itmp =randperm(M);
-% %D(:, deadunits) = X(:,Itmp(1:dead));
-% %D = ortho_pools(D',2)';
-% end
-end
+
 end
 
-% if produce_synthesis
-% [~,~,alphas] = time_coeffs_update(D, X, options); %A, B, options, 1, t0);
-% %alphas = D'*X;
-% modulus = modphas_decomp(alphas,groupsize);
-% else
-% alphas=0;
-% modulus=0;
-% end
+end
+
+
 
 end
 

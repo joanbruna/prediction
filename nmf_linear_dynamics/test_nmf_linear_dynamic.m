@@ -15,7 +15,7 @@ addpath nmf_linear_dynamics/
 addpath utils
 addpath ../spams-matlab/build/
 
-X = mexNormalize(X);
+%X = mexNormalize(X);
 
 clear param
 
@@ -25,7 +25,8 @@ param.K = 1000;
 param.lambda = 0.05;
 param.mu = 10;
 param.epochs = 2;
-param.batchsize = 5000;
+param.batchsize = 100;
+param.renorm_input = 1;
 
 
 [D,W,verbo] = nmf_linear_dynamic(X, param);
