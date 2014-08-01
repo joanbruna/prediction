@@ -31,19 +31,12 @@ II=randperm(floor(M/batchsize)-1);
 idx = randperm(M);
 D=X(:,idx(1:K));
 
-rho=0;
-D=rho*D + (1-rho)*randn(size(D));
-
 D=getoptions(options,'initdictionary',D);
 D = mexNormalize(D);
 
 % No dynamics at init.
 W = eye(K);
 
-
-%D(:,2:2:end) = D(:,1:2:end);
-rho=0.9;
-D=rho*D + (1-rho)*randn(size(D))/sqrt(N);
 
 rho =getoptions(options,'rho',15);
 
@@ -91,7 +84,7 @@ alphat = alpha(:,2:end);
 c3 = .5 * mu * norm(dyn(:)-alphat(:))^2/batchsize;
 currerr = c1 + c2 + c3;
 verbo(rast) = currerr;rast=rast+1;
-fprintf('current error is %f (%f %f l0=%f) \n', currerr, c1, c2, c3)
+fprintf('current error is %f (%f %f %f) \n', currerr, c1, c2, c3)
 
 
 
@@ -176,7 +169,7 @@ D=Din;
 N=size(B,1);
 dia = diag(A)';
 
-tol=1e-6;
+tol=1e-9;
 I=find(dia>tol);
 fix=0;
 
@@ -216,12 +209,17 @@ end
 
 end
 
+
 if fix
 D(:,I)=D0;
 else
 D=D0;
 end
- 
+
+if min(D(:))<0
+    keyboard
+end
+
 % D = ortho_pools(D',2)';
 
 end

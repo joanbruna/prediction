@@ -17,16 +17,26 @@ addpath ../spams-matlab/build/
 
 %X = mexNormalize(X);
 
+if ~exist('norm_done','var') || norm_done ~=1 
+epsilon = 1;
+X = X ./ repmat(sqrt(epsilon^2+sum(X.^2)),size(X,1),1) ;
+Xt_same = Xt_same ./ repmat(sqrt(epsilon^2+sum(Xt_same.^2)),size(X,1),1) ;
+Xt_different = Xt_different ./ repmat(sqrt(epsilon^2+sum(Xt_different.^2)),size(X,1),1) ;
+
+norm_done = 1;
+
+end
+
 clear param
 
 param = struct;
 %param.D = Dini;
 param.K = 1000;
-param.lambda = 0.05;
+param.lambda = 0.1;
 param.mu = 10;
 param.epochs = 2;
 param.batchsize = 100;
-param.renorm_input = 1;
+param.renorm_input = 0;
 
 
 [D,W,verbo] = nmf_linear_dynamic(X, param);

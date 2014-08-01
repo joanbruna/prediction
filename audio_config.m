@@ -4,9 +4,9 @@ function params=audio_config()
 params=struct;
 params.fs=16000;
 params.window_type='sinebell';
-params.NFFT = 1024;
+params.NFFT = 640;
 params.winsize=params.NFFT;
-params.hop=params.NFFT/4;
+params.hop=params.NFFT/2;
 params.scf = 2/3;
 
 
