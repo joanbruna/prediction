@@ -85,20 +85,68 @@ Our objective is to develop a model which progressively moves from linear to RNN
 handles non-linear dynamics. 
 Since we are interested in inverse problems, models need to be generative. 
 
-\section{General Model}
+Summary of contributions:
+\begin{itemize}
+\item bla 
+\item bla
+\end{itemize}
 
+
+\section{Linearizing Dynamics}
+
+\subsection{Linear NMF Dynamics}
+
+This is the basic first model:
+\begin{eqnarray}
+\min_{z_t, A, D} \| x_t - D z_t \|^2 + \lambda \|z_t \|_1 + \mu \|z_t - A z_{t-1} \|^2
+\end{eqnarray}
+
+Properties:
+\begin{itemize}
+\item + Easy to train, compact model with few parameters
+\item + Gives good results on source separation
+\item + It is easily interpreted as a sparse Kalman FIlter.
+\item - The model has a fundamental limitation in that the dynamics on the hidden states are assumed linear. 
+\item - All the uncertainty/inference power in the model is in the latent variables $z_t$. The temporal relationship is rigid and given by
+a single linear operator $A$.
+\item - Optimiziation is too ``easy": there are many local minima, and the objective function is not directly optimizing what we want.
+\end{itemize}
+
+\subsection{Bilevel Linear NMF}
+
+A modification of the previous model is to train it discriminatively to predict the next frame:
+
+If we denote 
+$$z*_t(D, A, x) = \argmin_z \| x_t - D z_t \|^2 + \|z_t \|_1 +  \| z_t - A z_{t-1} \|^2~,$$
+we optimize
+$$\min_{D, A, E} \| x_{t+1} - E z*_t(D, A, x) \|^2~.$$
+
+(Lista version) also 
+
+
+\subsection{Linear Pooling NMF}
+
+\subsection{Bi-Linear NMF}
 
 \section{Examples: Newton Dynamics, Jitter}
 
-
 \section{Pooling and Scattering}
 
+\section{Relationship to Previous work}
 
-\section{Bilinear Model}
+Cedric et al. Linear dynamics on NMF. 
 
+RNN for music
+
+RNN for speech recognition (Graves et al). 
+
+Yann's papers.
 
 \section{Experimental Results}
 
+Prediction
+
+Source Separation.
 
 
 
