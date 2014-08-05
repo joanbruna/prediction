@@ -63,6 +63,56 @@
 \begin{document}
 \maketitle
 
+
+\section{Status/Planning}
+
+The problem is now well defined. 
+We study the following general question: Given temporally coherent data, how to learn 
+a nonlinear representation that linearizes dynamics? 
+
+In particular, we use two criteria to evaluate models. 
+The first one is prediction error. Given an observed sequence $x_t$, we construct an 
+estimate $\hat{x}_t$, either from the past observations (casual inference), or from past and future (sort of 
+non-linear interpolation). Currently we measure performance with $\| x_t - \hat{x}_t \|$, which 
+corresponds to a Gaussian likelihood around a point estimate. 
+
+The second is denoising or source separation. We have observations $y_t = x_{1,t} + x_{2,t}$, where
+$x_{i,t}$ $i=1,2$ correspond to different sources, or source and noise. Assuming we have training sets for 
+each of the sources (or only one of them), we attempt to estimate $\hat{x}_{i,t}$ by exploiting the temporal 
+dynamics of each source. 
+We are starting with speech data, and then we will eventually try video data.
+
+So far we have tested:
+\begin{itemize}
+\item NMF Kalman dynamics on each speaker separately, and on the joint speakers. 
+\item Spatio-temporal group lasso on log spectrogram.
+\item Pooling operators (analysis) on the log spectrogram.
+\item ``LISTA" predictors using only two past frames.
+\item Frequency scattering on the spectrogram, followed by linear prediction. 
+\end{itemize}
+
+Conclusions so far:
+\begin{itemize}
+\item Linear dynamics on NMF synthesis coefficients is too strong: it cannot disentangle position and momentum.
+\item Non-linear decoders from pooling are unstable. The gains produced by the pooling are ofset by these unstablilities in our experiments so far.
+\item Reconstruction based dictionary learning converges too fast, suggesting that bi-level with prediction task is necessary.
+\item Having a Gaussian posterior for prediction might be too ambitious in general. 
+\end{itemize}
+
+
+Next things to do:
+\begin{itemize}
+\item Construct simple synthetic data with oracle dynamics (smooth warpings, jitter, etc).
+\item Bi-level NMF with simple linear dynamics.
+\item Lista version.
+\item Implement RNNs as a matter of comparison (which ones? LSTMs, sigmoids).
+\item Bi-level group lasso where we put the dynamics on the modulus.
+\item Bilinear models (with exponential maps?)
+\end{itemize}
+
+
+
+
 \section*{Introduction}
 
 Extracting information from unlabeled data remains the main challenge of unsupervised learning. 
@@ -85,6 +135,19 @@ Our objective is to develop a model which progressively moves from linear to RNN
 handles non-linear dynamics. 
 Since we are interested in inverse problems, models need to be generative. 
 
+Given a temporally ordered sequence $x_t \in \mathbb{R}^N$ , we can 
+write $x_t = U_{t} x_{t-1}$, where $U_t$ is any operator in $\mathbb{R}^{N \times N}$.
+Clearly, there is too much freedom in the choice of these dynamics. The 
+goal is to estimate $x_t$ by inferring $U_t$ on a much restricted class of possible dynamics.
+
+One particular class of dynamics is to write $U_t = D A \Phi$, where 
+$x_t \approx D \Phi(x_t)$
+
+We assume a dynamical system $z(t)$ governed by some dynamics 
+$z(t+\Delta) = F( z(t), \partial z(t))$ in a high-dimensional space. 
+Our observations $x(t)$ are obtained 
+
+
 Summary of contributions:
 \begin{itemize}
 \item bla 
@@ -106,18 +169,48 @@ Properties:
 \item + Easy to train, compact model with few parameters
 \item + Gives good results on source separation
 \item + It is easily interpreted as a sparse Kalman FIlter.
-\item - The model has a fundamental limitation in that the dynamics on the hidden states are assumed linear. 
+\item - The model has a fundamental limitation in that the dynamics on the hidden states are linear. 
 \item - All the uncertainty/inference power in the model is in the latent variables $z_t$. The temporal relationship is rigid and given by
-a single linear operator $A$.
+a single linear operator $A$. The model can capture different trajectories, but at the expense of making the dictionary $D$ large and unstable.
 \item - Optimiziation is too ``easy": there are many local minima, and the objective function is not directly optimizing what we want.
 \end{itemize}
+
+\subsection{Position and Momentum Dynamics}
+
+We want to explicitly disentangle the representation of position, encoding 
+the current state of the system, from the representation of momentum, encoding 
+how the position is going to evolve in time:
+
+$$\mu_{t+1} = \mathcal{F}(\mu_t, v_t)~,$$
+$$v_{t+1} \approx v_{t}~,\mbox{ or} ~~v_{t+1} \approx A v_{t}~,$$
+
+In that setting, our observations are typically obtained from $\mu_t$ through a linear decoder. 
+The critical part of the model is the operator $\mathcal{F}$.
+If the $\mu_t$ are sparse, then it is natural to expect that the momentum will act by moving the active set. 
+In that case, we want to model 
+$$\mathcal{F}(\mu, v)(k)= \mu(k - v(k))~.$$
+Here, $v$ can model a deformation field in the dictionary where $\mu$ is defined, or a more compact
+feature vector encoding only smooth vector fields.
+
+Another model is to consider a bilinear operator:
+$$\mathcal{F}(\mu, v)(k) = \sum_{i,j} v(i) \mu(j) F_{i,j,k}~,$$
+
+And yet a simpler model is the linear version:
+$$\mathcal{F}(\mu, v) = F_1 \mu + F_2 v~,$$
+
+The question is how these dynamics compare with non-linear models of RNNs:
+$$[\mu_{t+1}, v_{t+1}] = \rho( F_\mu \mu_t + F_v v_t)~.$$
+
+
+\subsection{The exponential mapping} 
+
 
 \subsection{Bilevel Linear NMF}
 
 A modification of the previous model is to train it discriminatively to predict the next frame:
 
 If we denote 
-$$z*_t(D, A, x) = \argmin_z \| x_t - D z_t \|^2 + \|z_t \|_1 +  \| z_t - A z_{t-1} \|^2~,$$
+$$z*_t(D, A, x) = \arg \min_z \| x_t - D z_t \|^2 + \|z_t \|_1 +  \| z_t - A z_{t-1} \|^2~,$$
 we optimize
 $$\min_{D, A, E} \| x_{t+1} - E z*_t(D, A, x) \|^2~.$$
 
@@ -131,6 +224,8 @@ $$\min_{D, A, E} \| x_{t+1} - E z*_t(D, A, x) \|^2~.$$
 \section{Examples: Newton Dynamics, Jitter}
 
 \section{Pooling and Scattering}
+
+Optical FLow
 
 \section{Relationship to Previous work}
 
