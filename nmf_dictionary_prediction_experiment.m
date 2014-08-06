@@ -22,6 +22,7 @@ param.iter=12000; % let us see what happens after 1000 iterations .
 param.posD=1;
 param.posAlpha=1;
 param.pos=1;
+param.verbose=false
 
 D=TrainDL_wrapper(X, param);
 alpha = mexLasso(X, D, param);

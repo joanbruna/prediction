@@ -27,12 +27,9 @@ K = getoptions(options, 'K', 2*N);
 %initial dictionary
 batchsize=getoptions(options,'batchsize',100);
 p=getoptions(options,'p',50);
-II=randperm(floor(M/batchsize)-1);
+II=randperm(floor(M/batchsize)-0);
 idx = randperm(M);
 D=X(:,idx(1:K));
-
-rho=0;
-D=rho*D + (1-rho)*randn(size(D));
 
 D=getoptions(options,'initdictionary',D);
 D = mexNormalize(D);
