@@ -23,9 +23,9 @@ end
 
 % Duplicate the spectrum
 [M,N] = size(spectrogram);
-S = zeros(2*M,N);
-S(1:NFFT/2,:) = spectrogram;
-S(NFFT/2+2:end,:) = flipud(conj(spectrogram(2:end,:)));
+S = zeros(2*(M-1),N);
+S(1:(NFFT/2+1),:) = spectrogram;
+S(NFFT/2+2:end,:) = flipud(conj(spectrogram(2:end-1,:)));
 spectrogram = S;
 
  

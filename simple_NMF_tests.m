@@ -17,7 +17,7 @@ if ~exist('X','var') && ~exist('Xc','var')
 end
 
 
-param.K=60; % learns a dictionary with 100 elements 
+param.K=50; % learns a dictionary with 100 elements 
 param.lambda=0.1; 
 %param.numThreads=12;	%	number	of	threads 
 param.batchsize =1000;

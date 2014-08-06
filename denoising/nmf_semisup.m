@@ -1,6 +1,6 @@
-function [out,z] = nmf_semisup(X,D,W,A,options)
+function [y,z] = nmf_semisup(X,D,W,A,options)
 
-iters=200;
+iters=10;
 
 %alpha=getoptions(options,'iir_param',(.02)^(1/size(X,2)));
 % alpha = 0.9;
@@ -22,12 +22,23 @@ WD = W'*D;
 Asq = A'*A;
 Wsq = W'*W;
 
-y = zeros(K,M);
-z = zeros(Kw,M);
+
+H = getoptions(options,'H',[]);
+
+if isempty(H)
+    y = zeros(K,M);
+    z = zeros(Kw,M);
+else
+    if size(H,1)~= K+Kw
+       error('Size of H do not match size of D and Wn');
+    end
+    y = H(1:K,:);
+    z = H(K+1:end,:);
+end
 
 mu = getoptions(options,'mu',0);
 
-t0 = .5 * (1/(norm(D,2)^2 + mu^2*norm(A,2)^2 + mu^2 )) ;
+t0 = .5 * (1/(norm(D,2)^2 +norm(W,2)^2 + mu^2*norm(A,2)^2 + mu^2 )) ;
 tz = .5 *( 1/norm(W,2)^2 ) ;
 
 out = y;
@@ -41,18 +52,12 @@ lambda = getoptions(options,'lambda',0.1);
 % tparam.groups=int32(mod(floor([0:KK-1]/groupsize),K/groupsize) )+1;
 %keyboard
 tparam.lambda = t0 * lambda;% * (size(D,2)/K);
-tparam.pos = 'true'; % impose non-negativity
+tparam.pos = true; % impose non-negativity
 t=1;
 
-%for i=min(tparam.groups):max(tparam.groups)
-%	II{i}=find(tparam.groups==i);
-%end
-% [~,I0]=sort(tparam.groups);
-% I1=invperm(I0);
 
+obj0 = compute_obj(X,[y;z],D,W,options);
 
-% ss=groupsize*options.time_groupsize;
-% rr=KK*MM/ss;
 
 for i=1:iters
     
@@ -62,16 +67,24 @@ for i=1:iters
     
 	aux_y = y - t0*(Dsq * y + DW*z - DX) - t0*mu*(Asq*yt - A'*yt1) - t0*mu*(y - A*ym );
     
-    z = z - tz*(Wsq * z + WD*y - WX);
+    z = max(z - tz*(Wsq * z + WD*y - WX),0);
 	
     % proximal projection on y
     newout = mexProximalFlat(aux_y, tparam);
-
-	newt = (1+ sqrt(1+4*t^2))/2;
-	y = newout + ((t-1)/newt)*(newout-out);
-	out=newout;
-	t=newt;
+    
+    y = newout;
+% 	newt = (1+ sqrt(1+4*t^2))/2;
+% 	y = newout + ((t-1)/newt)*(newout-out);
+% 	out=newout;
+% 	t=newt;
+    
+    %obj(i) = compute_obj(X,[y;z],D,W,options);
+    
+%     compute_obj(X,[y;z],D,W,options,A)
+    
 end
+
+
 
 end
 

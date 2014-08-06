@@ -1,4 +1,4 @@
-function [H,Wn,obj] = nmf_beta(S,W,params) 
+function [H,Wn,obj] = nmf_beta_dynamics(S,W,params) 
 
 % beta, lambda1, lambda_ast, n_iter_max, tol, W , switch_W,H)
 
@@ -19,7 +19,7 @@ switch_H = 1;
 
 verbo = getoptions(params,'verbose',0);
 
-Wn = getoptions(params,'W',[]);
+Wn = getoptions(params,'Wn',[]);
 
 if ~isempty(Wn)
     switch_W = 0;
@@ -28,12 +28,13 @@ else
     switch_W = 1;
 end
 
-switch_W = getoptions(params,'switch_W',switch_W);
+switch_W = getoptions(params,'switch_W',1);
 
 
-% initialize random if there's no initial H
-H = abs(randn(K+Kn,N)) + 1;
-H = getoptions(params,'H',H);
+if ~any(strcmp('H',fieldnames(params)))
+    H = abs(randn(K+Kn,N)) + 1;
+end
+
 
 
 V_ap = [W,Wn]*H;
@@ -48,7 +49,7 @@ Lambda1 = repmat(lambda1,1,N);
 eps = 1e-9;
 
 iter = 1;
-if tol>0 || verbo
+if tol>0
     fit = zeros(1,n_iter_max);
     obj = zeros(1,n_iter_max);
 %     fit(iter) = betadiv(V,V_ap,beta); % Fit (beta-div)
@@ -65,14 +66,13 @@ end
 % while (err >= tol ) && (iter < n_iter_max)
 while (iter < n_iter_max)    
     
-
     if switch_W
         Wn = Wn .* ((V.*V_ap.^(beta-2))*H((K+1):end,:)')./( V_ap.^(beta-1)*H((K+1):end,:)'+eps);
         % normalize columns
         Wn = mexNormalize(Wn);
         V_ap = [W,Wn]*H;
+        
     end
-
     
     
     if switch_H
@@ -88,7 +88,7 @@ while (iter < n_iter_max)
 %     end
     
     iter = iter + 1;
-    if tol>0 || verbo
+    if tol>0
 %     fit(iter) = betadiv(V,V_ap,beta);
     Haux = Lambda1.*H;
     obj(iter) = betadiv(V,V_ap,beta)+ sum(Haux(:));% + lambda_ast*sum(trace(H'*H))  + sum(Haux(:)); % Objective (penalized fit)
@@ -107,6 +107,9 @@ if nargout==3 && tol==0
     obj = betadiv(V,V_ap,beta)+ sum(Haux(:));
 end
 
+if (verbo == 1)
+fprintf('iter = %4i | obj = %+5.2E | err = %4.2E (target is %4.2E) \n',iter,obj(iter),err,tol)
+end
 if tol>0
 obj = obj(1:iter); fit = fit(1:iter);
 end

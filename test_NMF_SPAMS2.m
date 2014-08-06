@@ -58,7 +58,7 @@ epsilon = 1;
 % Xn = Xn ./ repmat(sqrt(epsilon^2+sum(Xn.^2)),size(Xn,1),1) ;
 
 
-nparam.K=5; 
+nparam.K=10; % learns a dictionary with 100 elements 
 nparam.lambda=0; 
 %param.numThreads=12;	%	number	of	threads 
 nparam.iter=100; % let us see what happens after 1000 iterations .
@@ -76,6 +76,10 @@ param.Wn = Wn;
 
 %% 
 
+
+
+%speech = '../data/grid/s4/lrak4s.wav';
+%noise = '../../instrument_separation/data/noise/train/noise/noise_sample_08.wav';
 speech ='../../../../misc/vlgscratch3/LecunGroup/bruna/grid_data/s4/lrak4s.wav';
 noise = '../../../../misc/vlgscratch3/LecunGroup/bruna/noise_data/train/noise_sample_08.wav';
 
@@ -112,8 +116,24 @@ end
 mix = x + n;
 
 Smix = compute_spectrum(mix,params.NFFT, params.hop);
+%Smix = Smix(1:(end/2+1),:);
+
+%Smix = params.scf * stft(mix, params.NFFT , params.NFFT , params.hop);
+% Smix = Smix(1:end,:);
+% Vmix = abs(Smix);
+
 Vmix = abs(Smix);
 
+
+ Sx = params.scf * stft(x, params.NFFT , params.winsize, params.hop);
+ Vx = abs(Sx);
+% 
+% Sn = params.scf * stft(n, params.NFFT , params.winsize, params.hop);
+% Vn = abs(Sn);
+
+% compute spectral representation
+%  Smix = params.scf * stft(mix, params.NFFT , params.winsize, params.hop);
+%  Vmix = abs(Smix);
 
 [N,K] = size(D);
 
@@ -122,31 +142,37 @@ Vmix = abs(Smix);
 
 % Compute unmixing
 param.lambda = 0;
+% param.lambda =0;
+%param.Kn = 5;
 
 
 Pmix = mexNormalize(Vmix);
-%Pmix = Vmix ./ repmat(sqrt(epsilon^2+sum(Vmix.^2)),size(Vmix,1),1) ;
+%     Pmix = Vmix ./ repmat(sqrt(epsilon^2+sum(Vmix.^2)),size(Vmix,1),1) ;
+%  [~,H] = nmf_beta(Pmix,2,0.1,0,100,0,[D,Wn],0);
+%     param.iter = 1;
 H = mexLasso(Pmix,[D,Wn],param);
 
 Hs = H(1:K,:);
 Hn = H((K+1):end,:);
 
 
+
+%%
+Vs2 = D* Hs;
+Vn2 = Wn* Hn;
+
+
 R = {};
-R{1} = D* Hs;
-R{2} = Wn* Hn;
+R{1} = Vs2;
+R{2} = Vn2;
 
 y_out = wienerFilter2(R,Smix);
 
 
 
 m = length(y_out{1});
-x2 = x(1:m);
-n2 = n(1:m);
+x = x(1:m);
+n = n(1:m);
 
-[SDR,SIR,SAR,perm] = bss_eval_sources( [y_out{1},y_out{2}]',[x2,n2]');
+[SDR,SIR,SAR,perm] = bss_eval_sources( [y_out{1},y_out{2}]',[x,n]');
 [SDR,SIR,SAR]
-
-
-%%
-So = compute_spectrum(y_out{1},params.NFFT, params.hop);

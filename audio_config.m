@@ -6,7 +6,7 @@ params.fs=16000;
 params.window_type='sinebell';
 params.NFFT = 640;
 params.winsize=params.NFFT;
-params.hop=params.NFFT/2;
+params.hop=params.NFFT/4;
 params.scf = 2/3;
 
 
