@@ -38,7 +38,7 @@ D = mexNormalize(D);
 W = eye(K);
 
 
-rho =getoptions(options,'rho',15);
+rho =getoptions(options,'rho',3);
 
 
 Bd=0*D;
@@ -136,7 +136,7 @@ Bwaux= zeros(size(Bwaux));
 % end
 % 
 % if mod(n,ch)==ch-1
-fprintf('done chunk %d of %d\n',ceil(n/p),niters/p )
+fprintf('done chunk %f of %f\n',ceil(n/p),floor(niters/p) )
 %compute error 
 % modulus = modphas_decomp(alpha,groupsize);
 alpha = nmf_linear_dynamic_pursuit( datav, D, W , options);
@@ -150,6 +150,8 @@ currerr = c1 + c2 + c3;
 verbo(rast) = currerr;rast=rast+1;
 fprintf('current error is %f (%f %f %f) \n', currerr, c1, c2, c3)
 
+
+save temp D W options n
 
 end
 

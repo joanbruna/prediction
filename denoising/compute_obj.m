@@ -1,4 +1,4 @@
-function obj = compute_obj(V,H,W,Wn,param,A)
+function [obj,c] = compute_obj(V,H,W,Wn,param,A)
 
 
 if nargin == 5
@@ -22,4 +22,8 @@ V_ap = [W,Wn]*H;
 Haux = Lambda1.*H;
 Hs = H(1:end-Kn,:);
 
-obj = betadiv(V,V_ap,beta)+ sum(Haux(:)) + mu*0.5*norm(Hs(:,2:end) - A*Hs(:,1:end-1),'fro')^2;
+c(1) = betadiv(V,V_ap,beta);
+c(2) = sum(Haux(:));
+c(3) = mu*0.5*norm(Hs(:,2:end) - A*Hs(:,1:end-1),'fro')^2;
+
+obj = sum(c);

@@ -1,4 +1,4 @@
-function [alpha,alphan,W,Wo] = denoising_nmf(V,D,options)
+function [alpha,alphan,W,Wo] = denoising_nmf(V,D,options,A)
 %
 %  0.5* || V -Ds*alphas - Dn*alphan ||^2 + lambda || alphas ||_1
 %
@@ -6,6 +6,12 @@ function [alpha,alphan,W,Wo] = denoising_nmf(V,D,options)
 % V is the magnitude spectrogram of the mixed signal
 
 % number of atoms for noise dictionary
+
+
+if nargin <4
+    A = [];
+end
+
 Kn = getoptions(options,'Kn',5);
 
 [N,M] = size(V);
@@ -23,7 +29,7 @@ in_iter = 1;
 for i=1:niter
     
     % minimize over [alphas, alphan]
-    [alpha,alphan] = nmf_semisup(V,D,W,[],options);
+    [alpha,alphan] = nmf_semisup(V,D,W,A,options);
 
     
     options.H = [alpha;alphan];

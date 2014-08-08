@@ -1,14 +1,5 @@
 
 
-addpath nmf_linear_dynamics/
-addpath bss_eval_3/
-addpath spect/
-addpath ../spams-matlab/build/
-addpath utils
-addpath denoising/
-
-%%
-
 % Load data for single speaker
 
 %load class_s4.mat
@@ -24,7 +15,7 @@ else
     end
 end
 
-%epsilon = 0.1;
+epsilon = 0.1;
 %X = X ./ repmat(sqrt(epsilon^2+sum(X.^2)),size(X,1),1) ;
 X = mexNormalize(X);
 
@@ -34,7 +25,7 @@ X = mexNormalize(X);
 % Train dictionary for single speaker
 
 
-param.K=1000; % learns a dictionary with 100 elements 
+param.K=50; % learns a dictionary with 100 elements 
 param.lambda=0.1; 
 %param.numThreads=12;	%	number	of	threads 
 param.batchsize =1000;
@@ -47,29 +38,9 @@ param.pos=1;
 D=mexTrainDL(X, param);
 
 
-keyboard
-
 % a=mexLasso(X,D, param);
 
-%%
 
-% Train linear temporal dynamics
-
-
-ld_param = struct;
-%param.D = Dini;
-ld_param.K = 500;
-ld_param.lambda = 0.1;
-ld_param.mu = 10;
-ld_param.epochs = 1;
-ld_param.batchsize = 100;
-ld_param.renorm_input = 0;
-
-
-
-[D_ld,A_ld] = nmf_linear_dynamic(X, ld_param);
-
-keyboard
 
 %% 
 
@@ -127,11 +98,12 @@ rep = 10;
 rates = zeros(rep,3);
 obj = zeros(rep,1);
 
+K = size(D,2);
 
 for i=1:rep
 
 nparam.Kn=2; %
-nparam.iter=1000; 
+nparam.iter=200; 
 nparam.pos=1;
 nparam.lambda = param.lambda;
 nparam.verbose = 0;
@@ -178,12 +150,7 @@ disp(min(rates))
 rep = 10;
 rates = zeros(rep,3);
 obj = zeros(rep,1);
-
-nparam = param;
-
-nparam.Kn=2; %
-nparam.iter=100; 
-nparam.pos=1;
+nparam.iter = 100;
 
 for i=1:rep
 
@@ -214,54 +181,13 @@ end
 rates(i,:) = [SDR(1) SIR(1) SAR(1)];
 
 obj(i) = compute_obj(Pmix,[Hs;Hn],D,Wn,nparam);
-i
+
 end
 
 % [disp(mean(rates)),disp(max(rates)),disp(min(rates))]
 
 
+
+
 %%
-
-ld_nparam = ld_param;
-
-rep = 10;
-rates = zeros(rep,3);
-obj = zeros(rep,1);
-ld_nparam.iter = 100;
-
-ld_nparam.Kn = 2;
-
-for i=1:rep
-
-
-Pmix = mexNormalize(Vmix);
-%Pmix = Vmix ./ repmat(sqrt(epsilon^2+sum(Vmix.^2)),size(Vmix,1),1) ;
-%[H,Wn,obj(i)] = nmf_beta(Pmix,D,nparam);
-[Hs,Hn,Wn] = denoising_nmf(Pmix,D_ld,ld_nparam,A_ld);
-
-
-R = {};
-R{1} = D_ld* Hs;
-R{2} = Wn* Hn;
-
-y_out = wienerFilter2(R,Smix);
-
-
-m = length(y_out{1});
-x2 = x(1:m);
-n2 = n(1:m);
-
-[SDR,SIR,SAR,perm] = bss_eval_sources( [y_out{1},y_out{2}]',[x2,n2]');
-
-if isnan(SDR(1))
-    keyboard
-end
-
-rates(i,:) = [SDR(1) SIR(1) SAR(1)];
-
-obj(i) = compute_obj(Pmix,[Hs;Hn],D_ld,Wn,ld_nparam);
-
-end
-
-
-
+So = compute_spectrum(y_out{1},params.NFFT, params.hop);
