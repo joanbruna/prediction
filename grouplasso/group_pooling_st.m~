@@ -35,9 +35,9 @@ D=getoptions(options,'initdictionary',D);
 norms = sqrt(sum(D.^2));
 D = D./ repmat(norms,[size(D,1) 1]);
 
-sort_dict = 0;
+sort_dict = 1;
 if sort_dict
-    D = sortD(D); 
+     
 end
 
 

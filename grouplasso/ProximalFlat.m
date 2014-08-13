@@ -7,5 +7,3 @@ I=find(normes>0);
 aux(I) = aux(I).*(max(0,normes(I)-lambda)./normes(I));
 aux = reshape(aux, size(in));
 out= aux(I1,:);
-
-
