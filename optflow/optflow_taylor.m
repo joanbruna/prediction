@@ -7,6 +7,7 @@ h(1)=1;
 h(end)=-1;
 
 lambda=getoptions(options,'lambda',1);
+lambdar=getoptions(options,'lambdar',0);
 sigma=getoptions(options,'sigma',1);
 
 hh=gabor(N,sigma);
@@ -27,7 +28,7 @@ G=G - circshift(G,[1 0]);
 Gg=G'*G;
 
 for l=1:L
-theta(:,l) = (diag(gradz(:,l).^2) + lambda *Gg)\(gradz(:,l).*zdif(:,l));
+theta(:,l) = (diag(gradz(:,l).^2) + lambda *Gg + lambdar * eye(N))\(gradz(:,l).*zdif(:,l));
 end
 
 gradz=ifft(repmat(hf,1,L).*zf);
