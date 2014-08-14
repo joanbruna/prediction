@@ -14,9 +14,9 @@ hh=gabor(N,sigma);
 
 hf=fft(h,[],1);
 zf=fft(z,[],1);
-zb = ifft(zf.*repmat(hh,1,L));
+zb = real(ifft(zf.*repmat(hh,1,L)));
 
-gradz=ifft(repmat(hh,1,L).*repmat(hf,1,L).*zf);
+gradz=real(ifft(repmat(hh,1,L).*repmat(hf,1,L).*zf));
 
 zbis=0*zb;
 zbis(:,2:end)=zb(:,1:end-1);
@@ -31,7 +31,7 @@ for l=1:L
 theta(:,l) = (diag(gradz(:,l).^2) + lambda *Gg + lambdar * eye(N))\(gradz(:,l).*zdif(:,l));
 end
 
-gradz=ifft(repmat(hf,1,L).*zf);
+gradz=real(ifft(repmat(hf,1,L).*zf));
 estim = z - gradz.*theta;
 
 end
