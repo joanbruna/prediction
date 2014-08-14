@@ -155,6 +155,42 @@ Summary of contributions:
 \end{itemize}
 
 
+\section{Optical Flow Dynamics}
+
+We train a dictionary in which coefficients have smooth optical flow.
+
+\begin{equation}
+\min \| X - D Z \|^2  + \| Z \|_{1,slow} + \| \delta_t Z - \nabla Z \cdot \tau_t \|^2 + \| \tau - \widetilde{D} \beta \|^2 + \| \beta\|_{1,slow}   ~.
+\end{equation}
+
+Comments:
+\begin{itemize}
+
+\item This is the simplest bilinear model that linearizes optical flow in the code space. THe bilinear operator is given by 
+$$U(z, \tau) = z + \nabla z \cdot \tau~.$$
+
+Other alternatives are:
+
+$$U^{w}(z, \tau)_k = z(k - \tau_k)~~\mbox{(warping)}~.$$
+
+$$U^{e}(z, \tau)_k = exp(i \tau) z_k ~~\mbox{exponential}~.$$
+
+\item We initialize the dictionary $D$ with either NMF with ordered atoms, either grouped NMF across features and time. 
+
+\item We initialize $\tau$ to $0$ (slowness). 
+
+\item The structure in the dynamics is captured by the dictionary $\widetilde{D}$. The objective of the model is that 
+the momentum variables $\tau$ have linear, smooth dynamics (corresponding to a world of small acceleration).
+
+\item The topology in $D$ appears in the gradient $\nabla z$. We can consider more general topologies (eg convolutional for images).
+
+\item If the dictionary $\widetilde{D}$ has $M$ atoms, then $U(z,\tau)$ becomes a bilinear operator 
+$$U(z,\tau) = (I + \sum_{m=1}^M \beta_m \nabla \cdot  \widetilde{d}_m ) z~,$$
+where $\tau = \sum_m \beta_m \widetilde{d}_m$.
+
+\end{itemize}
+
+
 \section{Linearizing Dynamics}
 
 \subsection{Linear NMF Dynamics}
