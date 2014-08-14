@@ -23,7 +23,8 @@ zbis(:,1:end-1)=zb(:,2:end);
 zdif = zb-zbis;
 
 G=eye(N);
-G=G - circshift(G,[1 0]);
+G=G - circshift(G,[0 1]);
+G=G(1:end-1,:);
 %G(1,end)=0;
 Gg=G'*G;
 
