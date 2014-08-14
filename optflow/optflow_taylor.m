@@ -1,4 +1,4 @@
-function theta = optflow_taylor(z, options)
+function [theta,estim] = optflow_taylor(z, options)
 %this computes optical flow using simple taylor expansion
 
 [N, L] = size(z);
@@ -23,12 +23,15 @@ zdif = zb-zbis;
 
 G=eye(N);
 G=G - circshift(G,[1 0]);
+%G(1,end)=0;
 Gg=G'*G;
 
 for l=1:L
 theta(:,l) = (diag(gradz(:,l).^2) + lambda *Gg)\(gradz(:,l).*zdif(:,l));
 end
 
+gradz=ifft(repmat(hf,1,L).*zf);
+estim = z - gradz.*theta;
 
 end
 
