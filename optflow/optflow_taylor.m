@@ -31,8 +31,8 @@ for l=1:L
 theta(:,l) = (diag(gradz(:,l).^2) + lambda *Gg + lambdar * eye(N))\(gradz(:,l).*zdif(:,l));
 end
 
-gradz=real(ifft(repmat(hf,1,L).*zf));
-estim = z - gradz.*theta;
+%gradz=real(ifft(repmat(hf,1,L).*zf));
+estim = zb - gradz.*theta;
 
 end
 
