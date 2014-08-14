@@ -1,4 +1,4 @@
-function [alpha,alphan,W,Wo] = denoising_group_pooling(V,D,options)
+function [alpha,alphan,W,obj,Wo] = denoising_group_pooling(D,V,options,Px,Pn)
 %
 %  0.5* || V -Ds*alphas - Dn*alphan ||^2 + lambda || alphas ||_1
 %
@@ -26,14 +26,18 @@ for i=1:niter
     
     % minimize over [alphas, alphan]
     % [alpha,alphan] = nmf_semisup(V,D,W,A,options);
-    [alpha,alphan]= group_pooling_semisup( V,D, W, options);
-
+    options.W = W;
+    options.fista = 1;
+    [alpha,cost,alphan] = group_pooling_semisup( D,V, options);
+    
+    c(i) = cost;
     
     options.H = [alpha;alphan];
+
     
     % minimize Dn
     for j=1:in_iter
-        V_ap = [D,W]*[alpha;alphan];
+        V_ap = [D,W]*options.H;
         W = W .* ( V*alphan')./(V_ap*alphan');
 
         W = mexNormalize(W);
@@ -42,4 +46,7 @@ for i=1:niter
     
     
 end
+
+obj = cost;
+
 
