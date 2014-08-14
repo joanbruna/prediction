@@ -19,7 +19,7 @@ zb = real(ifft(zf.*repmat(hh,1,L)));
 gradz=real(ifft(repmat(hh,1,L).*repmat(hf,1,L).*zf));
 
 zbis=0*zb;
-zbis(:,2:end)=zb(:,1:end-1);
+zbis(:,1:end-1)=zb(:,2:end);
 zdif = zb-zbis;
 
 G=eye(N);
