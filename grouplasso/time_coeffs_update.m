@@ -9,12 +9,17 @@ costout=0;
 
 iters=getoptions(options,'alpha_iters',50);
 iters_encoder=getoptions(options,'alpha_iters_encoder',60);
+overlapping=getoptions(options,'overlapping',1);
+nmf=getoptions(options,'nmf', 0);
+lambda = getoptions(options,'lambda',0.1);
+groupsize = getoptions(options,'groupsize',2);
+time_groupsize = getoptions(options,'time_groupsize',2);
 
 if ~exist('t0','var')
     t0 = getoptions(options,'alpha_step',0.25);
     t0 = t0 * (1/max(svd(D))^2);
 end
-t0 = t0 / options.time_groupsize;
+t0 = t0 / time_groupsize;
 
 
 [~,M]=size(X);
@@ -25,14 +30,8 @@ y = zeros(K,M);
 
 out = y;
 
-overlapping=getoptions(options,'overlapping',1);
-nmf=getoptions(options,'nmf', 0);
 
 tparam.regul='group-lasso-l2';
-lambda = getoptions(options,'lambda',0.1);
-%tparam.regul='l1';
-groupsize = getoptions(options,'groupsize',2);
-time_groupsize = getoptions(options,'time_groupsize',2);
 %keyboard
 tparam.lambda = t0 * lambda;% * (size(D,2)/K);
 t=1;
