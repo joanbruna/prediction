@@ -1,4 +1,13 @@
 
+
+if ~exist('Xqn','var')
+    M = 200;
+    load ../../../../misc/vlgscratch3/LecunGroup/bruna/grid_data/spect_640/class_s4.mat
+    load dictionary_s4_sort
+    Xq = Xc(:,1:M);
+    Xqn = mexNormalize(Xq);
+end
+
 p.sigma = 0.1;
 p.hn = 5;
 p.lambda = 0.1;
@@ -7,6 +16,8 @@ p.lambdar = 0.1;
 options.mu = 1;
 
 niter = 10;
+
+K = size(DD,2);
 
 A0 = nmf_optflow( Xqn, DD, zeros(K,M), options);
 A = A0;
