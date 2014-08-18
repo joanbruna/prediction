@@ -20,7 +20,7 @@ indexes_inv{1} = Mind_inv;
 if S>1
 for i=2:S
     
-    Cind_c = circshift(Cind, [v(i,1) v(i,1)]);
+    Cind_c = circshift(Cind, [v(i,1) v(i,2)]);
     Mind = im2col(Cind_c,[Gf,Gt],'distinct');
     Mind_inv = reshape(invperm(Mind),K,M);
     
