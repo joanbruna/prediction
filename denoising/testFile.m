@@ -1,20 +1,13 @@
 
-function output = testFile(speech,noise,fun,options)
+function output = testFile(speech,noise,testFun,D,nparam,SNR_dB)
 
 
-% load file
-
-
-% Load files
 params_aux = audio_config();
 
+fs = params_aux.fs;
+NFFT = params_aux.NFFT;
+hop = params_aux.hop;
 
-fs = getoptions(options,'fs',params_aux.fs);
-NFFT = getoptions(options,'fs',params_aux.NFFT);
-hop = getoptions(options,'fs',params_aux.hop);
-
-
-SNR_dB = 0;
 
 [x,Fs] = audioread(speech);
 x = resample(x,fs,Fs);
@@ -33,6 +26,9 @@ m = min(length(x),length(n));
 x = x(1:m);
 n = n(1:m);
 
+x = x - mean(x);
+n = n - mean(n);
+
 % adjust SNR
 x = x/sqrt(sum(power(x,2)));
 if sum(power(n,2))>0
@@ -46,29 +42,46 @@ mix = x + n;
 Smix = compute_spectrum(mix,NFFT, hop);
 Vmix = abs(Smix);
 
+Sx = compute_spectrum(x,NFFT, hop);
+Vx = abs(Sx);
+Px = mexNormalize(Vx);
+
+Sn = compute_spectrum(n,NFFT, hop);
+Vn = abs(Sn);
+Pn = mexNormalize(Vn);
 
 
-%%
+%
 
-ld_nparam = ld_param;
-
-rep = 10;
+rep = 1;
 rates = zeros(rep,3);
 obj = zeros(rep,1);
-ld_nparam.iter = 100;
+rec = obj;
 
-ld_nparam.Kn = 2;
+
+add_frame = mod(size(Vmix,2),2);
+
+if add_frame
+    Vmix(:,end+1) = 0;
+end
+    
 
 for i=1:rep
 
 
 Pmix = mexNormalize(Vmix);
 
-[Hs,Hn,Wn] = denoising_nmf(Pmix,D_ld,ld_nparam,A_ld);
+[Hs,Hn,Wn,obj_i] = testFun(Pmix,nparam,Px,Pn);
+
+
+if add_frame
+    Hs = Hs(:,1:end-1);
+    Hn = Hn(:,1:end-1);
+end
 
 
 R = {};
-R{1} = D_ld* Hs;
+R{1} = D* Hs;
 R{2} = Wn* Hn;
 
 y_out = wienerFilter2(R,Smix);
@@ -80,16 +93,21 @@ n2 = n(1:m);
 
 [SDR,SIR,SAR,perm] = bss_eval_sources( [y_out{1},y_out{2}]',[x2,n2]');
 
-if isnan(SDR(1))
-    keyboard
-end
 
 rates(i,:) = [SDR(1) SIR(1) SAR(1)];
 
-obj(i) = compute_obj(Pmix,[Hs;Hn],D_ld,Wn,ld_nparam);
+obj(i) = obj_i;
+
+rec(i) = norm(Px - R{1},'fro');
 
 end
 
-output.rates = rates;
+output.A = Hs;
 output.obj = obj;
+output.Wout = Wn;
+output.speech = y_out{1};
+output.speech_orig = x2;
+output.mix = mix;
+output.rates = rates;
 
+end

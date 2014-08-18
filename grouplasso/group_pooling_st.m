@@ -35,13 +35,13 @@ D=getoptions(options,'initdictionary',D);
 norms = sqrt(sum(D.^2));
 D = D./ repmat(norms,[size(D,1) 1]);
 
-sort_dict = 0;
+sort_dict=getoptions(options,'sort_dict',1);
 if sort_dict
     D = sortD(D); 
 end
 
 
-pt = 1;
+pt=getoptions(options,'plot_dict',0);
 if pt
     figure
     dbimagesc(D+0.001);
@@ -77,7 +77,8 @@ t0 = t0 * (1/max(svd(D))^2);
 time_groupsize=getoptions(options,'time_groupsize',2);
 options.batchsize=batchsize;
 options.time_groupsize=time_groupsize;
-lambda = getoptions(options,'lambda',0.1);
+
+% period of dictionary update in iterations
 p=getoptions(options,'p',15);
 
 D0=D;
@@ -106,7 +107,8 @@ for n=1:niters
     end
     
     
-    [alpha,cost_aux] = time_coeffs_update( D, data, options,t0);
+    % [alpha,cost_aux] = time_coeffs_update( D, data, options,t0);
+    [alpha,cost_aux] = group_pooling_semisup( D, data, options,t0);
     
     
     cost = cost + cost_aux;

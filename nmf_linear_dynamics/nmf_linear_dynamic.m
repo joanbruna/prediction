@@ -26,7 +26,7 @@ K = getoptions(options, 'K', 2*N);
 
 %initial dictionary
 batchsize=getoptions(options,'batchsize',100);
-p=getoptions(options,'p',50);
+p=getoptions(options,'p',15);
 II=randperm(floor(M/batchsize)-0);
 idx = randperm(M);
 D=X(:,idx(1:K));
@@ -127,7 +127,7 @@ W = dictionary_update( W,Aw,Bw,options);
 
 Adaux= zeros(size(Adaux));
 Bdaux= zeros(size(Bdaux));
-
+f
 Awaux= zeros(size(Awaux));
 Bwaux= zeros(size(Bwaux));
 

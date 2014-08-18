@@ -12,9 +12,9 @@ addpath denoising/
 % Load data for single speaker
 
 %load class_s4.mat
-if 0
+if 1
     % use single speaker for training
-    load ../../../../misc/vlgscratch3/LecunGroup/bruna/grid_data/spect_640/class_s1.mat
+    load ../../../../misc/vlgscratch3/LecunGroup/bruna/grid_data/spect_640/class_s4.mat
     X = Xc;
     clear Xc;
 else
@@ -34,7 +34,7 @@ X = mexNormalize(X);
 % Train dictionary for single speaker
 
 
-param.K=1000; % learns a dictionary with 100 elements 
+param.K=100; % learns a dictionary with 100 elements 
 param.lambda=0.1; 
 %param.numThreads=12;	%	number	of	threads 
 param.batchsize =1000;

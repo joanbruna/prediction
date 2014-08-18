@@ -1,9 +1,9 @@
 
 
 if ~exist('Xqn','var')
-    M = 200;
-    load ../../../../misc/vlgscratch3/LecunGroup/bruna/grid_data/spect_640/class_s4.mat
-    load dictionary_s4_sort
+    M = 20;
+    load /misc/vlgscratch3/LecunGroup/bruna/grid_data/spect_640/class_s4.mat
+    load /misc/vlgscratch3/LecunGroup/bruna/grid_data/dictionary_s4_sort
     Xq = Xc(:,1:M);
     Xqn = mexNormalize(Xq);
 end
@@ -29,9 +29,8 @@ theta0 = theta;
 
 
 for i = 1:niter
-
+    
    [A,c(i)] = nmf_optflow( Xqn, DD, theta, options,A);
-
    
    [theta,estim] = optflow_taylor2(A, p,theta);
    

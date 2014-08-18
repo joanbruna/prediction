@@ -44,14 +44,13 @@ v = getoptions(options,'v',[0,0]);
 if overlapping
 
 
-count = 1;
 for i=1:iters
 %	if verb
 %	fprintf('it %d \n',i)
 %	end
 	aux = y - t0*(Dsq * y - DX);
-	if nmf
-	aux = max(0,aux);
+    if nmf
+        aux = max(0,aux);
     end
     
 

@@ -18,11 +18,28 @@ X = mexNormalize(X);
 options.K=100;
 options.epochs=4;
 options.overlapping=1;
-options.time_groupsize=2;
+options.time_groupsize=1;
 options.groupsize=2;
 options.nmf = 1;
 options.alpha_iters=80;
 options.batchsize=512;
-options.v = [0,0;1,0;0,1;1,1];
+options.v = [0,0;1,0;0,1;1,1]; %[0,0;1,0];
+options.sort_dict = 1;
+options.plot_dict = 0;
 
 [DD] = group_pooling_st(X, options);
+
+keyboard
+%%
+
+param.K=100; % learns a dictionary with 100 elements 
+param.lambda=0.1; 
+%param.numThreads=12;	%	number	of	threads 
+param.batchsize =1000;
+param.iter=1000; % let us see what happens after 1000 iterations .
+param.posD=1;
+param.posAlpha=1;
+param.pos=1;
+
+
+Dnmf_s=mexTrainDL(X, param);

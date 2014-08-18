@@ -86,12 +86,13 @@ for i=1:iters
     g_of = - (S'*S*yt1 + Theta.*(A'*S*yt1)) + S'*(S*yt + Theta.*(A*yt) ) ...
         + (Theta.*(A'*S*yt) + Theta2.*(Asq*yt) ) + S'*(S*ym1 - S*ym - Thetam.*(A*ym));
 
+    
     % do gradient descent
     aux = y - t0*g_rec - t0*mu*g_of;
     
     % Proximal operator
     newout = mexProximalFlat(aux, tparam);
-    
+
     
     if fista
         newt = (1+ sqrt(1+4*t^2))/2;
@@ -113,6 +114,7 @@ end
 [objf,rf,opff,sf,t2,dt2] = getCost(X,D,Theta,A,S,y,lambda,lambda_t,lambda_tr,mu);
 fprintf('Total cost: %1.4f, rec: %1.4f, opt-flow %1.4f,spar: %1.4f, reg-theta: %1.4f\n',objf,rf,opff,sf,t2+dt2)
 cout = objf;
+
 
 end
 
