@@ -20,13 +20,13 @@ gp.nmf = 1;
 gp.overlapping=1;
 gp.alpha_iters = 200;
 gp.v = [0,0;1,0;0,1;1,1];
-gp.lambda = 0.4;
+gp.lambda = 0.1;
 
 options.mu = 1;
 
 niter = 10;
 
-X0=Xqn(:,1:400);
+X0=Xqn(:,1:200);
 
 K=size(DD,2);
 M=size(X0,2);
@@ -34,25 +34,7 @@ M=size(X0,2);
 Agl = time_coeffs_update(DD, X0, gp);
 rec = DD*Agl;
 
-%sanity check.
-gp.v = [0,0;1,0];
-Aglbis = time_coeffs_update(DD, X0, gp);
-recbis = DD*Aglbis;
-
-%sanity check.
-gp.v = [0,0;0,1];
-Aglbis2 = time_coeffs_update(DD, X0, gp);
-recbis2 = DD*Aglbis2;
-
-%sanity check.
-gp.v = [0,0];
-Aglbis3 = time_coeffs_update(DD, X0, gp);
-recbis3 = DD*Aglbis3;
-
-norm(rec(:)-X0(:))
-norm(recbis(:)-X0(:))
-norm(recbis2(:)-X0(:))
-norm(recbis3(:)-X0(:))
+norm(rec(:)-X0(:))/norm(X0(:))
 
 keyboard;
 
