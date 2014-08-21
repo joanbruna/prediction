@@ -1,4 +1,5 @@
-function [X,templates,phaschange,dewhiten,aviam]=genetate_jitter_data(options)
+function [X,templates,phaschange,dewhiten,aviam]=generate_jitter_data(options)
+
 
 N=getoptions(options,'N',128);
 L=getoptions(options,'L',2^21);
@@ -37,6 +38,7 @@ phaschange=xf1./xf0;
 
 PP=repmat(phaschange,1,L);
 
+
 jitters=1*jitters - maxjitter0;
 for n=1:ntemplates
 cosa=fft(templates(n,:),marge);
@@ -46,6 +48,7 @@ X(1+(n-1)*marge:n*marge,:)= ifft(aviam,[],1);
 
 end
 X=real(X);
+
 
 
 %%%whiten data

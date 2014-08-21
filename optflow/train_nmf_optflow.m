@@ -20,10 +20,35 @@ end
 
 [N,M]=size(X);
 K = getoptions(options, 'K', 2*N);
+lambda = getoptions(options,'lambda', 0.1);
 
 
-II=randperm(M-1);
-D=X(:,II(1:K));
+init_rand = getoptions(options, 'init_rand', 0);
+init_nmf = getoptions(options, 'init_nmf', 1);
+
+if init_nmf
+    
+    if init_rand == 1
+    init_rand = 0;
+    warning('More than one initialization method set to 1. Using NMF.')
+    end
+    
+    param0 = struct;
+    param0.K = K;
+    param0.lambda = lambda;
+    param0.posD = 1;
+    param0.posAlpha = 1;
+    param0.iter = 200;
+    D = mexTrainDL(X, param0);
+elseif init_rand
+    
+    D = max(1+randn(N,K),0) + 0.1;
+    
+else
+    
+    II=randperm(M-1);
+    D=X(:,II(1:K));
+end
 D=getoptions(options,'initdictionary',D);
 
 norms = sqrt(sum(D.^2));
@@ -33,6 +58,9 @@ sort_dict=getoptions(options,'sort_dict',1);
 if sort_dict
     D = sortD(D); 
 end
+
+
+use_flow=getoptions(options,'use_flow',1);
 
 
 pt=getoptions(options,'plot_dict',0);
@@ -55,21 +83,24 @@ batchsize=getoptions(options,'batchsize',256);
 niters=round(nepochs*M/batchsize);
 
 %initial dictionary
-II=randperm(floor(M/batchsize)-0);
+II=randperm(floor(M/batchsize)-1);
 
 %verbose variables
 chunks=100;
 ch = ceil(niters/chunks);
 
-t0 = getoptions(options,'alpha_step',0.25);
-t0 = t0 * (1/max(svd(D))^2);
+%t0 = getoptions(options,'alpha_step',0.25);
+%t0 = t0 * (1/max(svd(D))^2);
 
-time_groupsize=getoptions(options,'time_groupsize',2);
-options.batchsize=batchsize;
-options.time_groupsize=time_groupsize;
 
 % period of dictionary update in iterations
-p=getoptions(options,'p',15);
+p=getoptions(options,'p',5);
+iter_theta = getoptions(options,'iter_theta',1);
+
+% if no optflow is used, theta should be 1
+if ~use_flow
+    iter_theta = 1;
+end
 
 D0=D;
 rast=1;
@@ -80,27 +111,49 @@ Aaux= zeros(size(Aaux));
 Baux= zeros(size(Baux));
 cost = 0;
 
+
+ptheta = struct;
+ptheta.sigma = 1;
+ptheta.hn = 11;
+ptheta.lambda = 0.1;
+ptheta.lambdar = 0.00001;
+
+options.lambda_t = ptheta.lambda;
+options.lambda_tr = ptheta.lambdar;
+options.hn = ptheta.hn;
+options.sigma = ptheta.sigma;
+
 for n=1:niters
     
     %update synthesis coefficients
-    init= mod( n, floor(M/batchsize));
-    I0 = II(1+init):(II(1+init)+batchsize-1);
+    init= mod( n, floor(M/batchsize)-1);
+    init_batch = batchsize*II(1+init);
+    I0 = init_batch:(init_batch+batchsize-1);
     data=X(:,I0);
     
     
-    
     %data = X(:,1+init:batchsize+init);
-    update_t0=getoptions(options,'update_t0',0);
-    if mod(n,update_t0)==update_t0-1
-        t0 = getoptions(options,'alpha_step',0.25);
-        t0 = t0 * (1/max(svd(D))^2);
-    end
+%     update_t0=getoptions(options,'update_t0',0);
+%     if mod(n,update_t0)==update_t0-1
+%         t0 = getoptions(options,'alpha_step',0.25);
+%         t0 = t0 * (1/max(svd(D))^2);
+%     end
     
     
     % [alpha,cost_aux] = time_coeffs_update( D, data, options,t0);
-    [alpha,cost_aux] = nmf_optflow( D, data, options,t0);
-    
-    
+    alpha = zeros(K,size(data,2));
+    theta = alpha;
+    for j = 1:3
+        
+        [alpha,cost_aux,Salpha] = nmf_optflow( data, D, theta, options);
+
+        if use_flow
+        %theta = optflow_taylor2(alpha, ptheta,theta);
+        theta = optflow_taylor_temp(alpha, ptheta);
+        end
+        
+    end
+
     cost = cost + cost_aux;
     
     aux = (alpha*alpha');
@@ -108,7 +161,7 @@ for n=1:niters
     Baux = Baux + (data*alpha');
 
     
-    % update the dictionary every p mini-batches
+%    update the dictionary every p mini-batches
     if mod(n,p)==p-1
         
         beta = (1-(p-1)/n).^rho;
@@ -128,15 +181,22 @@ for n=1:niters
             fprintf('done chunk %d of %d\n',ceil(n/ch),chunks )
         end
         
-        fprintf('Costs %f \n', cost );
+        fprintf('Average costs %f \n', cost/p );
         cost = 0;     
         
-        if pt
-        figure
-        dbimagesc(D+0.001);
+        if 1
+        figure(3)
+%         dbimagesc(D+0.001);
+        subplot(311)
+        imagesc(alpha)
+        subplot(312)
+        imagesc(Salpha)
+        subplot(313)
+        dbimagesc(data+0.001);
         drawnow
         end
         
+        save temp_dic D options 
         
     end
     
@@ -199,15 +259,15 @@ else
 end
 
 %D = ortho_pools(D',2)';
-Ds1 = D(:,1:2:end);
-Ds2 = D(:,2:2:end);
-corrs = abs(sum(Ds1.*Ds2));
-Dtmp = circshift(D,[0 -1]);
-Ds1b = Dtmp(:,1:2:end);
-Ds2b = Dtmp(:,2:2:end);
-corrsb = abs(sum(Ds1b.*Ds2b));
-fprintf('dictionary group coherence (even): %f %f %f \n',min(corrs), max(corrs), median(corrs))
-fprintf('dictionary group coherence (odd): %f %f %f \n',min(corrsb), max(corrsb), median(corrsb))
+% Ds1 = D(:,1:2:end);
+% Ds2 = D(:,2:2:end);
+% corrs = abs(sum(Ds1.*Ds2));
+% Dtmp = circshift(D,[0 -1]);
+% Ds1b = Dtmp(:,1:2:end);
+% Ds2b = Dtmp(:,2:2:end);
+% corrsb = abs(sum(Ds1b.*Ds2b));
+% fprintf('dictionary group coherence (even): %f %f %f \n',min(corrs), max(corrs), median(corrs))
+% fprintf('dictionary group coherence (odd): %f %f %f \n',min(corrsb), max(corrsb), median(corrsb))
 
 end
 

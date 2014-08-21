@@ -1,4 +1,4 @@
-function [out,cout] = nmf_optflow( X, D, Theta, options,y)
+function [out,cout,Sout] = nmf_optflow( X, D, Theta, options,y)
 %function out= nmf_linear_dynamic_pursuit( X,D,A, options)
 
 %this is where I need to do all the changes
@@ -71,6 +71,8 @@ t=1;
 %[a,b,c,d,e,f] = getCost(X,D,Theta,A,S,y,lambda,lambda_t,lambda_tr,mu);
 %[a,b,c,d,e,f]
 
+y0 = y;
+
 for i=1:iters
     
     yt = y; yt(:,end) = 0;
@@ -111,9 +113,12 @@ end
 
 %[obj(end) r(end) opf(end) s(i)]
 [objf,rf,opff,sf,t2,dt2] = getCost(X,D,Theta,A,S,y,lambda,lambda_t,lambda_tr,mu);
-fprintf('Total cost: %1.4f, rec: %1.4f, opt-flow %1.4f,spar: %1.4f, reg-theta: %1.4f\n',objf,rf,opff,sf,t2+dt2)
+fprintf('Total cost: %1.4f, rec: %1.4f, opt-flow %1.4f,spar: %1.4f, reg-theta: %1.4f\n',objf/M,rf/M,opff/M,sf/M,(t2+dt2)/M)
 cout = objf;
 
+if nargout ==3
+Sout = S*out;
+end
 
 end
 

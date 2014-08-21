@@ -1,12 +1,11 @@
 %this script generates synthetic dynamical systems 
 %with various levels of smoothness
 
-close all
-clear all
+%close all
+%clear all
 
-addpath('../video_prediction')
-addpath('nmf_linear_dynamics')
-addpath('grouplasso')
+%addpath('nmf_linear_dynamics')
+%addpath('grouplasso')
 
 
 options.N=256;
@@ -19,6 +18,74 @@ options.ntemplates=2;
 X=abs(X);
 X=X./repmat(sqrt(sum(X.^2)),size(X,1),1);
 
+
+
+options.K=70;
+options.epochs=0.5;
+options.nmf = 1;
+options.alpha_iters=80;
+options.batchsize=256;
+options.sort_dict = 1;
+options.plot_dict = 0;
+options.lambda = 0.1;
+options.mu = 5;
+
+
+% Train initial dictionary only with slowness and NMF initialization
+options.init_nmf = 0;
+options.init_rand = 1;
+
+
+
+% Slowness or flow
+options.use_flow = 1;
+options.iter_theta = 5;
+
+%options.initdictionary = Dslow;
+options.init_nmf = 0;
+options.init_rand = 1;
+
+options.epochs=0.5;
+
+D = train_nmf_optflow(X, options);
+
+
+if 0
+
+options.K=80;
+options.epochs=0.5;
+options.nmf = 1;
+options.alpha_iters=80;
+options.batchsize=256;
+options.sort_dict = 1;
+options.plot_dict = 0;
+options.lambda = 0.1;
+options.mu = 5;
+
+
+% Train initial dictionary only with slowness and NMF initialization
+options.init_nmf = 1;
+options.use_flow = 0;
+
+
+[Dslow,Dnmf] = train_nmf_optflow(X, options);
+
+
+% Train Dictionary with flow using slow dictionary as input
+
+
+% Slowness or flow
+options.use_flow = 1;
+options.iter_theta = 5;
+
+options.initdictionary = Dslow;
+options.init_nmf = 0;
+
+options.epochs=0.5;
+
+D = train_nmf_optflow(X, options);
+
+end
 
 if 0
 %%%NMF with linear dynamics%%%%%%%%
@@ -48,7 +115,7 @@ param.verbose=false
 Dspams=TrainDL_wrapper(X, param);
 alphaspams = mexLasso(X, Dspams, param);
 
-end;
+
 
 
 %%%%% spatio-temporal pooling %%%%%%5
@@ -67,7 +134,7 @@ Xc = X - repmat(mu,1,size(X,2));
 [DD] = group_pooling_st(X, options);
 
 
-
+end
 
 
 
