@@ -1,8 +1,8 @@
 close all;
 clear all;
 
-addpath ..
-addpath ../grouplasso
+%addpath ..
+%addpath ../grouplasso
 
 load('/misc/vlgscratch3/LecunGroup/bruna/grid_data/dictionary_s4_sort.mat');
 load('/misc/vlgscratch3/LecunGroup/bruna/grid_data/spect_640/class_s4.mat');
@@ -31,7 +31,9 @@ X0=Xqn(:,1:200);
 K=size(DD,2);
 M=size(X0,2);
 
+tic
 Agl = time_coeffs_update(DD, X0, gp);
+toc
 rec = DD*Agl;
 
 norm(rec(:)-X0(:))/norm(X0(:))

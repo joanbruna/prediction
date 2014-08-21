@@ -1,15 +1,15 @@
 
 
 if ~exist('Xqn','var')
-    M = 20;
+    M = 200;
     load /misc/vlgscratch3/LecunGroup/bruna/grid_data/spect_640/class_s4.mat
     load /misc/vlgscratch3/LecunGroup/bruna/grid_data/dictionary_s4_sort
     Xq = Xc(:,1:M);
     Xqn = mexNormalize(Xq);
 end
 
-p.sigma = 0.1;
-p.hn = 5;
+p.sigma = 0.2;
+p.hn = 10;
 p.lambda = 0.1;
 p.lambdar = 0.1;
 
