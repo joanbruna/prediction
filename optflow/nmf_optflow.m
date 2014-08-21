@@ -92,7 +92,6 @@ for i=1:iters
     
     % Proximal operator
     newout = mexProximalFlat(aux, tparam);
-
     
     if fista
         newt = (1+ sqrt(1+4*t^2))/2;

@@ -1,4 +1,4 @@
-function [theta,estim] = optflow_taylor2(z, options,theta0)
+function [theta,estim,estimfut] = optflow_taylor2(z, options,theta0)
 %this computes optical flow using simple taylor expansion
 
 [N, L] = size(z);
@@ -40,6 +40,7 @@ end
 
 %gradz=real(ifft(repmat(hf,1,L).*zf));
 estim = zb - gradz.*theta;
+estimfut = zb + gradz.*theta;
 
 % [c,rec,dt2,t2] = getCost(zdif,Gt, gradz, theta,options);
 % [c,rec,dt2,t2]

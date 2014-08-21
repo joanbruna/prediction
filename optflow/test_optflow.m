@@ -1,4 +1,5 @@
-
+clear all
+close all
 
 if ~exist('Xqn','var')
     M = 20;
