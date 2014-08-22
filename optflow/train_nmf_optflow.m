@@ -132,7 +132,6 @@ for n=1:niters
     data=X(:,I0);
     
     
-    %data = X(:,1+init:batchsize+init);
 %     update_t0=getoptions(options,'update_t0',0);
 %     if mod(n,update_t0)==update_t0-1
 %         t0 = getoptions(options,'alpha_step',0.25);

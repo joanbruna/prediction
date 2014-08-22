@@ -1,4 +1,4 @@
-function [out,cout,Sout] = nmf_optflow( X, D, Theta, options,y)
+function [out,cout,Sout,z] = nmf_optflow( X, D, Theta, options,y)
 %function out= nmf_linear_dynamic_pursuit( X,D,A, options)
 
 %this is where I need to do all the changes
@@ -42,9 +42,37 @@ Dsq = D'*D;
 Asq = A'*A;
 
 
-if ~exist('y','var')
-y = zeros(K,M);
+% Consider semi-supervised alternative
+W=getoptions(options,'W',[]);
+if ~isempty(W)
+    semisup = 1;
+    Kw = size(W,2);
+    z = zeros(Kw,M);
+    WX = W'*X;
+    DW = D'*W;
+    WD = W'*D;
+    Wsq = W'*W;
+    tau = getoptions(options,'tau',0);
+else
+    semisup = 0;
+    z = [];
+    Kw = 0;
 end
+
+
+if ~exist('y','var')
+    y = zeros(K,M);
+else
+    if size(y,1)~= K+Kw
+        error('Size of H do not match size of D and Wn');
+    end
+    if semisup
+        z = y(K+1:end,:);
+    end
+    y = y(1:K,:);
+end
+
+
 
 Theta2 = Theta.^2;
 %Thetat1 = [Theta(:,2:end) zeros(K,1)];
@@ -53,7 +81,11 @@ Thetam = [zeros(K,1) Theta(:,1:end-1)];
 
 mu = getoptions(options,'mu',0.5);
 Q = eye(K)+max(Theta(:))*A;
-t0 = .5 * (1/(norm(D,2)^2 + mu^2*norm(Q)^2 + mu^2 )) ;
+if semisup
+    t0 = .5 * (1/(norm(D,2)^2 + mu^2*norm(Q)^2 + mu^2 +norm(W,2)^2 + tau^2)) ;
+else
+    t0 = .5 * (1/(norm(D,2)^2 + mu^2*norm(Q)^2 + mu^2 )) ;
+end
 
 out = y;
 
@@ -87,10 +119,19 @@ for i=1:iters
     % optical flow
     g_of = - (S'*S*yt1 + Theta.*(A'*S*yt1)) + S'*(S*yt + Theta.*(A*yt) ) ...
         + (Theta.*(A'*S*yt) + Theta2.*(Asq*yt) ) + S'*(S*ym1 - S*ym - Thetam.*(A*ym));
-
+    
     
     % do gradient descent
     aux = y - t0*g_rec - t0*mu*g_of;
+    
+    % Include semisupervised terms for denoising
+    if semisup
+        aux = aux - t0*DW*z;
+        z = z - t0*(Wsq * z + WD*y - WX + tau*z);
+        z = max(0,z);
+
+    end
+    
     
     % Proximal operator
     newout = mexProximalFlat(aux, tparam);
@@ -116,7 +157,7 @@ end
 fprintf('Total cost: %1.4f, rec: %1.4f, opt-flow %1.4f,spar: %1.4f, reg-theta: %1.4f\n',objf/M,rf/M,opff/M,sf/M,(t2+dt2)/M)
 cout = objf;
 
-if nargout ==3
+if nargout >2
 Sout = S*out;
 end
 

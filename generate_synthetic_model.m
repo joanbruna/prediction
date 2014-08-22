@@ -28,12 +28,12 @@ options.batchsize=256;
 options.sort_dict = 1;
 options.plot_dict = 0;
 options.lambda = 0.1;
-options.mu = 5;
+options.mu = 0.5;
 
 
 % Train initial dictionary only with slowness and NMF initialization
-options.init_nmf = 0;
-options.init_rand = 1;
+options.init_nmf = 1;
+options.init_rand = 0;
 
 
 
@@ -42,8 +42,8 @@ options.use_flow = 1;
 options.iter_theta = 5;
 
 %options.initdictionary = Dslow;
-options.init_nmf = 0;
-options.init_rand = 1;
+options.init_nmf = 1;
+options.init_rand = 0;
 
 options.epochs=0.5;
 
@@ -60,7 +60,7 @@ options.batchsize=256;
 options.sort_dict = 1;
 options.plot_dict = 0;
 options.lambda = 0.1;
-options.mu = 5;
+options.mu = 0.5;
 
 
 % Train initial dictionary only with slowness and NMF initialization
