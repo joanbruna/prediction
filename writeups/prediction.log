@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2011) (format=pdflatex 2012.2.2)  14 AUG 2014 16:20
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2011) (format=pdflatex 2012.2.2)  25 AUG 2014 14:45
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -654,11 +654,11 @@ it/10.95 ; @z\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t\OT1/cmr/m/n/10.95 ))$
 Here is how much of TeX's memory you used:
  4701 strings out of 493633
  68394 string characters out of 3143378
- 144810 words of memory out of 3000000
+ 143810 words of memory out of 3000000
  7913 multiletter control sequences out of 15000+200000
  12246 words of font info for 46 fonts, out of 3000000 for 9000
  831 hyphenation exceptions out of 8191
- 44i,11n,43p,236b,206s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 44i,11n,43p,236b,198s stack positions out of 5000i,500n,10000p,200000b,50000s
 </usr/local/texlive/2011/texmf-dist/fon
 ts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2011/texmf-dist/font
 s/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2011/texmf-dist/fonts
@@ -672,7 +672,7 @@ lic/amsfonts/cm/cmr8.pfb></usr/local/texlive/2011/texmf-dist/fonts/type1/public
 amsfonts/cm/cmsy10.pfb></usr/local/texlive/2011/texmf-dist/fonts/type1/public/a
 msfonts/cm/cmsy8.pfb></usr/local/texlive/2011/texmf-dist/fonts/type1/public/ams
 fonts/symbols/msbm10.pfb>
-Output written on prediction.pdf (6 pages, 136323 bytes).
+Output written on prediction.pdf (6 pages, 136912 bytes).
 PDF statistics:
  71 PDF objects out of 1000 (max. 8388607)
  50 compressed objects within 1 object stream
