@@ -94,8 +94,13 @@ tparam.regul='l1';
 lambda = getoptions(options,'lambda',0.1);
 
 
+
+nmf = getoptions(options,'nmf',1);
+
 tparam.lambda = t0 * lambda;% * (size(D,2)/K);
+if nmf
 tparam.pos = 'true'; % impose non-negativity
+end
 t=1;
 
 
@@ -129,7 +134,6 @@ for i=1:iters
         aux = aux - t0*DW*z;
         z = z - t0*(Wsq * z + WD*y - WX + tau*z);
         z = max(0,z);
-
     end
     
     

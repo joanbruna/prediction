@@ -44,7 +44,7 @@ for i = 1:total_iter
 end
 
 
-pt=getoptions(options,'pt',1);
+pt=getoptions(options,'pt',0);
 
 if pt
 subplot(311)

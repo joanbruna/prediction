@@ -5,43 +5,46 @@
 
 
 %%
-if ~exist('W','var')
-params_aux = audio_config();
-
-fs = params_aux.fs;
-NFFT = params_aux.NFFT;
-hop = params_aux.hop;
-
-
-noise = '../../../../misc/vlgscratch3/LecunGroup/bruna/noise_data/train/noise_sample_02.wav'; % easy
-
-epsilon = 1;
-Kn = 20;
-
-
-[n,Fs] = audioread(noise);
-n = resample(n,fs,Fs);
-n = n(:);
-
-Sn = compute_spectrum(n,NFFT, hop);
-Vn = abs(Sn);
-Pn  = softNormalize(Vn,epsilon);
-
-param0 = struct;
-param0.K = Kn;
-param0.lambda = 0;
-param0.posD = 1;
-param0.posAlpha = 1;
-param0.iter = 200;
-W = mexTrainDL(Pn, param0);
-end
+% if ~exist('W','var')
+% params_aux = audio_config();
+% 
+% fs = params_aux.fs;
+% NFFT = params_aux.NFFT;
+% hop = params_aux.hop;
+% 
+% 
+% noise = '../../../../misc/vlgscratch3/LecunGroup/bruna/noise_data/train/noise_sample_02.wav'; % easy
+% 
+% epsilon = 1;
+% Kn = 20;
+% 
+% 
+% [n,Fs] = audioread(noise);
+% n = resample(n,fs,Fs);
+% n = n(:);
+% 
+% Sn = compute_spectrum(n,NFFT, hop);
+% Vn = abs(Sn);
+% Pn  = softNormalize(Vn,epsilon);
+% 
+% param0 = struct;
+% param0.K = Kn;
+% param0.lambda = 0;
+% param0.posD = 1;
+% param0.posAlpha = 1;
+% param0.iter = 200;
+% W = mexTrainDL(Pn, param0);
+%
+% options.W = W;
+% end
 
 %%
 
+epsilon = 1;
 
 %% 
 
-%speech ='/misc/vlgscratch3/LecunGroup/bruna/grid_data/s31/pwag9a.wav';
+speech ='/misc/vlgscratch3/LecunGroup/bruna/grid_data/s31/pwag9a.wav';
 %speech = '/misc/vlgscratch3/LecunGroup/bruna/grid_data/s14/prin8s.wav';
 
 %speech ='../../../../misc/vlgscratch3/LecunGroup/bruna/grid_data/s4/lrak4s.wav'; % same as training
@@ -49,11 +52,11 @@ end
 speech ='../../../../misc/vlgscratch3/LecunGroup/bruna/grid_data/s1/lrbr4n.wav';% man
 
 % Noise
-noise = '../../../../misc/vlgscratch3/LecunGroup/bruna/noise_data/train/noise_sample_08.wav'; % easy
+%noise = '../../../../misc/vlgscratch3/LecunGroup/bruna/noise_data/train/noise_sample_08.wav'; % easy
 %noise = '../../../../misc/vlgscratch3/LecunGroup/bruna/noise_data/babble/noise_sample_08.wav'; % hard
+noise = '/misc/vlgscratch3/LecunGroup/bruna/grid_data/s14/prin8s.wav';
 
-
-SNR_dB = 5;
+SNR_dB = 0;
 
 
 params_aux = audio_config();
@@ -109,8 +112,6 @@ voptions.sort_dict = 1;
 options.plot_dict = 0;
 options.lambda = 0.1;
 options.mu = 0.5;
-
-options.W = W;
 
 
 ptheta = struct;
