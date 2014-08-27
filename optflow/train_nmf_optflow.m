@@ -195,7 +195,7 @@ for n=1:niters
         drawnow
         end
         
-        save temp_dic D options 
+        %save temp_dic D options 
         
     end
     

@@ -5,7 +5,8 @@ function [out,cout,Sout,z] = nmf_optflow( X, D, Theta, options,y)
 %reshape input, redefine the groups, apply the FISTA algo, 
 %and then reshape again to produce the corresponding Aout,Bouts, alphas
 
-iters=500;
+
+iters = getoptions(options,'iters',500);
 % iters_encoder=getoptions(options,'alpha_iters_encoder',60);
 
 
@@ -109,22 +110,26 @@ t=1;
 %[a,b,c,d,e,f]
 
 y0 = y;
+g_of = 0;
 
 for i=1:iters
     
-    yt = y; yt(:,end) = 0;
-    yt1 = [y(:,2:end) zeros(K,1)];
-    ym = [zeros(K,1) y(:,1:end-1)];
-    ym1 = y; ym1(:,1) = 0;
     
     % reconstruction term
     g_rec = Dsq * y - DX; 
 
     
     % optical flow
+    if mu>0
+    yt = y; yt(:,end) = 0;
+    yt1 = [y(:,2:end) zeros(K,1)];
+    ym = [zeros(K,1) y(:,1:end-1)];
+    ym1 = y; ym1(:,1) = 0;
+    
+    
     g_of = - (S'*S*yt1 + Theta.*(A'*S*yt1)) + S'*(S*yt + Theta.*(A*yt) ) ...
         + (Theta.*(A'*S*yt) + Theta2.*(Asq*yt) ) + S'*(S*ym1 - S*ym - Thetam.*(A*ym));
-    
+    end
     
     % do gradient descent
     aux = y - t0*g_rec - t0*mu*g_of;
