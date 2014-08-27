@@ -6,7 +6,6 @@ h=zeros(N,1);
 h(1)=1;
 h(end)=-1;
 
-itersflow=getoptions(options,'flow_iters',20);
 lambda=getoptions(options,'lambda',0.1);
 lambdar=getoptions(options,'lambdar',0);
 lambdat=getoptions(options,'lambdat',0.1);
@@ -40,7 +39,7 @@ Gt2=Gt'*Gt;
 theta = zeros(size(z));
 oldtheta=theta;
 
-for j=1:itersflow
+for j=1:20
 
 for l=1:L
     if l==1

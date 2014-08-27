@@ -1,5 +1,8 @@
-function [theta,estim] = optflow_taylor_temp(z, options)
+function [theta,estim] = optflow_taylor_graph(z, options)
 %this computes optical flow using simple taylor expansion
+
+
+%% we solve for the optical flow wrt theta doing gradient descent.
 
 [N, L] = size(z);
 h=zeros(N,1);
