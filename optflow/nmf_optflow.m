@@ -5,7 +5,7 @@ function [out,cout,Sout,z] = nmf_optflow( X, D, Theta, options,y)
 %reshape input, redefine the groups, apply the FISTA algo, 
 %and then reshape again to produce the corresponding Aout,Bouts, alphas
 
-iters=getoptions(options,'fista_iters',500);
+iters = getoptions(options,'iters',500);
 % iters_encoder=getoptions(options,'alpha_iters_encoder',60);
 
 
@@ -109,22 +109,26 @@ t=1;
 %[a,b,c,d,e,f]
 
 y0 = y;
+g_of = 0;
 
 for i=1:iters
     
-    yt = y; yt(:,end) = 0;
-    yt1 = [y(:,2:end) zeros(K,1)];
-    ym = [zeros(K,1) y(:,1:end-1)];
-    ym1 = y; ym1(:,1) = 0;
     
     % reconstruction term
     g_rec = Dsq * y - DX; 
 
     
     % optical flow
+    if mu>0
+    yt = y; yt(:,end) = 0;
+    yt1 = [y(:,2:end) zeros(K,1)];
+    ym = [zeros(K,1) y(:,1:end-1)];
+    ym1 = y; ym1(:,1) = 0;
+    
+    
     g_of = - (S'*S*yt1 + Theta.*(A'*S*yt1)) + S'*(S*yt + Theta.*(A*yt) ) ...
         + (Theta.*(A'*S*yt) + Theta2.*(Asq*yt) ) + S'*(S*ym1 - S*ym - Thetam.*(A*ym));
-    
+    end
     
     % do gradient descent
     aux = y - t0*g_rec - t0*mu*g_of;
@@ -152,13 +156,14 @@ for i=1:iters
 	
     
     %[obj(i),r(i),opf(i),s(i)] = getCost(X,D,Theta,A,S,y,lambda,lambda_t,lambda_tr,mu);
+    c(i) = getCost(X,D,Theta,A,S,y,lambda,lambda_t,lambda_tr,mu,semisup,W,z,tau);
     
     
 end
 
 %[obj(end) r(end) opf(end) s(i)]
-[objf,rf,opff,sf,t2,dt2] = getCost(X,D,Theta,A,S,y,lambda,lambda_t,lambda_tr,mu);
-fprintf('Total cost: %1.4f, rec: %1.4f, opt-flow %1.4f,spar: %1.4f, reg-theta: %1.4f\n',objf/M,rf/M,opff/M,sf/M,(t2+dt2)/M)
+[objf,rf,opff,sf,t2,dt2] = getCost(X,D,Theta,A,S,y,lambda,lambda_t,lambda_tr,mu,semisup,W,z,tau);
+fprintf('Total cost: %1.6f, rec: %1.4f, opt-flow %1.4f,spar: %1.4f, reg-theta: %1.4f\n',objf/M,rf/M,opff/M,sf/M,(t2+dt2)/M)
 cout = objf;
 
 if nargout >2
@@ -168,14 +173,25 @@ end
 end
 
 
-function [obj,r,opf,s,t2,dt2] = getCost(X,D,Theta,G,S,y,lambda,lambda_t,lambda_tr,mu)
+function [obj,r,opf,s,t2,dt2] = getCost(X,D,Theta,G,S,y,lambda,lambda_t,lambda_tr,mu,semisup,W,z,tau)
+
+
+if semisup == 0
+    W = 0;
+    z = 0;
+    tau =0;
+    tz = 0;
+else
+    tz = 0.5*sum(z(:).^2);
+end
+
 
 K = size(D,2);
 ym = y;
 ym(:,end) = 0;
 ym1 = 0*y; ym1(:,1:end-1) = y(:,2:end);
 
-rec = 0.5*(X - D*y).^2;
+rec = 0.5*(X - D*y - semisup*(W*z) ).^2;
 opflow = 0.5*(S*ym1 - S*ym -Theta.*(S*G*ym)).^2;
 
 r = sum(rec(:));
@@ -193,7 +209,7 @@ t2 = 0.5*sum(Theta(:).^2);
 
 s = sum(y(:));
 
-obj = sum(rec(:)) +mu*opf + lambda*s + mu*( lambda_t*dt2 + lambda_tr*t2);
+obj = sum(rec(:)) +mu*opf + lambda*s + mu*( lambda_t*dt2 + lambda_tr*t2) + tau*tz;
 
 
 end

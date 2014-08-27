@@ -1,4 +1,4 @@
-function [theta,estim] = optflow_taylor_temp(z, options)
+function [theta,estim] = optflow_taylor_temp(z, options , theta)
 %this computes optical flow using simple taylor expansion
 
 [N, L] = size(z);
@@ -37,8 +37,9 @@ Gt=Gt(1:end-1,:);
 %G(1,end)=0;
 Gt2=Gt'*Gt;
 
+if nargin < 3
 theta = zeros(size(z));
-oldtheta=theta;
+end
 
 for j=1:itersflow
 
@@ -54,23 +55,16 @@ for l=1:L
         thetaf = theta(:,l+1);
     end
     theta(:,l) = (diag(gradz(:,l).^2) + lambda *Gt2  + (lambdar + 2*lambdat) * eye(N))\(gradz(:,l).*zdif(:,l) + lambdat*(thetaf + thetab));
+    
 end
-
-    	%cosa=norm(oldtheta(:)-theta(:))/(eps+norm(theta(:)));
-	%fprintf('optflow tmp :: dif is %f \n', cosa);
-
-	%oldtheta = theta;
-
-%c = getCost(zdif,Gt, gradz, theta,options);
-
-%disp(c)
 
 end
 
 %gradz=real(ifft(repmat(hf,1,L).*zf));
 estim = zb + gradz.*theta;
 
-% [c,rec,dt2,t2] = getCost(zdif,Gt, gradz, theta,options);
+[c,rec,dt2,t2] = getCost(zdif,Gt, gradz, theta,options);
+c
 % [c,rec,dt2,t2]
 % [c,rec,dt2,t2] = getCost(zdif,Gt, gradz, theta0,options);
 % [c,rec,dt2,t2]

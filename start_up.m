@@ -5,3 +5,5 @@ addpath utils
 addpath nmf_linear_dynamics/
 addpath ../spams-matlab/build/
 addpath optflow/
+addpath bss_eval_3/
+addpath scripts/
