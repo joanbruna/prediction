@@ -24,8 +24,8 @@ M = size(X,2);
 A = A0;
 
 
-theta = optflow_taylor2(A0, ptheta,zeros(K,M));
-%[theta,estim] = optflow_taylor_temp(A0, ptheta);
+%theta = optflow_taylor2(A0, ptheta,zeros(K,M));
+theta = optflow_taylor_temp2(A0, ptheta, zeros(K,M));
 
 theta0 = theta;
 
@@ -36,11 +36,12 @@ c = zeros(1,total_iter);
 
 for i = 1:total_iter
     
-   %options.iters = 100;
+   options.iters = 100;
    [A,c(i),SA,Z] = nmf_optflow( X, D, theta, options,[A;Z]);
    
-   [theta,estim] = optflow_taylor(A, ptheta);
-   %theta = optflow_taylor_temp2(A, ptheta,theta);
+   %[theta,estim] = optflow_taylor(A, ptheta);
+   theta = optflow_taylor_temp2(A, ptheta,theta);
+
    
 end
 

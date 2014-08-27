@@ -18,8 +18,8 @@ epslion =10;
 count = 1;
 pt = 1;
 
-i = 666;
-disp(files(i).name)
+i = 811;
+disp(test_files(i).name)
 
 %[x,Fs] = audioread([FilePath,files(i).name]);
 [x,Fs] = audioread([FilePath,test_files(i).name]);
@@ -43,7 +43,7 @@ X = softNormalize(X,epsilon);
 % options.tau = 0.5;
 %options_optflow.mu = 1;
 
-[A,theta,SA,An] = nmf_optflow_smooth(X,Dnmf,options_optflow,ptheta);
+[A,theta,SA,An] = nmf_optflow_smooth(X,Dslow,options_optflow,ptheta);
 
 
 R = {};

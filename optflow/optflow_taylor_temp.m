@@ -1,4 +1,4 @@
-function [theta,estim] = optflow_taylor_temp(z, options)
+function [theta,estim] = optflow_taylor_temp(z, options , theta)
 %this computes optical flow using simple taylor expansion
 
 [N, L] = size(z);
@@ -36,7 +36,9 @@ Gt=Gt(1:end-1,:);
 %G(1,end)=0;
 Gt2=Gt'*Gt;
 
+if nargin < 3
 theta = zeros(size(z));
+end
 
 for j=1:100
 
