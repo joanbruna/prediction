@@ -1,4 +1,4 @@
-function [D,D0] = train_nmf_optflow(X, options)
+function [D,D0] = train_nmf_optflow_graph(X, options)
 %this function performs a dictionary learning using
 %the proximal toolbox and iterated gradient descent
 %from Mairal et Al (2010)
@@ -60,6 +60,8 @@ if sort_dict
 end
 
 
+BB = graph_parameters(D, options);
+
 use_flow=getoptions(options,'use_flow',1);
 
 
@@ -119,10 +121,9 @@ cost = 0;
 
 
 ptheta = struct;
-ptheta.sigma = 2;
+ptheta.sigma = 1;
 ptheta.hn = 11;
-ptheta.lambda = 0.001;
-ptheta.lambdat = 0.001;
+ptheta.lambda = 0.1;
 ptheta.lambdar = 0.00001;
 
 options.lambda_t = ptheta.lambda;
@@ -130,18 +131,7 @@ options.lambda_tr = ptheta.lambdar;
 options.hn = ptheta.hn;
 options.sigma = ptheta.sigma;
 
-D1 =D0;
-
 for n=1:niters
-    
-    
-%     disp('diffrerence with initial dic')
-%     norm(D-D0,'fro')/norm(D0,'fro')
-%     
-%     
-%     disp('diffrerence with previous dic')
-%     norm(D-D1,'fro')/norm(D1,'fro')
-    
     
     %update synthesis coefficients
     init= mod( n, floor(M/batchsize)-1);
@@ -149,29 +139,20 @@ for n=1:niters
     I0 = init_batch:(init_batch+batchsize-1);
     data=X(:,I0);
     
-    
-%     update_t0=getoptions(options,'update_t0',0);
-%     if mod(n,update_t0)==update_t0-1
-%         t0 = getoptions(options,'alpha_step',0.25);
-%         t0 = t0 * (1/max(svd(D))^2);
-%     end
-    
-    
-    % [alpha,cost_aux] = time_coeffs_update( D, data, options,t0);
-%     alpha = zeros(K,size(data,2));
-%     theta = alpha;
-%     for j = 1:3
-%         
-%         [alpha,cost_aux,Salpha] = nmf_optflow( data, D, theta, options);
-%         
-%         if use_flow
-%             %theta = optflow_taylor2(alpha, ptheta,theta);
-%             theta = optflow_taylor_temp(alpha, ptheta);
-%         end
-%         
-%     end
-    
-    [alpha,cost_aux,Salpha] = nmf_optflow_smooth(data,D,options,ptheta);
+    alpha = zeros(K,size(data,2));
+    for r=1:size(BB,2)
+    theta{r} = alpha;
+    end
+    for j = 1:3
+        
+        [alpha,cost_aux,Salpha] = nmf_optflow_graph( data, D, theta, BB, options, alpha);
+
+        if use_flow
+        %theta = optflow_taylor2(alpha, ptheta,theta);
+        theta = optflow_taylor_graph(alpha, BB, ptheta, theta);
+        end
+        
+    end
 
     cost = cost + cost_aux;
     
@@ -188,11 +169,10 @@ for n=1:niters
         A = beta * A + 1/p/batchsize*Aaux;
         B = beta * B + 1/p/batchsize*Baux;
         
-        D1 = D;
         D = dictionary_update( D,  A,B,options);
-        
-        
-        
+
+	BB = graph_parameters(D, options);
+
         Aaux= zeros(size(Aaux));
         Baux= zeros(size(Baux));
 
@@ -229,7 +209,7 @@ for n=1:niters
         drawnow
         end
         
-        save temp_dic D D0 options 
+        save temp_dic D options 
         
     end
     
