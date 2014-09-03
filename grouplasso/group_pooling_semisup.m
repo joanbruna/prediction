@@ -89,7 +89,7 @@ for i=1:iters
     end
     
     % compute proximal gradient
-    newout = Proximal_group(aux,indexes,indexes_inv, 2*tparam.lambda);
+    newout = Proximal_group(aux,indexes,indexes_inv, tparam.lambda);
     
     if fista
         newt = (1+ sqrt(1+4*t^2))/2;
@@ -104,6 +104,13 @@ end
 
 
 if nargout>1
+
+if ~exist('W','var')
+   W = 0;
+   z = 0;
+   tau =0;
+end
+
     costout = cost(X,D,out,indexes, lambda,W,z,tau);
 end
 
@@ -112,12 +119,6 @@ end
 
 function [obj,c1,c2] = cost(X,D,out,indexes, lambda,W,z,tau)
 
-
-if ~exist('W','var')
-   W = 0;
-   z = 0;
-   tau =0;
-end
 
 aux = W*z;
 
@@ -137,6 +138,11 @@ end
 
 c3 =  tau*0.5*sum(z(:).*z(:));
 
-obj = (c1 + lambda *sum(c2) + c3)/size(X,2);
+obj.tot = (c1 + lambda *sum(c2) + c3)/size(X,2);
+obj.c1 = c1/size(X,2);
+obj.c2 = sum(c2)/size(X,2);
+obj.c3 = c3/size(X,2);
+
+
 end
 

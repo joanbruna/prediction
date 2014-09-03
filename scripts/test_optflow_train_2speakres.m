@@ -1,6 +1,6 @@
 if ~exist('X1','var')
     % use single speaker for training
-    load ../../../../misc/vlgscratch3/LecunGroup/bruna/grid_data/spect_640/class_s31.mat
+    load '/misc/vlgscratch3/LecunGroup/bruna/grid_data/spect_640/class_s31.mat'
     X1 = Xc;
     clear Xc;
     
