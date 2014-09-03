@@ -53,11 +53,12 @@ if ~isempty(W)
     DW = D'*W;
     WD = W'*D;
     Wsq = W'*W;
-    tau = getoptions(options,'tau',0);
+    tau = getoptions(options,'tau',0.5);
 else
     semisup = 0;
     z = [];
     Kw = 0;
+    tau = 0 ;
 end
 
 
@@ -70,9 +71,9 @@ else
     if semisup
         z = y(K+1:end,:);
     end
-    y = y(1:K,:);
+   y = y(1:K,:);
+   %Theta = 10*ones(size(Theta));
 end
-
 
 
 Theta2 = Theta.^2;
@@ -81,7 +82,7 @@ Thetam = [zeros(K,1) Theta(:,1:end-1)];
 
 
 mu = getoptions(options,'mu',0.5);
-Q = eye(K)+max(Theta(:))*A;
+Q = eye(K)+max(abs(Theta(:)))*A;
 if semisup
     t0 = .5 * (1/(norm(D,2)^2 + mu^2*norm(Q)^2 + mu^2 +norm(W,2)^2 + tau^2)) ;
 else
@@ -111,6 +112,7 @@ t=1;
 
 y0 = y;
 g_of = 0;
+
 
 for i=1:iters
     
@@ -157,7 +159,7 @@ for i=1:iters
 	
     
     %[obj(i),r(i),opf(i),s(i)] = getCost(X,D,Theta,A,S,y,lambda,lambda_t,lambda_tr,mu);
-    c(i) = getCost(X,D,Theta,A,S,y,lambda,lambda_t,lambda_tr,mu,semisup,W,z,tau);
+    %c(i) = getCost(X,D,Theta,A,S,y,lambda,lambda_t,lambda_tr,mu,semisup,W,z,tau);
     
     
 end
