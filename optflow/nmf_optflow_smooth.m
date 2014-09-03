@@ -10,6 +10,7 @@ if ~exist('ptheta','var')
     ptheta.lambdar = 0.00001;
 end
 
+
 options.lambda_t = ptheta.lambda;
 options.lambda_tr = ptheta.lambdar;
 options.hn = ptheta.hn;
@@ -21,27 +22,30 @@ M = size(X,2);
 
 
 [A0,~,SA,Z] = nmf_optflow( X, D, zeros(K,M), options);
-A = A0;
 
 
 %theta = optflow_taylor2(A0, ptheta,zeros(K,M));
-theta = optflow_taylor_temp2(A0, ptheta, zeros(K,M));
 
-theta0 = theta;
 
 total_iter=getoptions(options,'total_iter',3);
+theta = zeros(K,M);
 
+if total_iter>0
+theta = optflow_taylor_temp2(A0, ptheta, theta);
 c = zeros(1,total_iter);
-
-
+end
+A=A0;
 for i = 1:total_iter
+   
+   %theta = thetax;
     
    options.iters = 100;
+   Aaux = A;
    [A,c(i),SA,Z] = nmf_optflow( X, D, theta, options,[A;Z]);
+   %norm(A-Aaux,'fro')/norm(Aaux,'fro')
    
-   %[theta,estim] = optflow_taylor(A, ptheta);
+   %[theta,estim] = optflow_taylor2(A, ptheta);
    theta = optflow_taylor_temp2(A, ptheta,theta);
-
    
 end
 

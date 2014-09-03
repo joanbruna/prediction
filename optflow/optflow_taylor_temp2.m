@@ -81,8 +81,6 @@ for i=1:iters
 end
 
 
-
-
 estim = zb + gradz.*Theta;
 
 

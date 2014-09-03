@@ -119,9 +119,10 @@ cost = 0;
 
 
 ptheta = struct;
-ptheta.sigma = 1;
+ptheta.sigma = 2;
 ptheta.hn = 11;
-ptheta.lambda = 0.1;
+ptheta.lambda = 0.001;
+ptheta.lambdat = 0.001;
 ptheta.lambdar = 0.00001;
 
 options.lambda_t = ptheta.lambda;
@@ -129,7 +130,18 @@ options.lambda_tr = ptheta.lambdar;
 options.hn = ptheta.hn;
 options.sigma = ptheta.sigma;
 
+D1 =D0;
+
 for n=1:niters
+    
+    
+%     disp('diffrerence with initial dic')
+%     norm(D-D0,'fro')/norm(D0,'fro')
+%     
+%     
+%     disp('diffrerence with previous dic')
+%     norm(D-D1,'fro')/norm(D1,'fro')
+    
     
     %update synthesis coefficients
     init= mod( n, floor(M/batchsize)-1);
@@ -146,18 +158,20 @@ for n=1:niters
     
     
     % [alpha,cost_aux] = time_coeffs_update( D, data, options,t0);
-    alpha = zeros(K,size(data,2));
-    theta = alpha;
-    for j = 1:3
-        
-        [alpha,cost_aux,Salpha] = nmf_optflow( data, D, theta, options);
-
-        if use_flow
-        %theta = optflow_taylor2(alpha, ptheta,theta);
-        theta = optflow_taylor_temp(alpha, ptheta);
-        end
-        
-    end
+%     alpha = zeros(K,size(data,2));
+%     theta = alpha;
+%     for j = 1:3
+%         
+%         [alpha,cost_aux,Salpha] = nmf_optflow( data, D, theta, options);
+%         
+%         if use_flow
+%             %theta = optflow_taylor2(alpha, ptheta,theta);
+%             theta = optflow_taylor_temp(alpha, ptheta);
+%         end
+%         
+%     end
+    
+    [alpha,cost_aux,Salpha] = nmf_optflow_smooth(data,D,options,ptheta);
 
     cost = cost + cost_aux;
     
@@ -174,7 +188,10 @@ for n=1:niters
         A = beta * A + 1/p/batchsize*Aaux;
         B = beta * B + 1/p/batchsize*Baux;
         
+        D1 = D;
         D = dictionary_update( D,  A,B,options);
+        
+        
         
         Aaux= zeros(size(Aaux));
         Baux= zeros(size(Baux));
@@ -212,7 +229,7 @@ for n=1:niters
         drawnow
         end
         
-        %save temp_dic D options 
+        save temp_dic D D0 options 
         
     end
     
