@@ -34,6 +34,7 @@ param.pos=1;
 
 
 D=mexTrainDL(X, param);
+D = sortD(D);
 
 z=mexLasso(X, D, param);
 
