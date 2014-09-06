@@ -49,10 +49,12 @@ zpool=conv2(full(z),h,'same');
 %options.num_neighbors = 16;
 %[S, L, V, spect] = graphlaplacian(zpool', options);
 
-T = trees(zpool, options);
+T = trees(zpool, param);
 
 param.initD = D;
 param.initT = T;
+param.nmf=1;
+param.lambda=0.01;
 
 [D, T] = binary_graph_dlearn(X, param); 
 

@@ -6,7 +6,6 @@ costout=0;
 
 fista=getoptions(options,'fista',1);
 iters=getoptions(options,'iters',150);
-tau = getoptions(options,'tau',0.1);%ridge
 
 
 [N,M]=size(X);
@@ -20,12 +19,11 @@ if ~exist('t0','var')
 end
 t0 = t0 / options.time_groupsize;
 
+y = zeros(K,M);
 out = y;
 
 nmf=getoptions(options,'nmf', 0);
-
 lambda = getoptions(options,'lambda',0.1);
-time_groupsize = getoptions(options,'time_groupsize',2);
 tparam.lambda = t0 * lambda;% * (size(D,2)/K);
 t=1;
 
@@ -36,9 +34,6 @@ for i=1:iters
     
     if nmf
         aux = max(0,aux);
-        if semisup
-            z = max(0,z);
-        end
     end
     
     % compute proximal gradient
@@ -54,13 +49,13 @@ end
 
 
 if nargout>1
-    costout = cost(X,D,out,options.indexes, lambda, tau);
+    costout = cost(X,D,out,options.indexes, lambda);
 end
 
 end
 
 
-function [obj,c1,c2] = cost(X,D,out,indexes,lambda, tau)
+function [obj,c1,c2] = cost(X,D,out,indexes,lambda)
 
 K=size(D,2);
 
@@ -79,12 +74,10 @@ for i=1:S
     end
 end
 
-c3 =  tau*0.5*sum(z(:).*z(:));
 
-obj.tot = (c1 + lambda *sum(c2(:)) + c3)/size(X,2);
-obj.c1 = c1/size(X,2);
+obj.tot = (c1 + lambda *sum(c2(:)) )/size(X,2);
+obj.c1 = sqrt(2*c1)/norm(X(:));
 obj.c2 = sum(c2(:))/size(X,2);
-obj.c3 = c3/size(X,2);
 
 
 end
