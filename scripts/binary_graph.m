@@ -20,16 +20,19 @@ end
 X0=X;
 
 %renormalize data: whiten each frequency component.
-eps=1e-2;
+eps=4e-1;
 stds = std(X,0,2) + eps;
 X = X./repmat(stds,1,size(X,2));
 avenorm = mean(sqrt(sum(X.^2)));
 X = X/avenorm;
 
 
+param.stds = stds;
+param.avenorm = avenorm;
+
 %%init phase: D is initialized with NMF. 
 %% S is initialized by looking at temporally smoothed activations
-param.K=400; % learns a dictionary 
+param.K=256; % learns a dictionary 
 param.lambda=0.04; 
 param.numThreads=16;	%	number	of	threads 
 param.batchsize =512;
@@ -40,6 +43,7 @@ param.pos=1;
 
 D=mexTrainDL(X, param);
 
+if 0
 z=mexLasso(X, D, param);
 %temporal pooling 
 Tpool=8;
@@ -48,16 +52,23 @@ zpool=conv2(full(z),h,'same');
 
 %options.num_neighbors = 16;
 %[S, L, V, spect] = graphlaplacian(zpool', options);
+zpoolc=kernelization(zpool);
 
-T = trees(zpool, param);
-
+T = trees(zpoolc, param);
+end
+T{1}=[1:param.K]';
+T{2}=circshift(T{1},1);
+param.tree_p=1e+10;%no update on the tree
+param.Jmax=8;
 param.initD = D;
 param.initT = T;
 param.nmf=1;
-param.lambda=0.01;
+param.lambda=0.04;
+param.epochs=1;
+param.batchsize=512;
 
-[D, T] = binary_graph_dlearn(X, param); 
-
+%[D, T, S] = binary_graph_dlearn(X, param); 
+D = group_pooling_st_gpu(X, param);
 
 
 

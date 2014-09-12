@@ -1,4 +1,4 @@
-function [out,costout,z]= group_pooling_graph( D, T, X, options,t0)
+function [out,costout]= group_pooling_graph( D, T, X, options,t0)
 %this function does the sparse inference on a collection of trees 
 %using spatio-temporal group lasso
 
