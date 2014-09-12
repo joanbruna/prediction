@@ -6,7 +6,9 @@ switch type
 	case 'agglomerative'
 	C{1}=data;
 	for j=1:J	
+		fprintf('scale %d \n',j)
 		[rien, C{j+1}]=kmeansfix(C{j},L*2^(-j));
+		%[rien, C{j+1}]=greedypair(C{j});
 		[~,I{j+1}]=sort(rien);
 	end
 	out=I{end}-1;

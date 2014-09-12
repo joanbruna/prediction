@@ -10,7 +10,7 @@ last = 0;
 
 minener = 1e+20;
 outiters=2;
-maxiters=1000;
+maxiters=128;
 rng('shuffle');
 
 for j=1:outiters
@@ -19,8 +19,8 @@ for j=1:outiters
     m = X(:,aux(1:k));
     %[~,label] = max(bsxfun(@minus,m'*X,dot(m,m,1)'/2),[],1); % assign samples to the nearest centers
     %	label=label';
-    %[label] = constrained_assignment(X, m,n/k);
-    [label] = cheap_constrained_assignment(X, m,n/k);
+    [label] = constrained_assignment(X, m,n/k);
+    %[label] = cheap_constrained_assignment(X, m,n/k);
 
     iters=0;
 
@@ -33,8 +33,8 @@ for j=1:outiters
         last = label;
         %[~,label] = max(bsxfun(@minus,m'*X,dot(m,m,1)'/2),[],1); % assign samples to the nearest centers
 	%ener=0;label=label';
-        [label,ener] = cheap_constrained_assignment(X, m,n/k);
-        %[label,ener] = constrained_assignment(X, m,n/k);
+        %[label,ener] = cheap_constrained_assignment(X, m,n/k);
+        [label,ener] = constrained_assignment(X, m,n/k);
 	
         iters = iters +1 ;                
     end
@@ -49,48 +49,48 @@ for j=1:outiters
 
 
 end
-
-
-end
-
-
-function [out,ener]=cheap_constrained_assignment(X, C, K)
-
-w=kernelizationbis(X',C');
-[N,M]=size(w); %N number of samples, M number of centers
-label=repmat([1:M],N,1);
-
-[ds, I] = sort(w,2,'ascend');
-aux=I(:,1);
-ww=w;
-pp=hist(aux,[1:M]);
-
-while(max(pp)>K)
-
-J=find(pp>=K);
-done=[];
-for j=J
-TT=find(aux==j);
-safe=TT(1:K);
-out(safe)=j;
-done=[done safe];
-end
-
-msamples=ones(N,1);
-msamples(done)=0;
-survivors=find(msamples);
-JJ=find(pp<K);
-ww=ww(survivors,JJ);
-[ds, I] = sort(w,2,'ascend');
-aux=I(:,1);
-pp=hist(aux,[1:M]);
+fprintf('final ener is %f \n',minener)
 
 end
 
 
-
-end
-
+%function [out,ener]=cheap_constrained_assignment(X, C, K)
+%
+%w=kernelizationbis(X',C');
+%[N,M]=size(w); %N number of samples, M number of centers
+%label=repmat([1:M],N,1);
+%wmax = max(w(:))+1;
+%
+%[ds, I] = sort(w,2,'ascend');
+%aux=I(:,1);
+%ww=w;
+%pp=hist(aux,[1:M]);
+%
+%while(max(pp)>K)
+%
+%J=find(pp>=K);
+%for j=J
+%TT=find(aux==j);
+%safe=TT(1:K);
+%out(safe)=j;
+%
+%ww(:,j)=wmax;
+%ww(safe,:)=wmax;
+%ww(safe,j)=0;
+%
+%end
+%[ds, I] = sort(ww,2,'ascend');
+%aux=I(:,1);
+%pp=hist(aux,[1:M]);
+%end
+%
+%ener=0;
+%for n=1:N
+%ener=ener+w(n,out(n));
+%end
+%
+%end
+%
 %
 %[~,I]=sort(w(:),'ascend');
 %Ic=1+mod(I-1,N);%which sample concerns the position
@@ -115,10 +115,10 @@ end
 %
 %end
 %
+
 function [out,ener]=constrained_assignment(X, C, K)
 %we assign samples to the nearest centers, but with the constraint that each center receives K samples
 w=kernelizationbis(X',C');
-tic;
 [N,M]=size(w); %N number of samples, M number of centers
 
 maxvalue = max(w(:))+1;
@@ -134,8 +134,6 @@ end
 
 visited=zeros(1,M);
 
-toc
-tic;
 
 go=(hmany > K);
 choices=ones(N,1);
@@ -175,7 +173,6 @@ ener=0;
 for n=1:N
 ener=ener+w(n,out(n));
 end
-toc
 
 end
 

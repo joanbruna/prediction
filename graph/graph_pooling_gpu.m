@@ -1,4 +1,4 @@
-function [Dout,lastzout] = group_pooling_st_gpu(Xin, options)
+function [Dout,lastzout] = graph_pooling_gpu(Xin, options)
 %this function performs a dictionary learning using 
 %the proximal toolbox and iterated gradient descent
 %from Mairal et Al (2010)
@@ -25,14 +25,13 @@ end
 produce_synthesis=getoptions(options,'produce_synthesis',0);
 nepochs=getoptions(options,'epochs',4);
 batchsize=getoptions(options,'batchsize',256);
+niters=round(nepochs*M/batchsize);
 groupsize = getoptions(options,'groupsize',2);
 time_groupsize = getoptions(options,'time_groupsize',2);
-time_window = getoptions(options,'time_window',8);
 
-niters=round(nepochs*M/(batchsize*time_window));
 K = getoptions(options, 'K', 2*N);
 KK=K * time_groupsize;
-MM=batchsize*time_window/time_groupsize;
+MM=batchsize;%/time_groupsize;
 Mf = MM*time_groupsize;
 %N: input dimension
 %M: number of examples
@@ -46,12 +45,12 @@ D=X(:,II(1:K));
 if isfield(options,'initD')
 D=gpuArray(single(options.initD));
 end
+II=(randperm(M-1));
 
 B=zeros(N,K,'single','gpuArray');
 A=zeros(K,K,'single','gpuArray');
 Dsq = zeros(K,K,'single','gpuArray');
 DX = zeros(KK,MM,'single','gpuArray');
-DXo = zeros(KK,MM,'single','gpuArray');
 
 
 %verbose variables
@@ -62,7 +61,9 @@ chunks = ceil(niters/ch);
 t0 = getoptions(options,'alpha_step',0.5);
 t0 = t0 * (1/max(svd(D))^2)
 tot_tested=0;
+tgroups=getoptions(options,'time_groupsize',2);
 options.batchsize=batchsize;
+options.time_groupsize=tgroups;
 lambda = getoptions(options,'lambda',0.1);
 iters=getoptions(options,'alpha_iters',200);
 diters=getoptions(options,'dict_iters',2);
@@ -76,16 +77,13 @@ rast=1;
 c1=0;
 c2=0;
 
-data = zeros(N, batchsize*time_window,'single','gpuArray');
+data = zeros(N, options.time_groupsize*batchsize,'single','gpuArray');
 y = zeros(KK,MM,'single','gpuArray');
-yr = zeros(KK,MM,'single','gpuArray');
-tmp = zeros(KK,MM,'single','gpuArray');
 lout = zeros(KK,MM,'single','gpuArray');
 llout = zeros(K,Mf,'single','gpuArray');
 ss=groupsize*time_groupsize;
 rr=KK*MM/ss;
 newout = zeros(KK,MM,'single','gpuArray');
-newouto = zeros(KK,MM,'single','gpuArray');
 newout1 = zeros(KK,MM,'single', 'gpuArray');
 normes1=zeros(ss,rr,'single','gpuArray');
 normes2=zeros(ss,rr,'single','gpuArray');
@@ -97,7 +95,7 @@ groups=(mod(floor([0:KK-1]/groupsize),K/groupsize) )+1;
 [~,tI0]=sort(groups);
 tI1=invperm(tI0);
 %odd groups
-rien = circshift(reshape(groups,K,time_groupsize),[ceil(groupsize/2) 0]);
+rien = circshift(reshape(groups,K,options.time_groupsize),[ceil(groupsize/2) 0]);
 groupso=rien(:);
 [~,tI00]=sort(groupso);
 tI11=invperm(tI00);
@@ -107,15 +105,20 @@ I1=gpuArray(tI1);
 I00=gpuArray(tI00);
 I11=gpuArray(tI11);
 
-II=(randperm(M-time_window));
-
 niters
 
 for n=1:niters
-init= mod( (n-1)*batchsize, M-batchsize-time_window+0); 
+%fprintf('%d..',n)
+%if mod(n,20)==19
+%fprintf('\n')
+%end
+%update synthesis coefficients
+init= mod( (n-1)*batchsize, M-batchsize+0); 
 BI0 = II(1+init:batchsize+init);
-for tt=1:time_window
-data(:,tt:time_window:end)=X(:,BI0+tt-1);
+%size(data)
+%size(BI0)
+for tt=1:options.time_groupsize
+data(:,tt:options.time_groupsize:end)=X(:,BI0+tt-1);
 end
 
 %[A,B,alpha] = time_coeffs_update22( D, data, options,A,B,t0, n);
@@ -123,53 +126,32 @@ end
 
 Dsq=D'*D;
 DX = reshape(D'*data,KK,MM);
-DXo = reshape(circshift(D'*data,[0 round(time_groupsize/2)]),KK,MM);
 t=1;
 y=0*y;
 lout=0*lout;
 for i=1:iters
 	%newout = y - t0*(reshape(Dsq * reshape(y,K,Mf),KK,MM)- DX);
-	yr = reshape(y,K,Mf);
-	tmp = yr - t0*(Dsq * yr);
-	newout = reshape(tmp,KK,MM)+t0*DX;
-	newouto= reshape(circshift(tmp,[0 round(time_groupsize/2)]),KK,MM)+t0*DXo;
-	%newout = y - t0*(Dsq * y- DX);
+	newout = y - t0*(Dsq * y- DX);
 	if nmf
 	newout = max(0,newout);
-        newouto = max(0,newouto);
 	end
-
+	%newout1 = ProximalFlat(aux, I0, I1, tparam.lambda,ss,rr);
 	newout1=reshape(newout(I0,:),ss,rr);
 	normes1=repmat(sqrt(sum(newout1.^2)),[ss 1]);
 	lI=find(normes1>0);
 	newout1(lI) = newout1(lI).*(max(0,normes1(lI)-tlambda)./normes1(lI));
 	newout1 = reshape(newout1, KK,MM);
 	newout1= newout1(I1,:);
+	
+	%newout2 = ProximalFlat(aux, I00, I11, tparam.lambda,ss,rr);
 	newout=reshape(newout(I00,:),ss,rr);
 	normes2=repmat(sqrt(sum(newout.^2)),[ss 1]);
 	lI=find(normes2>0);
 	newout(lI) = newout(lI).*(max(0,normes2(lI)-tlambda)./normes2(lI));
 	newout = reshape(newout, KK,MM);
 	newout= newout(I11,:);
+
 	newout = .5*(newout1+newout);
-
-	newout1=reshape(newouto(I0,:),ss,rr);
-	normes1=repmat(sqrt(sum(newout1.^2)),[ss 1]);
-	lI=find(normes1>0);
-	newout1(lI) = newout1(lI).*(max(0,normes1(lI)-tlambda)./normes1(lI));
-	newout1 = reshape(newout1, KK,MM);
-	newout1= newout1(I1,:);
-	newouto=reshape(newouto(I00,:),ss,rr);
-	normes2=repmat(sqrt(sum(newouto.^2)),[ss 1]);
-	lI=find(normes2>0);
-	newouto(lI) = newouto(lI).*(max(0,normes2(lI)-tlambda)./normes2(lI));
-	newouto = reshape(newouto, KK,MM);
-	newouto= newouto(I11,:);
-	newouto = .5*(newout1+newouto);
-	tmp = reshape(circshift(reshape(newouto,K,Mf),[0 -round(time_groupsize/2)]),KK,MM) ;
-	tmp(:,1:time_window/time_groupsize:end)=newout(:,1:time_window/time_groupsize:end);
-	newout = .5*(tmp+newout);
-
 	newt = (1+ sqrt(1+4*t^2))/2;
 	y = newout + ((t-1)/newt)*(newout-lout);
 	lout=newout;
@@ -213,83 +195,6 @@ if mod(n,ch)==ch-1
 %fprintf('done chunk %d of %d\n',ceil(n/ch),chunks )
 end
 end
-
-if produce_synthesis
-%%%produce final synthesis coefficient too
-fprintf('producing synthesis coeffs\n ')
-MM=floor(M/time_groupsize);
-%data = zeros(N, M,'single','gpuArray');
-Mf = MM*time_groupsize;
-y = zeros(KK,MM,'single','gpuArray');
-yr = zeros(KK,MM,'single','gpuArray');
-tmp = zeros(KK,MM,'single','gpuArray');
-lout = zeros(KK,MM,'single','gpuArray');
-llout = zeros(K,Mf,'single','gpuArray');
-ss=groupsize*time_groupsize;
-rr=KK*MM/ss;
-newout = zeros(KK,MM,'single','gpuArray');
-newouto = zeros(KK,MM,'single','gpuArray');
-newout1 = zeros(KK,MM,'single', 'gpuArray');
-normes1=zeros(ss,rr,'single','gpuArray');
-normes2=zeros(ss,rr,'single','gpuArray');
-DX = zeros(KK,MM,'single','gpuArray');
-DXo = zeros(KK,MM,'single','gpuArray');
-Dsq=D'*D;
-DX = reshape(D'*X(:,1:Mf),KK,MM);
-DXo = reshape(circshift(D'*X(:,1:Mf),[0 round(time_groupsize/2)]),KK,MM);
-for i=1:iters
-	%newout = y - t0*(reshape(Dsq * reshape(y,K,Mf),KK,MM)- DX);
-	yr = reshape(y,K,Mf);
-	tmp = yr - t0*(Dsq * yr);
-	newout = reshape(tmp,KK,MM)+t0*DX;
-	newouto= reshape(circshift(tmp,[0 round(time_groupsize/2)]),KK,MM)+t0*DXo;
-	%newout = y - t0*(Dsq * y- DX);
-	if nmf
-	newout = max(0,newout);
-        newouto = max(0,newouto);
-	end
-
-	newout1=reshape(newout(I0,:),ss,rr);
-	normes1=repmat(sqrt(sum(newout1.^2)),[ss 1]);
-	lI=find(normes1>0);
-	newout1(lI) = newout1(lI).*(max(0,normes1(lI)-tlambda)./normes1(lI));
-	newout1 = reshape(newout1, KK,MM);
-	newout1= newout1(I1,:);
-	newout=reshape(newout(I00,:),ss,rr);
-	normes2=repmat(sqrt(sum(newout.^2)),[ss 1]);
-	lI=find(normes2>0);
-	newout(lI) = newout(lI).*(max(0,normes2(lI)-tlambda)./normes2(lI));
-	newout = reshape(newout, KK,MM);
-	newout= newout(I11,:);
-	newout = .5*(newout1+newout);
-
-	newout1=reshape(newouto(I0,:),ss,rr);
-	normes1=repmat(sqrt(sum(newout1.^2)),[ss 1]);
-	lI=find(normes1>0);
-	newout1(lI) = newout1(lI).*(max(0,normes1(lI)-tlambda)./normes1(lI));
-	newout1 = reshape(newout1, KK,MM);
-	newout1= newout1(I1,:);
-	newouto=reshape(newouto(I00,:),ss,rr);
-	normes2=repmat(sqrt(sum(newouto.^2)),[ss 1]);
-	lI=find(normes2>0);
-	newouto(lI) = newouto(lI).*(max(0,normes2(lI)-tlambda)./normes2(lI));
-	newouto = reshape(newouto, KK,MM);
-	newouto= newouto(I11,:);
-	newouto = .5*(newout1+newouto);
-	tmp = reshape(circshift(reshape(newouto,K,Mf),[0 -round(time_groupsize/2)]),KK,MM) ;
-	tmp(:,1:time_window/time_groupsize:end)=newout(:,1:time_window/time_groupsize:end);
-	newout = .5*(tmp+newout);
-
-	newt = (1+ sqrt(1+4*t^2))/2;
-	y = newout + ((t-1)/newt)*(newout-lout);
-	lout=newout;
-	t=newt;
-end
-llout=reshape(lout,K,Mf);
-
-%%%
-end
-
 
 Dout=gather(D);
 lastzout=gather(llout);

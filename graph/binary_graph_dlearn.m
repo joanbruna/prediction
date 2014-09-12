@@ -1,4 +1,4 @@
-function [D,T] = binary_graph_dlearn(X, options)
+function [D,T,S] = binary_graph_dlearn(X, options)
 %this function performs a dictionary learning using
 %the proximal toolbox and iterated gradient descent
 %from Mairal et Al (2010)
@@ -73,8 +73,8 @@ ch = ceil(niters/chunks);
 t0 = getoptions(options,'alpha_step',0.25);
 t0 = t0 * (1/max(svd(D))^2);
 
-Atmp = zeros(K, batchsize*tp);
-
+Atmp = zeros(K);
+Afin = Atmp;
 
 D0=D;
 
@@ -130,12 +130,17 @@ for n=1:niters
         cost = 0;     
         cost1 = 0;     
         cost2 = 0;     
+	figure(1);imagesc(D);drawnow;
     end
 
     % update the trees every pp minibatches
-     Atmp(:,1+batchsize*mod(n,tp):batchsize*(1+mod(n,tp)))=alpha;
+     %Atmp(:,1+batchsize*mod(n,tp):batchsize*(1+mod(n,tp)))=alpha;
+      Atmp = Atmp + kernelization(alpha).^2;
     if mod(n,tp)==tp-1
-	T = trees(Atmp, options);
+        beta = (1-(tp-1)/n).^rho;
+        Afin = beta * Afin + 1/tp/batchsize*Atmp;
+	[T,S] = trees(Afin, options);
+	Atmp = 0*Atmp;
 	[indexes,indexes_inv] = getTreeIndexes(K,batchsize,T,time_groupsize, Jmax);
 	options.indexes = indexes;
 	options.indexes_inv = indexes_inv;

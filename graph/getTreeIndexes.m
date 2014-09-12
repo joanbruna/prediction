@@ -1,5 +1,10 @@
 function [indexes,indexes_inv] = getTreeIndexes(K,M,trees,Gt, Jmax)
 
+
+if mod(M,2)>0
+error('we do not currently deal with odd batchsizes')
+end
+
 %assume temporal overlapping by default
 ntrees=size(trees,2);
 
