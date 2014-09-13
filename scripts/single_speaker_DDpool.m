@@ -4,18 +4,10 @@ close all;
 
 if ~exist('X1','var')
     load '/misc/vlgscratch3/LecunGroup/bruna/grid_data/spect_640/class_s31.mat'
-    X1 = Xc;
+    X = Xc;
     clear Xc;
     
-    epsilon = 1;
-    
-    load '/misc/vlgscratch3/LecunGroup/bruna/grid_data/spect_640/class_s14.mat'
-    X2 = Xc;
-    
-    X = [X1 X2];
-    
 end
-
 
 %renormalize data: whiten each frequency component.
 eps=4e-1;
