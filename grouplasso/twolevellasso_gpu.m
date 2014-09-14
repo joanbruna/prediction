@@ -147,7 +147,7 @@ for i=1:itersout
 	end
 	
 	tmpgn = Zgn  - t0gn *(Dgnsq * Zgn - Dgn'*Poole + betagn * Zgn);	
-	tmpgn = (tmpgn > tlambdagn).*tmpgn;
+	tmpgn = (tmpgn > tlambdagn).*(tmpgn - tlambdagn);
 	%Zgn = tmpgn + ((t-1)/newt)*(tmpgn - loutgn);
 	%loutgn = tmpgn;
 	
