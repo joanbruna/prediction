@@ -18,12 +18,20 @@ Dgn=gpuArray(single(Dgnin));
 
 groupsize = getoptions(options,'groupsize',2);
 time_groupsize = getoptions(options,'time_groupsize',2);
+overlapping = getoptions(options, 'overlapping', 1);
+nu = getoptions(options,'nu',1);
+beta = getoptions(options,'beta',2e-1);
+betagn = getoptions(options,'betagn',2e-1);
 
 K = size(D,2);
 Kgn = size(Dgn,2);
 
 t0 = getoptions(options,'alpha_step',0.25);
-t0 = t0 * (1/(1+max(svd(D))^2))
+if overlapping
+t0 = t0 * (1/(4*nu+max(svd(D))^2))
+else
+t0 = t0 * (1/(nu+max(svd(D))^2))
+end
 lambda = getoptions(options,'lambda',0.1);
 itersout=getoptions(options,'itersout',300);
 nmf=getoptions(options,'nmf', 0);
@@ -34,11 +42,7 @@ t0gn = t0gn * (1/max(svd(Dgn))^2);
 lambdagn = getoptions(options,'lambdagn',0.1);
 tlambdagn = t0gn * lambdagn;% * (size(D,2)/K);
 
-nu = getoptions(options,'nu',1);
-beta = getoptions(options,'beta',2e-1);
-betagn = getoptions(options,'betagn',2e-1);
 
-overlapping = getoptions(options, 'overlapping', 1);
 
 Mf= time_groupsize*floor(M/time_groupsize);
 X=X(:,1:Mf);
@@ -65,6 +69,7 @@ y = zeros(K,Mf,'single','gpuArray');
 yo = zeros(K,Mf,4,'single','gpuArray');
 aux = zeros(K,Mf,'single','gpuArray');
 Pool = zeros(KK,MM, 'single', 'gpuArray');
+Poole = zeros(KK,MM, 'single', 'gpuArray');
 Rgn = zeros(KK,MM, 'single', 'gpuArray');
 dPool = zeros(KK,MM, 'single', 'gpuArray');
 tPool = zeros(KK,MM, 'single', 'gpuArray');
@@ -87,40 +92,42 @@ loutgn = zeros(Kgn, MM,'single','gpuArray');
 box = ones(groupsize,time_groupsize,'single','gpuArray');
 cost= zeros(6,1,'single','gpuArray');
 
-ds=f1*f2/(groupsize*time_groupsize);
-off1=[1 1 f1 f1];
-off2=[1 f2 1 f2];
+off1=[1 1 f1+1 f1+1];
+off2=[1 f2+1 1 f2+1];
 
 for i=1:itersout
-
 
 	%compute pooling of current z and gradient 
 	aux=sqrt(conv2(y.^2,box,'valid'));
 	Pool=aux(1:f1:end,1:f2:end);	
-	
-	dPool = Pool - Rgn;
+
+	aux=sqrt(conv2(y.^2+eps,box,'valid'));
+	Poole=aux(1:f1:end,1:f2:end);	
+
+	dPool = Poole - Rgn;
 	aux=0*aux;
-	aux(1:f1:end,1:f2:end)=dPool./(eps+Pool);
-	
-	dy=ds*conv2(aux,box,'full').*y;
+	aux(1:f1:end,1:f2:end)=dPool./(Poole);
+	dy=conv2(aux,box,'full').*y;
 
 	if overlapping
 		for k=1:4
 		tmp = 2*y - yo(:,:,k) - t0*(Dsq * y - DX + beta*y + nu*dy);
 
-		if nmf
-		tmp = max(0,tmp);
-		end
 		aux=sqrt(conv2(tmp.^2,box,'valid'));
 		tPool=aux(off1(k):groupsize:end,off2(k):time_groupsize:end);	
-		dPool = max(0,tPool-tlambda);
+		dPool = max(0,tPool-4*tlambda);
+		lI=find(tPool>0);
+		dPool(lI)=dPool(lI)./tPool(lI);
 		aux=0*aux;
-		aux(off1(k):groupsize:end,off2(k):time_groupsize:end)=dPool./(eps+tPool);
+		aux(off1(k):groupsize:end,off2(k):time_groupsize:end)=dPool;
 		yo(:,:,k) = yo(:,:,k) + conv2(aux,box,'full').*tmp - y;
 		end
-		y=mean(yo,3);
-		newt = (1+ sqrt(1+4*t^2))/2;
 		lout=y;
+		y=mean(yo,3);
+		if nmf
+		y = max(0,y);
+		end
+		newt = (1+ sqrt(1+4*t^2))/2;
 	else
 
 		tmp = y - t0*(Dsq * y - DX + beta*y + nu*dy);
@@ -132,25 +139,27 @@ for i=1:itersout
 		dPool = max(0,tPool-tlambda);
 		aux=0*aux;
 		aux(1:f1:end,1:f2:end)=dPool./(eps+tPool);
-		new=ds*conv2(aux,box,'full').*tmp;
+		new=conv2(aux,box,'full').*tmp;
 	
 		newt = (1+ sqrt(1+4*t^2))/2;
 		y = new + ((t-1)/newt)*(new-lout);
 		lout=new;
 	end
 	
-	tmpgn = Zgn  - t0gn *(Dgnsq * Zgn - Dgn'*Pool + betagn * Zgn);	
+	tmpgn = Zgn  - t0gn *(Dgnsq * Zgn - Dgn'*Poole + betagn * Zgn);	
 	tmpgn = (tmpgn > tlambdagn).*tmpgn;
-	Zgn = tmpgn + ((t-1)/newt)*(tmpgn - loutgn);
-	loutgn = tmpgn;
+	%Zgn = tmpgn + ((t-1)/newt)*(tmpgn - loutgn);
+	%loutgn = tmpgn;
+	
 	Rgn = Dgn * Zgn;
+	Zgn = tmpgn;	
 
 	t=newt;
 
 	if mod(i,10)==9
 	cost(1) = .5*norm(D*lout-X,'fro')^2;
 	cost(2) =  lambda * (sum(Pool(:)));
-	cost(3) = .5*nu*norm(Pool-Rgn,'fro')^2;
+	cost(3) = .5*nu*norm(Poole-Rgn,'fro')^2;
 	cost(4) = lambdagn*sum(Zgn(:));
 	cost(5) = .5*beta*norm(lout,'fro')^2;
 	cost(6) = .5*betagn*norm(Zgn,'fro')^2;
