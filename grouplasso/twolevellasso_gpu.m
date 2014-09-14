@@ -11,6 +11,7 @@ function [Zout, Zgnout] = twolevellasso_gpu(Xin, Din, Dgnin, options)
 
 
 [N,M]=size(Xin);
+
 X=gpuArray(single(Xin));
 D=gpuArray(single(Din));
 Dgn=gpuArray(single(Dgnin));
@@ -20,12 +21,11 @@ time_groupsize = getoptions(options,'time_groupsize',2);
 
 K = size(D,2);
 Kgn = size(Dgn,2);
-KK=K * time_groupsize;
 
-t0 = getoptions(options,'alpha_step',0.5);
+t0 = getoptions(options,'alpha_step',0.25);
 t0 = t0 * (1/(1+max(svd(D))^2))
 lambda = getoptions(options,'lambda',0.1);
-itersout=getoptions(options,'alpha_itersout',20);
+itersout=getoptions(options,'itersout',300);
 nmf=getoptions(options,'nmf', 0);
 tlambda = t0 * lambda;% * (size(D,2)/K);
 
@@ -38,182 +38,126 @@ nu = getoptions(options,'nu',1);
 beta = getoptions(options,'beta',2e-1);
 betagn = getoptions(options,'betagn',2e-1);
 
+overlapping = getoptions(options, 'overlapping', 1);
 
-%%%produce final synthesis coefficient too
-fprintf('producing synthesis coeffs\n ')
-MM=floor(M/time_groupsize);
-%data = zeros(N, M,'single','gpuArray');
-Mf = MM*time_groupsize;
-y = zeros(KK,MM,'single','gpuArray');
-yr = zeros(KK,MM,'single','gpuArray');
-tmp = zeros(KK,MM,'single','gpuArray');
-lout = zeros(KK,MM,'single','gpuArray');
-llout = zeros(K,Mf,'single','gpuArray');
-ss=groupsize*time_groupsize;
-rr=KK*MM/ss;
-newout = zeros(KK,MM,'single','gpuArray');
-newouto = zeros(KK,MM,'single','gpuArray');
-newout1 = zeros(KK,MM,'single', 'gpuArray');
-normes=zeros(ss,rr,'single','gpuArray');
+Mf= time_groupsize*floor(M/time_groupsize);
+X=X(:,1:Mf);
 DX = zeros(K,Mf,'single','gpuArray');
-%DX = zeros(KK,MM,'single','gpuArray');
-%DXo = zeros(KK,MM,'single','gpuArray');
 Dsq=D'*D;
 DX = D'*X;
-%DX = reshape(D'*X(:,1:Mf),KK,MM);
-%DXo = reshape(circshift(D'*X(:,1:Mf),[0 round(time_groupsize/2)]),KK,MM);
-
-ss=groupsize*time_groupsize;
-rr=KK*MM/ss;
-lI=zeros(ss,rr,'uint8','gpuArray');
-dia=zeros(K,1,'single','gpuArray');
-
-%even groups
-groups=(mod(floor([0:KK-1]/groupsize),K/groupsize) )+1;
-[~,tI0]=sort(groups);
-tI1=invperm(tI0);
-%odd groups
-rien = circshift(reshape(groups,K,time_groupsize),[ceil(groupsize/2) 0]);
-groupso=rien(:);
-[~,tI00]=sort(groupso);
-tI11=invperm(tI00);
-
-I0=gpuArray(tI0);
-I1=gpuArray(tI1);
-I00=gpuArray(tI00);
-I11=gpuArray(tI11);
 
 t=1;
-%we start by alternating between one update on z and one update on zgn
+Ksm=K/groupsize;
+Msm=Mf/time_groupsize;
+if overlapping
+f1=round(groupsize/2);
+f2=round(time_groupsize/2);
+KK=2*Ksm-1;
+MM=2*Msm-1;
+else
+f1=groupsize;%round(groupsize/2);
+f2=time_groupsize;%round(time_groupsize/2);
+KK=Ksm;%2*Ksm-1;
+MM=Msm;%2*Msm-1;
+end
 
-phas1 = zeros(K,Mf,'single','gpuArray');
-phas2 = zeros(K,Mf,'single','gpuArray');
-phas3 = zeros(K,Mf,'single','gpuArray');
-phas4 = zeros(K,Mf,'single','gpuArray');
-
-cost= zeros(4,1,'single','gpuArray');
-PP=zeros(4,rr,'single','gpuArray');
-Pool = zeros(2*K/groupsize, 2*M/time_groupsize, 'single', 'gpuArray');
-Zgn = zeros(Kgn, 2*M/time_groupsize, 'single', 'gpuArray');
+y = zeros(K,Mf,'single','gpuArray');
+yo = zeros(K,Mf,4,'single','gpuArray');
+aux = zeros(K,Mf,'single','gpuArray');
+Pool = zeros(KK,MM, 'single', 'gpuArray');
+Rgn = zeros(KK,MM, 'single', 'gpuArray');
+dPool = zeros(KK,MM, 'single', 'gpuArray');
+tPool = zeros(KK,MM, 'single', 'gpuArray');
+lI = zeros(KK,MM, 'single', 'gpuArray');
+%yp = zeros(K+groupsize-1,Mf+time_groupsize-1,'single','gpuArray');
+%dyp = zeros(K+groupsize-1,Mf+time_groupsize-1,'single','gpuArray');
+dy = zeros(K,Mf,'single','gpuArray');
+tmp = zeros(K,Mf,'single','gpuArray');
+new = zeros(K,Mf,'single','gpuArray');
+lout = zeros(K,Mf,'single','gpuArray');
+Zgn = zeros(Kgn, MM, 'single', 'gpuArray');
 Dgnsq = zeros(Kgn, Kgn,'single','gpuArray');
 Dgnsq = Dgn'*Dgn;
-loutgn = zeros(Kgn, 2*M/time_groupsize,'single','gpuArray');
-Rgn=zeros(4,rr,'single','gpuArray');
+tmpgn = zeros(Kgn, MM, 'single', 'gpuArray');
+loutgn = zeros(Kgn, MM,'single','gpuArray');
+%box = zeros(2*groupsize-1,2*time_groupsize-1,'single','gpuArray');
+%dbox = zeros(2*groupsize-1,2*time_groupsize-1,'single','gpuArray');
+%box(groupsize:end,time_groupsize:end)=1;
+%dbox(1:groupsize,1:time_groupsize)=1;
+box = ones(groupsize,time_groupsize,'single','gpuArray');
+cost= zeros(6,1,'single','gpuArray');
+
+ds=f1*f2/(groupsize*time_groupsize);
+off1=[1 1 f1 f1];
+off2=[1 f2 1 f2];
 
 for i=1:itersout
 
-	yr = reshape(y,K,Mf);
+
+	%compute pooling of current z and gradient 
+	aux=sqrt(conv2(y.^2,box,'valid'));
+	Pool=aux(1:f1:end,1:f2:end);	
 	
-	tmp = yr - t0*(Dsq * yr - DX + beta*yr + nu*phas1);
-	newout = reshape(tmp,KK,MM);
-	newouto= reshape(circshift(tmp,[0 round(time_groupsize/2)]),KK,MM);
-	%newout = y - t0*(Dsq * y- DX);
-	if nmf
-	newout = max(0,newout);
-        newouto = max(0,newouto);
+	dPool = Pool - Rgn;
+	aux=0*aux;
+	aux(1:f1:end,1:f2:end)=dPool./(eps+Pool);
+	
+	dy=ds*conv2(aux,box,'full').*y;
+
+	if overlapping
+		for k=1:4
+		tmp = 2*y - yo(:,:,k) - t0*(Dsq * y - DX + beta*y + nu*dy);
+
+		if nmf
+		tmp = max(0,tmp);
+		end
+		aux=sqrt(conv2(tmp.^2,box,'valid'));
+		tPool=aux(off1(k):groupsize:end,off2(k):time_groupsize:end);	
+		dPool = max(0,tPool-tlambda);
+		aux=0*aux;
+		aux(off1(k):groupsize:end,off2(k):time_groupsize:end)=dPool./(eps+tPool);
+		yo(:,:,k) = yo(:,:,k) + conv2(aux,box,'full').*tmp - y;
+		end
+		y=mean(yo,3);
+		newt = (1+ sqrt(1+4*t^2))/2;
+		lout=y;
+	else
+
+		tmp = y - t0*(Dsq * y - DX + beta*y + nu*dy);
+		if nmf
+		tmp = max(0,tmp);
+		end
+		aux=sqrt(conv2(tmp.^2,box,'valid'));
+		tPool=aux(1:f1:end,1:f2:end);	
+		dPool = max(0,tPool-tlambda);
+		aux=0*aux;
+		aux(1:f1:end,1:f2:end)=dPool./(eps+tPool);
+		new=ds*conv2(aux,box,'full').*tmp;
+	
+		newt = (1+ sqrt(1+4*t^2))/2;
+		y = new + ((t-1)/newt)*(new-lout);
+		lout=new;
 	end
-
-	newout1=reshape(newout(I0,:),ss,rr);
-	phas1=0*newout1;
-	PP(1,:)=sqrt(sum(newout1.^2));
-	normes=repmat(PP(1,:),[ss 1]);
-	lI=find(normes>0);
-	phas1(lI) = newout1(lI)./normes(lI);
-	phas1 = phas1 .* repmat(PP(1,:)-Rgn(1,:),[ss 1]);
-	newout1(lI) = newout1(lI).*(max(0,normes(lI)-tlambda)./normes(lI));
-	newout1 = reshape(newout1, KK,MM);
-	newout1= newout1(I1,:);
-	phas1 = reshape(phas1,KK,MM);
-	phas1 = phas1(I1,:);
-
-	newout=reshape(newout(I00,:),ss,rr);
-	phas2=0*newout;
-	PP(2,:)=sqrt(sum(newout.^2));
-	normes=repmat(PP(2,:),[ss 1]);
-	lI=find(normes>0);
-	phas2(lI) = newout(lI)./normes(lI);
-	phas2 = phas2 .* repmat(PP(2,:)-Rgn(2,:),[ss 1]);
-	newout(lI) = newout(lI).*(max(0,normes(lI)-tlambda)./normes(lI));
-	newout = reshape(newout, KK,MM);
-	newout= newout(I11,:);
-	phas2 = reshape(phas2,KK,MM);
-	phas2 = phas2(I11,:);
-	newout = .5*(newout1+newout);
-	phas1 = .5*(phas1+phas2);
-
-	newout1=reshape(newouto(I0,:),ss,rr);
-	phas3=0*newout1;
-	PP(3,:)=sqrt(sum(newout1.^2));
-	normes=repmat(PP(3,:),[ss 1]);
-	lI=find(normes>0);
-	phas3(lI) = newout1(lI)./normes(lI);
-	phas3 = phas3 .* repmat(PP(3,:)-Rgn(3,:),[ss 1]);
-	newout1(lI) = newout1(lI).*(max(0,normes(lI)-tlambda)./normes(lI));
-	newout1 = reshape(newout1, KK,MM);
-	newout1= newout1(I1,:);
-	phas3 = reshape(phas3,KK,MM);
-	phas3 = phas3(I1,:);
 	
-        newouto=reshape(newouto(I00,:),ss,rr);
-	phas4=0*newouto;
-	PP(4,:)=sqrt(sum(newouto.^2));
-	normes=repmat(PP(4,:),[ss 1]);
-	lI=find(normes>0);
-	phas4(lI) = newouto(lI)./normes(lI);
-	phas4 = phas4 .* repmat(PP(4,:)-Rgn(4,:),[ss 1]);
-	newouto(lI) = newouto(lI).*(max(0,normes(lI)-tlambda)./normes(lI));
-	newouto = reshape(newouto, KK,MM);
-	newouto= newouto(I11,:);
-	phas4 = reshape(phas4,KK,MM);
-	phas4 = phas4(I11,:);
-	newouto = .5*(newout1+newouto);
-	phas3 = .5*(phas3+phas4);
-
-	tmp = reshape(circshift(reshape(newouto,K,Mf),[0 -round(time_groupsize/2)]),KK,MM) ;
-	%tmp(:,1:time_window/time_groupsize:end)=newout(:,1:time_window/time_groupsize:end);
-	newout = .5*(tmp+newout);
-	phas3 = reshape(circshift(reshape(phas3,K,Mf),[0 -round(time_groupsize/2)]),KK,MM) ;
-	phas1 = reshape(.5*(phas1+phas3), K, Mf);
-
-	newt = (1+ sqrt(1+4*t^2))/2;
-	y = newout + ((t-1)/newt)*(newout-lout);
-	lout=newout;
-	
-	%update the coefficients from the Dgn dictionary.
-	%and produce Rgn(i,:), 
-	%PP(1,:) and PP(2,:) form a vector of pooled coefficients
-	%PP(3,:) and PP(4,:) form the other one		
-	Pool(1:2:end,1:2:end)=reshape(PP(1,:),K/groupsize,MM);
-	Pool(2:2:end,1:2:end)=reshape(PP(2,:),K/groupsize,MM);
-	Pool(1:2:end,2:2:end)=reshape(PP(3,:),K/groupsize,MM);
-	Pool(2:2:end,2:2:end)=reshape(PP(4,:),K/groupsize,MM);
-
-	tmp = Zgn  - t0gn *(Dgnsq * Zgn - Dgn'*Pool + betagn * Zgn);	
-	tmp = (tmp > tlambdagn).*tmp;
-	Zgn = tmp + ((t-1)/newt)*(tmp - loutgn);
-	loutgn = tmp;
-	Pool=Dgn * Zgn;
-	chunk=Pool(1:2:end,1:2:end);
-	Rgn(1,:)=chunk(:);
-	chunk=Pool(2:2:end,1:2:end);
-	Rgn(2,:)=chunk(:);
-	chunk=Pool(1:2:end,2:2:end);
-	Rgn(3,:)=chunk(:);
-	chunk=Pool(2:2:end,2:2:end);
-	Rgn(4,:)=chunk(:);
+	tmpgn = Zgn  - t0gn *(Dgnsq * Zgn - Dgn'*Pool + betagn * Zgn);	
+	tmpgn = (tmpgn > tlambdagn).*tmpgn;
+	Zgn = tmpgn + ((t-1)/newt)*(tmpgn - loutgn);
+	loutgn = tmpgn;
+	Rgn = Dgn * Zgn;
 
 	t=newt;
 
 	if mod(i,10)==9
-	cost(1) = .5*norm(D*reshape(lout,K,Mf)-X,'fro')^2;
-	cost(2) =  lambda * double(sum(PP(:)));
-	cost(3) = .5*nu*norm(PP-Rgn,'fro')^2;
+	cost(1) = .5*norm(D*lout-X,'fro')^2;
+	cost(2) =  lambda * (sum(Pool(:)));
+	cost(3) = .5*nu*norm(Pool-Rgn,'fro')^2;
 	cost(4) = lambdagn*sum(Zgn(:));
 	cost(5) = .5*beta*norm(lout,'fro')^2;
 	cost(6) = .5*betagn*norm(Zgn,'fro')^2;
 	fprintf('it %d totcost %4.2f [ %4.2f %4.2f %4.2f %4.2f ] \n',i+1, sum(cost), cost(1),cost(2), cost(3), cost(4))
 
 	end
+
 
 end
 llout=reshape(lout,K,Mf);
