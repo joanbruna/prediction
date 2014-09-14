@@ -3,7 +3,7 @@
 
 % first make some data
 n = 20;
-m = 1;
+m = 10;
 r = 12;
 
 
