@@ -1,5 +1,6 @@
 
 
+
 % first make some data
 n = 20;
 m = 1;
@@ -8,7 +9,7 @@ r = 10;
 
 
 % cost function parameters
-lambda1 = 0;
+lambda1 = 0.1;
 lambda2 = 0.01;
 
 lambda1gn = 0.1;
@@ -38,27 +39,68 @@ for j=1:10
     alpha = rand(r,m);
 
     %f = betadiv(V,D*lassoRes,beta);
+    [f,df] = measure_bilevel_cost_nonoverlap(alpha, D, Dgn, V, lambda1,lambda2, lambda1gn, lambda2gn, groupsize, 'dX');
+    
+    dalpha = eps*randn(size(alpha));
+    alpha_ = alpha + dalpha;
+    f_ = measure_bilevel_cost_nonoverlap(alpha_, D, Dgn, V, lambda1,lambda2, lambda1gn, lambda2gn, groupsize, 'dX');
+    
+    disp([f_ - f,df(:)'*dalpha(:)]/eps)
+    
+end
+
+break
+
+
+
+
+%% 
+
+% first make some data
+n = 20;
+m = 1;
+r = 10;
+
+
+
+% cost function parameters
+lambda1 = 0.1;
+lambda2 = 0.01;
+
+lambda1gn = 0.1;
+lambda2gn = 0.01;
+
+%param = struct('mode',2,'lambda',lambda1,'lambda2',lambda2,'pos',true);
+eps = 1e-7;
+
+
+param0.posAlpha = 1;
+param0.posD = 1;
+param0.pos = 1;
+param0.lambda = lambda1gn;
+param0.lambda2 = lambda2gn;
+param0.iter = 1000;
+
+
+groupsize = 2;
+t = 4;
+
+for j=1:10
+    
+    D = rand(n,r);
+    V = rand(n,m);
+    Dgn = rand(r/groupsize,t);
+    
+    alpha = rand(r,m);
+
+    %f = betadiv(V,D*lassoRes,beta);
     [f,df] = measure_bilevel_cost(alpha, D, Dgn, V, lambda1,lambda2, lambda1gn, lambda2gn, groupsize, 'dX');
     
     dalpha = eps*rand(size(alpha));
     alpha_ = alpha + dalpha;
     f_ = measure_bilevel_cost(alpha_, D, Dgn, V, lambda1,lambda2, lambda1gn, lambda2gn, groupsize, 'dX');
     
-    [f_ - f,df(:)'*dalpha(:)]/eps
-    
-    break
-    
-    [~, lassoRes_] = nmf_beta(V, beta, lambda1, lambda2 , n_iter_max, tol, D_, 0);
-    lassoRes_(lassoRes_(:)<eps) = 0;
-    
-    % Compute change in loss function
-    %f_ = mean(lossFun(lassoRes_,Y,w));
-
-    f_ = betadiv(V,D_*lassoRes_,beta);
-    
-    
-    [(f_-f) dfD(:)'*dD(:)] / eps
-    
+    disp([f_ - f,df(:)'*dalpha(:)]/eps)
     
 end
 

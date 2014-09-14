@@ -1,4 +1,4 @@
-clear all;
+%clear all;
 close all;
 
 
@@ -24,7 +24,7 @@ X = X./repmat(stds,1,size(X,2));
 avenorm = mean(sqrt(sum(X.^2)));
 X = X/avenorm;
 
-gpud=gpuDevice(4);
+gpud=gpuDevice(1);
 
 param.nmf=1;
 param.lambda=0.15;

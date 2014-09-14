@@ -1,17 +1,11 @@
-function [out,dout] = measure_bilevel_cost(alpha, D, Dgn, data, lambda1,lambda2, lambda1gn, lambda2gn, groupsize,grad_type)
+function [out,dout] = measure_bilevel_cost_nonoverlap(alpha, D, Dgn, data, lambda1,lambda2, lambda1gn, lambda2gn, groupsize,grad_type)
 
 [~,batchsize] = size(data);
 N = size(alpha,1);
 rec = D * alpha;
-
-
 modulus = modphas_decomp(alpha,groupsize);
-
-
 c1 = 0.5*norm(rec(:)-data(:))^2/batchsize;
-
-% compute pulling
-Zp = down_sample(Z,groupsize,time_groupsize);
+pZ = modulus;
 
 
 param0.posAlpha = 1;
@@ -19,15 +13,18 @@ param0.posD = 1;
 param0.pos = 1;
 param0.lambda = lambda1gn;
 param0.lambda2 = lambda2gn;
-
-Z2 =  mexLasso(Zp,Dgn,param0);
+param0.iter = 1000;
+Z2 =  mexLasso(pZ,Dgn,param0);
 p = Dgn * Z2;
 
 % reweighting function
-fp = log( p + eps);
-%fp = 1./(p + eps);
+eps = 1e-4;
+fp = 1./(p + eps);
 
-c2 = lambda1*sum(fp.*Zp);
+
+% compute the multiplicative term
+c2 = lambda1*sum(fp.*pZ);
+
 c3 = 0.5*lambda2*sum(alpha(:).^2)/batchsize;
 
 
@@ -41,24 +38,26 @@ if nargout>1
             dc1 = D'*(D*alpha - data);
             dc3 = lambda2* alpha;
             
-            aux = fp.*(1./pZ);
+            aux = zeros(size(fp));
+            jj = pZ ~=0;
+            aux(jj) = fp(jj).*(1./pZ(jj));
             dc2_1 = lambda1*up_sample(aux,N,groupsize).*alpha;
             
-            dfp = 1./(p+eps);
-            %dfp = (p+eps).^(-2);
+            %dfp = 1./(p+eps);
+            dfp = -1./((p+eps).^2);
             
             id = find(Z2>0);
             Did = Dgn(:,id);
             
-            A = (Did'*Did + lambda2gn*eye(length(id)))\Did';
+            A = Did*((Did'*Did + lambda2gn*eye(length(id)))\Did');
+
             
-            %Pr = eye(N/groupsize);
+            B0 = A.*repmat(1./pZ',size(A,1),1);
+            aux2 = B0'*(pZ.*dfp);
             
- 
-            B = up_sample(Did*A,N,groupsize);
-            B = up_sample(B',N,groupsize)';
             
-            dc2_2 = lambda1*up_sample(dfp,N,groupsize).*(B*alpha);
+            dc2_2 = lambda1*alpha.*up_sample(aux2,N,groupsize);
+
             
             dout = dc1 + dc2_1 + dc2_2 + dc3;
             
@@ -70,19 +69,6 @@ if nargout>1
 end
 
 end
-
-
-function Zp = down_sample(Z,groupsize,time_groupsize)
-
-box=ones(groupsize,time_groupsize);
-
-Zp = sqrt(conv2(Z.^2,box,'same'));
-Zp=Zp(1:2:end,1:2:end);
-
-end
-
-
-
 
 function V = up_sample(p,M,groupsize)
 
@@ -97,5 +83,3 @@ end
 T = repmat(p',groupsize,1);
 V = reshape(T,M,1);
 end
-
-
