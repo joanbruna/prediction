@@ -1,11 +1,64 @@
 
-
+%% HAS BUGS, NON-OVERLAP WORKS
 
 % first make some data
 n = 20;
 m = 1;
-r = 10;
+r = 12;
 
+
+
+% cost function parameters
+lambda1 = 0.1;
+lambda2 = 0.01;
+
+lambda1gn = 0.1;
+lambda2gn = 0.01;
+
+%param = struct('mode',2,'lambda',lambda1,'lambda2',lambda2,'pos',true);
+eps = 1e-6;
+
+
+param0.posAlpha = 1;
+param0.posD = 1;
+param0.pos = 1;
+param0.lambda = lambda1gn;
+param0.lambda2 = lambda2gn;
+param0.iter = 1000;
+
+
+groupsize = 4;
+t = 4;
+
+for j=1:10
+    
+    D = rand(n,r);
+    V = rand(n,m);
+    % asumes overlap of half groupsize
+    Dgn = rand(r/(groupsize/2),t);
+    
+    alpha = rand(r,m);
+
+    %f = betadiv(V,D*lassoRes,beta);
+    [f,df] = measure_bilevel_cost(alpha, D, Dgn, V, lambda1,lambda2, lambda1gn, lambda2gn, groupsize, 'dX');
+    
+    dalpha = eps*randn(size(alpha));
+    alpha_ = alpha + dalpha;
+    f_ = measure_bilevel_cost(alpha_, D, Dgn, V, lambda1,lambda2, lambda1gn, lambda2gn, groupsize, 'dX');
+    
+    disp([f_ - f,df(:)'*dalpha(:)]/eps)
+    
+end
+
+break
+
+
+%% 
+
+% first make some data
+n = 20;
+m = 10;
+r = 12;
 
 
 % cost function parameters
@@ -54,57 +107,6 @@ break
 
 
 
-%% 
-
-% first make some data
-n = 20;
-m = 1;
-r = 10;
-
-
-
-% cost function parameters
-lambda1 = 0.1;
-lambda2 = 0.01;
-
-lambda1gn = 0.1;
-lambda2gn = 0.01;
-
-%param = struct('mode',2,'lambda',lambda1,'lambda2',lambda2,'pos',true);
-eps = 1e-7;
-
-
-param0.posAlpha = 1;
-param0.posD = 1;
-param0.pos = 1;
-param0.lambda = lambda1gn;
-param0.lambda2 = lambda2gn;
-param0.iter = 1000;
-
-
-groupsize = 2;
-t = 4;
-
-for j=1:10
-    
-    D = rand(n,r);
-    V = rand(n,m);
-    Dgn = rand(r/groupsize,t);
-    
-    alpha = rand(r,m);
-
-    %f = betadiv(V,D*lassoRes,beta);
-    [f,df] = measure_bilevel_cost(alpha, D, Dgn, V, lambda1,lambda2, lambda1gn, lambda2gn, groupsize, 'dX');
-    
-    dalpha = eps*rand(size(alpha));
-    alpha_ = alpha + dalpha;
-    f_ = measure_bilevel_cost(alpha_, D, Dgn, V, lambda1,lambda2, lambda1gn, lambda2gn, groupsize, 'dX');
-    
-    disp([f_ - f,df(:)'*dalpha(:)]/eps)
-    
-end
-
-break
 
 %%
 

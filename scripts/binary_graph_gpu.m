@@ -44,7 +44,6 @@ param.alpha_itersout=200;
 param.lambda = 0.15;
 Z = infergrouplasso(D, X, param);
 
-
 box=ones(param.groupsize,param.time_groupsize);
 
 Zp = sqrt(conv2(Z.^2,box,'same'));

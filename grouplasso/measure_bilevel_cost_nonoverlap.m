@@ -1,11 +1,12 @@
 function [out,dout] = measure_bilevel_cost_nonoverlap(alpha, D, Dgn, data, lambda1,lambda2, lambda1gn, lambda2gn, groupsize,grad_type)
 
-[~,batchsize] = size(data);
+batchsize = size(data,2);
 N = size(alpha,1);
 rec = D * alpha;
-modulus = modphas_decomp(alpha,groupsize);
-c1 = 0.5*norm(rec(:)-data(:))^2/batchsize;
-pZ = modulus;
+c1 = 0.5*norm(rec(:)-data(:))^2;
+
+%pZ = modphas_decomp(alpha,groupsize);
+pZ = down_sample(alpha,groupsize,1);
 
 
 param0.posAlpha = 1;
@@ -18,17 +19,16 @@ Z2 =  mexLasso(pZ,Dgn,param0);
 p = Dgn * Z2;
 
 % reweighting function
-eps = 1e-4;
+eps = 1e-2;
 fp = 1./(p + eps);
 
 
 % compute the multiplicative term
-c2 = lambda1*sum(fp.*pZ);
+c2 = lambda1*sum(fp(:).*pZ(:));
 
-c3 = 0.5*lambda2*sum(alpha(:).^2)/batchsize;
+c3 = 0.5*lambda2*sum(alpha(:).^2);
 
-
-out=c1+c2+c3;
+out=(c1+c2+c3)/batchsize;
 
 if nargout>1
     
@@ -46,20 +46,10 @@ if nargout>1
             %dfp = 1./(p+eps);
             dfp = -1./((p+eps).^2);
             
-            id = find(Z2>0);
-            Did = Dgn(:,id);
-            
-            A = Did*((Did'*Did + lambda2gn*eye(length(id)))\Did');
-
-            
-            B0 = A.*repmat(1./pZ',size(A,1),1);
-            aux2 = B0'*(pZ.*dfp);
-            
-            
+            aux2 = nmf_grad(Z2,pZ,dfp,Dgn,lambda2gn);  
             dc2_2 = lambda1*alpha.*up_sample(aux2,N,groupsize);
 
-            
-            dout = dc1 + dc2_1 + dc2_2 + dc3;
+            dout = (dc1 + dc2_1 + dc2_2 + dc3)/batchsize;
             
         otherwise
             
@@ -67,6 +57,16 @@ if nargout>1
                
     end
 end
+
+end
+
+
+function Zp = down_sample(Z,groupsize,time_groupsize)
+
+box=ones(groupsize,time_groupsize);
+
+Zp = sqrt(conv2(Z.^2,box,'same'));
+Zp=Zp(groupsize/2:groupsize:end,1:time_groupsize:end);
 
 end
 
@@ -82,4 +82,30 @@ end
 
 T = repmat(p',groupsize,1);
 V = reshape(T,M,1);
+end
+
+
+
+function out = nmf_grad(Z2,pZ,dfp,Dgn,lambda2gn)
+
+N = size(Dgn,1);
+
+if size(Z2,2)>1
+    out = zeros(N,size(Z2,2));
+    for i=1:size(Z2,2)
+         out(:,i) = nmf_grad(Z2(:,i),pZ(:,i),dfp(:,i),Dgn,lambda2gn);
+    end
+    return
+end
+
+
+id = find(Z2>0);
+Did = Dgn(:,id);
+
+A = Did*((Did'*Did + lambda2gn*eye(length(id)))\Did');
+
+
+B0 = A.*repmat(1./pZ',N,1);
+out = B0'*(pZ.*dfp);
+
 end
