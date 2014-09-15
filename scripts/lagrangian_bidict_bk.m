@@ -16,6 +16,11 @@ if ~exist('X1','var')
     
 end
 
+load('/misc/vlgscratch3/LecunGroup/bruna/grid_data/pooled_dictionaries_speaker31.mat');
+
+%cut the last coordinate of Dbis for pooling without circular topology.
+Dcut=Dbis(1:end-1,:);
+
 %renormalize data: whiten each frequency component.
 eps=4e-1;
 stds = std(X,0,2) + eps;
@@ -26,28 +31,17 @@ X = X/avenorm;
 gpud=gpuDevice(4);
 
 param.nmf=1;
-param.lambda=0.05;
-param.beta=1e-2;
-param.overlapping=1;
+param.lambda=0.15;
+param.beta=2e-2;
 param.groupsize=4;
 param.time_groupsize=4;
 param.nu=0.2;
 param.lambdagn=0.1;
-param.betagn=0;
-param.itersout=300;
-param.K=128;
-param.Kgn=64;
-param.epochs=4;
-param.batchsize=2048;
-param.plotstuff=1;
+param.itersout=500;
 
 reset(gpud);
 
-[D, Dgn] = twolevelDL_gpu(X, param);
-
-reset(gpud);
-
-[Z, Zgn] = twolevellasso_gpu(X, D, Dgn, param);
+[Z, Zgn] = twolevellasso_gpu(X, D, Dcut, param);
 
 
 
