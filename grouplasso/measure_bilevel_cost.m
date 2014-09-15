@@ -1,4 +1,4 @@
-function [out,dout] = measure_bilevel_cost(alpha, D, Dgn, data, lambda1,lambda2, lambda1gn, lambda2gn, groupsize,grad_type)
+function [out,dout,Z2,pZ] = measure_bilevel_cost(alpha, D, Dgn, data, lambda1,lambda2, lambda1gn, lambda2gn, groupsize,grad_type)
 
 batchsize = size(data,2);
 N = size(alpha,1);
@@ -6,15 +6,14 @@ rec = D * alpha;
 c1 = 0.5*norm(rec(:)-data(:))^2;
 
 %modulus = modphas_decomp(alpha,groupsize);
-pZ = down_sample(alpha,groupsize,1);
+pZ = down_sample(alpha,groupsize,2);
 
-keyboard
+
 param0.posAlpha = 1;
 param0.posD = 1;
 param0.pos = 1;
 param0.lambda = lambda1gn;
 param0.lambda2 = lambda2gn;
-param0.iter = 1000;
 Z2 =  mexLasso(pZ,Dgn,param0);
 p = Dgn * Z2;
 
@@ -22,13 +21,12 @@ p = Dgn * Z2;
 eps = 1e-4;
 fp = 1./(p + eps);
 
-
-% compute the multiplicative term
+% reweighted group-lasso
 c2 = lambda1*sum(fp(:).*pZ(:));
 
+% ridge term
 c3 = 0.5*lambda2*sum(alpha(:).^2);
 
-c1 = 0;
 out=(c1+c2+c3)/batchsize;
 
 if nargout>1
@@ -40,19 +38,29 @@ if nargout>1
             dc3 = lambda2* alpha;
             
             % we compute separate for each set of groups
-            aux = zeros(size(fp));
+            paux = zeros(size(fp));
             jj = pZ ~=0;
-            aux(jj) = fp(jj).*(1./pZ(jj));
-            daux = up_sample(aux(1:2:end,:),N,groupsize)+ circshift(up_sample(aux(2:2:end,:),N,groupsize),[groupsize/2,0]);
+            paux(jj) = fp(jj).*(1./pZ(jj));
+            
+            aux = up_sample(paux(1:2:end,:),N,groupsize)+ circshift(up_sample(paux(2:2:end,:),N,groupsize),[groupsize/2,0]);
+            
+            daux = zeros(size(alpha));  
+            daux(:,1:end-1) = aux; 
+            daux(:,2:end) = daux(:,2:end) + aux;
+
             dc2_1 = lambda1*daux.*alpha;
             
             %dfp = 1./(p+eps);
             dfp = -1./((p+eps).^2);
-            
-            aux2 = nmf_grad(Z2,pZ,dfp,Dgn,lambda2gn,groupsize);  
-            dc2_2 = lambda1*alpha.*aux2;
 
-            dc1 = 0;
+            
+            aux2 = nmf_grad(Z2,pZ,dfp,Dgn,lambda2gn,groupsize);
+            daux2 = zeros(size(alpha));  
+            daux2(:,1:end-1) = aux2; 
+            daux2(:,2:end) = daux2(:,2:end) + aux2;
+            
+            dc2_2 = lambda1*alpha.*daux2;
+            
             dout = (dc1 + dc2_1 + dc2_2 + dc3)/batchsize;
             
         otherwise
@@ -74,9 +82,6 @@ M = size(Z,1);
 
 Zpad = [Z(end-groupsize/2:end,:);Z];
 
-if time_groupsize>1
-   Zpad = [Zpad(:, end),Zpad];
-end
 
 Zp = sqrt(conv2(Zpad.^2,box,'valid'));
 
@@ -118,6 +123,7 @@ end
 
 
 id = find(Z2>0);
+if ~isempty(id)
 Did = Dgn(:,id);
 
 A = Did*((Did'*Did + lambda2gn*eye(length(id)))\Did');
@@ -136,5 +142,9 @@ aux1 = B1'*(pZ.*dfp);
 aux2 = B2'*(pZ.*dfp);
 
 out = up_sample(aux1,M,groupsize) + circshift(up_sample(aux2,M,groupsize),[groupsize/2,0]);
+
+else
+    out = zeros(M,1);
+end
 
 end

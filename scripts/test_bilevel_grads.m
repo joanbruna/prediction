@@ -1,9 +1,8 @@
 
-%% HAS BUGS, NON-OVERLAP WORKS
 
 % first make some data
 n = 20;
-m = 10;
+m = 100;
 r = 12;
 
 
@@ -38,7 +37,8 @@ for j=1:10
     Dgn = rand(r/(groupsize/2),t);
     
     alpha = rand(r,m);
-
+    %alpha = zeros(size(alpha));
+    
     %f = betadiv(V,D*lassoRes,beta);
     [f,df] = measure_bilevel_cost(alpha, D, Dgn, V, lambda1,lambda2, lambda1gn, lambda2gn, groupsize, 'dX');
     
