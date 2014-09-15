@@ -40,8 +40,3 @@ reset(gpuDevice);
 
 [Dgn,Zgn] = group_pooling_st_gpu(Zp, param);
 
-
-
-
-
-
