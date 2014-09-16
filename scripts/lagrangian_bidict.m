@@ -1,5 +1,3 @@
-clear all;
-close all;
 
 
 if ~exist('X1','var')
@@ -28,7 +26,7 @@ X = X./repmat(stds,1,size(X,2));
 avenorm = mean(sqrt(sum(X.^2)));
 X = X/avenorm;
 
-gpud=gpuDevice(4);
+gpud=gpuDevice(2);
 
 param.nmf=1;
 param.lambda=0.15;
@@ -41,7 +39,9 @@ param.itersout=500;
 
 reset(gpud);
 
-[Z, Zgn] = twolevellasso_gpu(X, D, Dcut, param);
+Xs = X(:,1:500);
+
+[Z, Zgn,Poole] = twolevellasso_gpu(Xs, D, Dcut, param);
 
 
 

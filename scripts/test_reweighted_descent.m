@@ -33,8 +33,8 @@ V = rand(n,m);
 % asumes overlap of half groupsize
 Dgn = rand(r/(groupsize/2),t);
 
-alpha = rand(r,m);
-
+alpha0 = rand(r,m);
+alpha = alpha0;
 step = 0.1;
 
 for j=1:200
@@ -48,6 +48,7 @@ for j=1:200
     
     if~mod(j,10)
         disp(['Iter: ' num2str(j)])
+        norm(dalpha,'fro')
     end
 
 end
