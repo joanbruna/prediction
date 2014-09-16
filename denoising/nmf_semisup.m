@@ -1,7 +1,7 @@
 function [y,z] = nmf_semisup(X,D,W,A,options)
 
-tau =0.1;
-iters=10;
+tau =0.5;
+iters=400;
 %iters = getoptions(options,'iter',iters);
 
 %alpha=getoptions(options,'iir_param',(.02)^(1/size(X,2)));
