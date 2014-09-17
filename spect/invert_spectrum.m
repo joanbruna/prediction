@@ -1,5 +1,5 @@
 
-function    y = invert_spectrum(spectrogram,NFFT,step,pad)
+function    y = invert_spectrum(spectrogram,NFFT,step,T)
 
 % y = istft(spectrogram, NFFT, NFFT, step);
 % 
@@ -10,16 +10,12 @@ function    y = invert_spectrum(spectrogram,NFFT,step,pad)
 % =========================================================================
 
 if ~exist('NFFT','var')
-set_configuration
-
-NFFT = config.NFFT;
-step = config.step;
-pad = 0;
+    set_configuration
+    
+    NFFT = config.NFFT;
+    step = config.step;
 end
 
-if ~exist('pad','var')
-pad=0;
-end
 
 % Duplicate the spectrum
 [M,N] = size(spectrogram);
@@ -31,16 +27,28 @@ spectrogram = S;
  
 % INITIALIZATION
 % =========================================================================
+% Ly = length(y);
+% n_frames = ceil((Ly+overlap)/step);
+% Ly_pad = overlap + n_frames*step;
+% 
+% pos = 1:step:(n_frames)*step;
+% range = 0:(NFFT-1);
 
+overlap = NFFT - step;
+n_frames = size(spectrogram,2);
 
-% Define the window centers for the analysis
-pos = (1+NFFT/2):step:(N*step+NFFT/2);
-range = (0:((1+pad)*NFFT-1))-(1+pad)*NFFT/2;
-hannWin = hanning(length(range));
+Tpad = overlap + n_frames*step;
 
 % define output signal
-y = zeros(pos(end)+range(end),1);
-win = zeros(pos(end)+range(end),1);
+y = zeros(1,Tpad);
+win = zeros(1,Tpad);
+
+% Define the window centers for the analysis
+pos = 1:step:(n_frames)*step;
+range = 0:(NFFT-1)';
+
+hannWin = hanning(length(range));
+
 
 % OVERLAP-ADD
 % =========================================================================
@@ -48,15 +56,15 @@ win = zeros(pos(end)+range(end),1);
 
 for i_t = 1:1:size(spectrogram,2)
     
-
     pos_win = pos(i_t);
-
-    y(pos_win+range) = y(pos_win+range)+real(ifft(spectrogram(:,i_t)));
-    
-    win(pos_win+range) = win(pos_win+range)+hannWin;
-
+    y(pos_win+range) = y(pos_win+range)+real(ifft(spectrogram(:,i_t)))';
+    win(pos_win+range) = win(pos_win+range)+hannWin';
     
 end
 
-
-y(NFFT:end-NFFT) = y(NFFT:end-NFFT)./win(NFFT:end-NFFT);
+if nargin == 4
+y = y(overlap+1:overlap+T)./win(overlap+1:overlap+T);
+else
+y = y(overlap+1:Tpad-overlap)./win(overlap+1:Tpad-overlap);    
+end
+%y(NFFT:end-NFFT) = y(NFFT:end-NFFT)./win(NFFT:end-NFFT);

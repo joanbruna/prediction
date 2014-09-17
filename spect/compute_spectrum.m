@@ -1,43 +1,53 @@
 
 
-function    [spectrogram,y] = compute_spectrum(y,NFFT,step,pad)
+function  [spectrogram,y_frames] = compute_spectrum(y,NFFT,step)
 
 
-if ~exist('pad','var')
-    pad = 0;
-end
-
-
+y = y(:)';
 
 % INITIALIZATION
 % =========================================================================
 
 
-% Define the window centers for the analysis
-pos = (1+NFFT/2):step:(length(y)-NFFT/2+1);
-range = (0:(NFFT-1))-NFFT/2;
+overlap = NFFT-step;
 
+% Define the window centers for the analysis
+Ly = length(y);
+n_frames = ceil((Ly+overlap)/step);
+Ly_pad = overlap + n_frames*step;
+
+pos = 1:step:(n_frames)*step;
+range = 0:(NFFT-1);
 
 % Correct the length of the signal to be exact
-y = y(1:(pos(end)+range(end)));
+y = [zeros(1,overlap), y, zeros(1,Ly_pad-Ly-overlap)];
+%y = y(1:(pos(end)+range(end)));
 
 
 % Compute the spectrogram of the input audio
-spectrogram = zeros((1+pad)*NFFT,length(pos));
+spectrogram = zeros(NFFT/2+1,length(pos));
 
 
 % START MAIN LOOP
 % =========================================================================
-
+flag = 0;
+if nargout >1
+    y_frames = zeros(n_frames,NFFT);
+    flag = 1;
+end
 
 for i_t = 1:1:size(spectrogram,2)
     
     pos_win = pos(i_t);
-    x_t = [zeros(pad/2*length(range),1); y(pos_win+range); zeros(pad/2*length(range),1)];
-    spectrogram(:,i_t) = fft(x_t.*hanning(length(x_t)));
+    x_t = y(pos_win+range);
+    aux = fft(x_t'.*hanning(length(x_t)));
+    spectrogram(:,i_t) = aux(1:end/2+1);
+    
+    if flag
+        y_frames(i_t,:) = x_t;
+    end
     
 end
 
-spectrogram = spectrogram(1:(end/2+1),:);
 
 end

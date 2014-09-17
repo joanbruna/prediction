@@ -8,11 +8,11 @@ l_win = 1024;
 overlap = l_win/2;
 Fs = 16000;
 
-lambda_ast = 0.01;
-lambda = 0.1;
+lambda_ast = 0.2;
+lambda = 0.01;
 
 
-K = 200;
+K = 100;
 
 param0.K = K;
 param0.posAlpha = 1;
