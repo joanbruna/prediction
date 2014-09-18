@@ -12,12 +12,12 @@ speech = '../external/deeplearningsourceseparation-master/codes/timit/Data_with_
 noise = '../external/deeplearningsourceseparation-master/codes/timit/Data_with_dev/male_train.wav';
 
 
-K = 100;
+K = 50;
 param0.K = K;
 param0.posAlpha = 1;
 param0.posD = 1;
 param0.pos = 1;
-param0.lambda = 0.05;
+param0.lambda = 0.1;
 param0.lambda2 = 0.001;
 param0.iter = 100;
 
@@ -137,6 +137,12 @@ Parms =  BSS_EVAL(x2, n2, y_out{1}, y_out{2}, mix);
 
 
 Parms
+
+
+audiowrite('../../public_html/speech/speech1.wav',y_out{1},fs);
+unix(['chmod 777 * ../../public_html/speech/speech1.wav']);
+audiowrite('../../public_html/speech/speech2.wav',y_out{2},fs);
+unix(['chmod 777 * ../../public_html/speech/speech2.wav']);
 
 
 %% Train supervised NMF

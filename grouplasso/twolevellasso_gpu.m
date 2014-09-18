@@ -1,4 +1,4 @@
-function [Zout, Zgnout] = twolevellasso_gpu(Xin, Din, Dgnin, options)
+function [Zout, Zgnout,Pool] = twolevellasso_gpu(Xin, Din, Dgnin, options)
 %this function performs a dictionary learning using 
 %the proximal toolbox and iterated gradient descent
 %from Mairal et Al (2010)
@@ -39,7 +39,12 @@ nmf=getoptions(options,'nmf', 0);
 tlambda = t0 * lambda;% * (size(D,2)/K);
 
 t0gn = getoptions(options,'alpha_step',0.5);
+<<<<<<< HEAD
+t0gn = t0gn * (1/(betagn+max(svd(Dgn)))^2);
+lambdagn = getoptions(options,'lambdagn',0.1);
+=======
 t0gn = t0gn * (1/(betagn+max(svd(Dgn))^2));
+>>>>>>> f63a0b59704f713bb3532206e9e0acd0c82d52bf
 tlambdagn = t0gn * lambdagn;% * (size(D,2)/K);
 
 

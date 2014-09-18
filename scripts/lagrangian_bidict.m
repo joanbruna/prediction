@@ -1,7 +1,3 @@
-if 1
-
-clear all;
-close all;
 
 
 if ~exist('X1','var')
@@ -51,7 +47,7 @@ alpha2= mexLasso(X(:,tt+1:end),Dnmf2,param0);
 Dnmf1s = sortDZ(Dnmf1,full(alpha1)');
 Dnmf2s = sortDZ(Dnmf2,full(alpha2)');
 
-gpud=gpuDevice(4);
+gpud=gpuDevice(2);
 
 param.nmf=1;
 param.lambda=2e-2;
@@ -78,7 +74,7 @@ reset(gpud);
 
 %[Z1, Zgn1] = twolevellasso_gpu(X(:,1:tt), D1, Dgn1, param);
 
-reset(gpud);
+
 
 param.initD = Dnmf2s;
 [D2, Dgn2] = twolevelDL_gpu(X(:,tt+1:end), param);
@@ -192,6 +188,9 @@ NSDR_nmf(n)=Parmsnmf{n}.NSDR;
 SAR_pool(n)=Parms{n}.SAR;
 SAR_nmf(n)=Parmsnmf{n}.SAR;
 end
+[Z, Zgn] = twolevellasso_gpu(X, D, Dgn, param);
+
+
 
 
 %figure;
