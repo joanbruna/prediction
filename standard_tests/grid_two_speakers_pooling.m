@@ -175,8 +175,6 @@ reset(gpud);
         Parms
         output{i} = Parms;
 
-	keyboard
-
         file1 = sprintf('%s%dspeech-1.wav',save_folder,i);
         audiowrite(file1,speech1,fs);
         unix(sprintf('chmod 777 %s',file1));

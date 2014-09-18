@@ -23,7 +23,7 @@ end
 [sdr_,sir_,sar_] = bss_crit( e1, e2, e3);
 
 
-Parms.SDR=sdr(2);
-Parms.SIR=sir(2);
-Parms.SAR=sar(2);
+Parms.SDR=sdr;
+Parms.SIR=sir;
+Parms.SAR=sar;
 Parms.NSDR=Parms.SDR-sdr_;
