@@ -1,4 +1,7 @@
-addpath ./stft/
+clear all
+close all
+
+addpath '~/matlab/prediction/benchmanrk_nmf_separation/stft'
 
 tol = 1e-3;
 n_iter_max = 1000;
@@ -8,43 +11,35 @@ l_win = 1024;
 overlap = l_win/2;
 Fs = 16000;
 
-lambda_ast = 0;
-lambda = 0;
 
 
-KK = [30 50 80 100];
-LL = [0.01 0.05 0.1 0.2];
 
+gpud=gpuDevice(4);
 
-for hh = 1:length(KK)
-    for jj = 1:length(LL)
-
-K = KK(hh);
-
-param0.K = K;
-param0.posAlpha = 1;
-param0.posD = 1;
-param0.pos = 1;
-param0.lambda = LL(jj);
-param0.lambda2 = 0;
-param0.iter = 1000;
-
+param.nmf=1;
+param.lambda=0.05;
+param.beta=5e-2;
+param.overlapping=1;
+param.groupsize=4;
+param.time_groupsize=4;
+param.nu=0.2;
+param.lambdagn=0.1;
+param.betagn=0;
+param.itersout=300;
+param.K=100;
+param.Kgn=64;
+param.epochs=4;
+param.batchsize=2048;
+param.plotstuff=1;
 
 
 p = 1;
 
-folderv = '../../external/deeplearningsourceseparation-master/codes/timit/Data_with_dev/';
+folderv = '/misc/vlgscratch3/LecunGroup/bruna/grid_data/Data_with_dev/';
 train_file1 = 'female_train.wav';
 train_file2 = 'male_train.wav';
-
 test_file1 = 'female_dev.wav';
 test_file2 = 'male_dev.wav';
-
-%% Data
-%F = 50;
-%N = 100;
-%V = abs(randn(F,N));
-
 
 [x, fs] = audioread([folderv train_file1]);
 x = resample(x,Fs,fs);
@@ -55,10 +50,10 @@ Xt1 = cf_stft(x,l_win,overlap);
 V1 = abs(Xt1).^p;
 [F,N] = size(V1);
 
-%W1 = rnmf(V1, beta, n_iter_max, tol, W_ini, H_ini, E_ini, lambda_ast,lambda,1);
-W1 = mexTrainDL(V1, param0);
+reset(gpud);
+[W1, Wgn1]=twolevelDL_gpu(V1,param);
 
-
+%W1 = mexTrainDL(V1, param0);
 
 %% Model 2
 
@@ -70,10 +65,10 @@ Xt2 = cf_stft(x,l_win,overlap);
 V2 = abs(Xt2).^p;
 [F,N] = size(V2);
 
+reset(gpud);
+[W2, Wgn2]=twolevelDL_gpu(V1,param);
 
-%W2 = rnmf(V2, beta, n_iter_max, tol, W_ini, H_ini, E_ini, lambda_ast,lambda,1);
-W2 = mexTrainDL(V2, param0);
-
+keyboard;
 
 %% Algo
 
@@ -159,39 +154,5 @@ speech2 = speech2(overlap+1:overlap+T);
 Parms =  BSS_EVAL(x1', x2', speech1', speech2', mix');
 
 Parms
-
-
-%%
-
-valid.V1 = V1;
-valid.V2 = V2;
-valid.overlap = overlap;
-valid.x1 = x1;
-valid.x2 = x2;
-valid.mix = mix;
-valid.X = X;
-
-options.valid = valid;
-
-options.param0 = param0;
-options.beta = 2;
-
-[Wv,Wn,fv,r,Wv_max,Wn_max] = nmf_supervised(Xt1,Xt2,W1,W2,options);
-
-outputs{hh,jj}.W1 = W1;
-outputs{hh,jj}.W2 = W2;
-outputs{hh,jj}.Wv = Wv;
-outputs{hh,jj}.Wn = Wn;
-outputs{hh,jj}.fv = fv;
-outputs{hh,jj}.r = r;
-outputs{hh,jj}.Wv_max = Wv_max;
-outputs{hh,jj}.Wn_max = Wn_max;
-
-
-
-end
-end
-
-
 
 

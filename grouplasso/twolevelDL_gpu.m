@@ -29,7 +29,7 @@ beta = getoptions(options,'beta',2e-1);
 betagn = getoptions(options,'betagn',2e-1);
 lambdagn = getoptions(options,'lambdagn',0.1);
 t00 = getoptions(options,'alpha_step',1);
-rho=getoptions(options,'rho',3);
+rho=getoptions(options,'rho',5);
 nu = getoptions(options,'nu',0.5);
 plotstuff=getoptions(options,'plotstuff',0);
 if plotstuff
@@ -95,6 +95,7 @@ t0gn = t00 * (1/(betagn+(max(svd(Dgn))^2)));
 tlambdagn = t0gn * lambdagn;
 
 niters=round(nepochs*M/(batchsize));
+epochn=round(niters/nepochs);
 
 X=X(:,1:M);
 
@@ -127,7 +128,8 @@ off2=[1 f2+1 1 f2+1];
 IItmp=randperm(floor(M/batchsize));
 II=gpuArray(IItmp);
 
-for n=1:niters
+for ep=1:nepochs
+for n=1:epochn
 	fprintf('batch %d of %d \n',n,niters)
 	init= mod( n-1, length(II)); 
 	data = X(:,1+batchsize*init:(init+1)*batchsize); 
@@ -220,7 +222,7 @@ for n=1:niters
 		cost(4) = nu*lambdagn*sum(Zgn(:));
 		cost(5) = .5*beta*norm(lout,'fro')^2;
 		cost(6) = .5*nu*betagn*norm(Zgn,'fro')^2;
-		fprintf(' -- it %d totcost %4.2f [ %4.2f %4.2f %4.2f %4.2f ] \n',i+1, sum(cost), cost(1),cost(2), cost(3), cost(4))
+		fprintf(' -- it %d totcost %4.2f [ %4.2f %4.2f %4.2f %4.2f ] \n',i+1, sum(cost), cost(1)/(.5*norm(data,'fro')^2),cost(2), cost(3), cost(4))
 		end
 	end
 
@@ -251,7 +253,7 @@ for n=1:niters
 	for i=1:diters
 	for j=1:Kgn
 	u = Dgn(:,Ipg(j)) + (Bgn(:,Ipg(j)) - Dgn*(Agn(:,Ipg(j))))*dia(Ipg(j));
-	if nmf
+	if 1
 	u = max(0,u);
 	end
 	Dgn(:,Ipg(j)) = u / max(1, norm(u));
@@ -277,7 +279,7 @@ for n=1:niters
 
 	if plotstuff 
 	caccum=[caccum sum(cost)];
-	if mod(n,4)==3
+	if mod(n,16)==15
 	figure(1);
 	plot(caccum);drawnow;
 	figure(2);imagesc(D);drawnow;
@@ -285,6 +287,11 @@ for n=1:niters
 	end
 	end
 
+end
+A=0*A;
+B=0*B;
+Agn=0*Agn;
+Bgn=0*Bgn;
 end
 
 Dout=gather(D);
