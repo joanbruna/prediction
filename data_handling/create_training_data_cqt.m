@@ -4,6 +4,28 @@
 root = '/misc/vlgscratch3/LecunGroup/bruna/grid_data/';
 
 
+MinPitch = 21;
+MaxPitch = 108;
+NumPitches = MaxPitch-MinPitch+1;
+
+fs = 32000;
+fmin = 20;
+fmax = 8000;
+pstep = 1/48;                     % 0.25 semitone
+np = 50;                          % Periods per window
+
+lmin = 0.015;                     % min window length
+lmax = .25;                       % max window length
+
+[W,fw,tw] = constQmtx(fs,fmin,fmax,pstep,np,lmin,lmax);
+
+
+Nwin  = size(W,2);                % Window size
+tstep = 0.01;                     % Time step
+hop = round(tstep*fs);          % Samples
+tstep = sstep/fs;
+
+
 % sampling parameters
 fs = 16000;
 NFFT = 1024;
@@ -42,8 +64,9 @@ for i = 1:34
         x = resample(x,fs,Fs);
         x = x(:)';
         
-        Xt = compute_spectrum(x,NFFT,hop);
-        
+        % Compute cQ-transform
+        [Q,t] = constQ(x, W, hop);
+
         X = [X,Xt];
         
     end
