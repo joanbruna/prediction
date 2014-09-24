@@ -40,12 +40,12 @@ end
 %% train models
 
 
-model = 'NMF-pooling';
+model = 'NMF-scatt';
 spectrum = 0;
 
 KK = [160];
-KKgn = [64];
-LL = [0.05];
+KKgn = [48];
+LL = [0.1];
 
 for ii = 1:length(KK)
 for jj = 1:length(LL)
@@ -63,41 +63,41 @@ param0.batchsize=512;
 Dnmf1 = mexTrainDL(abs(data1.X),param0);
 Dnmf2 = mexTrainDL(abs(data2.X),param0);
 
-alpha1= mexLasso(abs(data1.X),Dnmf1,param0);
-alpha2= mexLasso(abs(data2.X),Dnmf2,param0);
+%alpha1= mexLasso(abs(data1.X),Dnmf1,param0);
+%alpha2= mexLasso(abs(data2.X),Dnmf2,param0);
 
-Dnmf1s = sortDZ(Dnmf1,full(alpha1)');
-Dnmf2s = sortDZ(Dnmf2,full(alpha2)');
+%Dnmf1s = sortDZ(Dnmf1,full(alpha1)');
+%Dnmf2s = sortDZ(Dnmf2,full(alpha2)');
 
-gpud=gpuDevice(3);
+%gpud=gpuDevice(4);
 
-param.nmf=1;
+%param.nmf=1;
 param.lambda=LL(jj)/4;
 param.beta=1e-2;
-param.overlapping=1;
-param.groupsize=2;
-param.time_groupsize=2;
-param.nu=0.5;
-param.lambdagn=1e-2;
-param.betagn=0;
-param.itersout=200;
+%param.overlapping=1;
+%param.groupsize=2;
+%param.time_groupsize=2;
+%param.nu=0.5;
+%param.lambdagn=1e-2;
+%param.betagn=0;
+%param.itersout=200;
 param.K=KK(ii);
-param.Kgn=KKgn(ii);
-param.epochs=3;
-param.batchsize=4096;
-param.plotstuff=1;
+%param.Kgn=KKgn(ii);
+%param.epochs=3;
+%param.batchsize=4096;
+%param.plotstuff=1;
+%
+%reset(gpud);
 
-reset(gpud);
+%param.initD = Dnmf1s;
+%[D1, Dgn1] = twolevelDL_gpu(abs(data1.X), param);
 
-param.initD = Dnmf1s;
-[D1, Dgn1] = twolevelDL_gpu(abs(data1.X), param);
+%reset(gpud);
 
-reset(gpud);
+%param.initD = Dnmf2s;
+%[D2, Dgn2] = twolevelDL_gpu(abs(data2.X), param);
 
-param.initD = Dnmf2s;
-[D2, Dgn2] = twolevelDL_gpu(abs(data2.X), param);
-
-reset(gpud);
+%reset(gpud);
 
     model_name = sprintf('%s-K%d-lambda%d-beta%d',model,param.K,round(10*param.lambda),round(10*param.beta));
     save_folder = sprintf('/misc/vlgscratch3/LecunGroup/bruna/speech/%s-s%d-s%d-%s/',model_name,id_1,id_2,date());
@@ -113,6 +113,7 @@ reset(gpud);
     hop = data1.hop;
     N_test = 200;
     SDR = 0;
+    NSDR = 0;
     SIR = 0;
     
     for i = 1:N_test
@@ -141,20 +142,20 @@ reset(gpud);
 	end
         % compute decomposition
 	%oldnu = param.nu;
-	param.nu=0.2;
-	param.alpha_step=1;
-	param.gradient_descent=0;
-	param.itersout=400;
-	[Z1dm, Z1gn1dm, Z2dm, Zgn2dm] = twolevellasso_gpu_demix(abs(Xr), D1, Dgn1, D2, Dgn2, param);
+%	param.nu=0.1;
+%	param.alpha_step=1;
+%	param.gradient_descent=0;
+%	param.itersout=400;
+%	[Z1dm, Z1gn1dm, Z2dm, Zgn2dm] = twolevellasso_gpu_demix(abs(Xr), D1, Dgn1, D2, Dgn2, param);
 
-	W1H1 = D1*Z1dm;
-	W2H2 = D2*Z2dm;
+%	W1H1 = D1*Z1dm;
+%	W2H2 = D2*Z2dm;
   
 % NMF case             
-%	 % compute decomposition
- %       H =  full(mexLasso(abs(X),[D1,D2],param));
- %       W1H1 = D1*H(1:size(D1,2),:);
- %       W2H2 = D2*H(size(D1,2)+1:end,:);
+	 % compute decomposition
+        H =  full(mexLasso(abs(Xr),[Dnmf1,Dnmf2],param0));
+        W1H1 = Dnmf1*H(1:size(Dnmf1,2),:);
+        W2H2 = Dnmf2*H(size(Dnmf1,2)+1:end,:);
 
 	eps = 1e-6;
         V_ap = W1H1.^2 +W2H2.^2 + eps;
@@ -172,7 +173,8 @@ reset(gpud);
 
         Parms =  BSS_EVAL(x1', x2', speech1(1:T), speech2(1:T), mix');
         
-        SDR = SDR+mean(Parms.NSDR)/N_test;
+        SDR = SDR+mean(Parms.SDR)/N_test;
+        NSDR = NSDR+mean(Parms.NSDR)/N_test;
         SIR = SIR+mean(Parms.SIR)/N_test;
         
         Parms
@@ -192,7 +194,7 @@ reset(gpud);
 
     end
     save_file = sprintf('%sresults.mat',save_folder,'s');
-    save(save_file,'output','D1','D2','param','NSDR','SIR')
+    save(save_file,'output','D1','D2','param','SDR','NSDR','SIR')
     unix(sprintf('chmod 777 %s ',save_file));
     AA{ii,jj}.res = output;
     clear output

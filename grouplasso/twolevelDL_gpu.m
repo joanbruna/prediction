@@ -58,6 +58,11 @@ KK=Ksm;%2*Ksm-1;
 MM=Msm;%2*Msm-1;
 end
 
+
+if isfield(options,'initD')
+D=gpuArray(single(options.initD));
+end
+
 %analysis coeffs
 Ztmp = max(0,D'*X);
 box = ones(groupsize,time_groupsize,'single','gpuArray');
@@ -68,9 +73,6 @@ Dgn=Ptmp(:,II(1:Kgn));
 norms = sqrt(sum(Dgn.^2));
 Dgn=Dgn ./ repmat(norms,[size(Dgn,1) 1]);
 
-if isfield(options,'initD')
-D=gpuArray(single(options.initD));
-end
 if isfield(options,'initDgn')
 Dgn=gpuArray(single(options.initDgn));
 end

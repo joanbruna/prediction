@@ -7,6 +7,8 @@ Q=getoptions(options,'Q',32);
 filt_opt.Q = Q;
 filt_opt.J = T_to_J(T, filt_opt);
 filt_opt.filter_format='fourier';
+filt_opt.min_margin=0;
+filt_opt.boundary='per';
 filters=morlet_filter_bank_1d(N, filt_opt);
 
 for j= 1:length(filters.psi.filter)
