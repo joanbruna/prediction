@@ -9,14 +9,12 @@ hop = NFFT/2;
 
 Npad = 2^15;
 
-	param.T = NFFT;
-	param.os = 1;%NFFT/hop;
-	param.Q = 32;
-	param.N=Npad;
+param.T = NFFT;
+param.os = 1;%NFFT/hop;
+param.Q = 32;
+param.N=Npad;
 
-	filts = cqt_prepare(param);
-
-
+filts = cqt_prepare(param);
 
 idx = randperm(1000);
 
