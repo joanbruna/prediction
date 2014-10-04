@@ -1,0 +1,118 @@
+% Template for ICASSP-2015 paper; to be used with:
+%          spconf.sty  - ICASSP/ICIP LaTeX style file, and
+%          IEEEbib.bst - IEEE bibliography style file.
+% --------------------------------------------------------------------------
+\documentclass{article}
+\usepackage{spconf,amsmath,graphicx}
+
+\usepackage{overpic}
+\usepackage{multirow}
+\usepackage{graphicx} % more modern
+%\usepackage{epsfig} % less modern
+\usepackage{subfigure}
+\usepackage{sidecap}
+\usepackage{url}
+
+\usepackage{xfrac}
+
+% For algorithms
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{color}
+\usepackage{subfigure}
+\usepackage[font=small,labelfont=bf]{caption}
+
+% Example definitions.
+% --------------------
+\def\x{{\mathbf x}}
+\def\Vn{{\cal V}}
+
+\def\Has{\bb{H}_{\mathrm{s}}^\ast(\bb{V},\bb{W})}
+
+
+\def\Tr{\mathrm{T}}
+
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\ele}{l}
+\newcommand{\X}{\mathbf{X}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\CC}{\mathbb{C}}
+\newcommand{\red}[1]{{#1}}
+%\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\tr}{\mbox{tr}}
+
+\usepackage{bm}
+\newcommand{\bb}[1]{\bm{\mathrm{#1}}}
+
+
+\newcommand{\mypara}[1]{\smallskip\noindent\textbf{#1.\,\,}}
+
+% Title.
+% ------
+\title{AUTHOR GUIDELINES FOR ICASSP 2015 PROCEEDINGS MANUSCRIPTS}
+%
+% Single address.
+% ---------------
+\name{Joan Bruna, Pablo Sprechmann, Yann LeCun}
+\address{New York University\\
+	Courant Instittute of Mathematical Sciences\\
+	\{bruna, pablo, yann\}@cs.nyu.edu}
+%
+% For example:
+% ------------
+%\address{School\\
+%	Department\\
+%	Address}
+%
+% Two addresses (uncomment and modify for two-address case).
+% ----------------------------------------------------------
+%\twoauthors
+%  {A. Author-one, B. Author-two\sthanks{Thanks to XYZ agency for funding.}}
+%	{School A-B\\
+%	Department A-B\\
+%	Address A-B}
+%  {C. Author-three, D. Author-four\sthanks{The fourth author performed the work
+%	while at ...}}
+%	{School C-D\\
+%	Department C-D\\
+%	Address C-D}
+%
+\begin{document}
+%\ninept
+%
+\maketitle
+%
+\begin{abstract}
+This paper presents a single channel source separation method
+that extendes the approach of Nonnegative Matrix Factorization (NMF).
+We interpret the approach of audio demixing via NMF as a cascade of a pooled analysis operator, given
+for example by the magnitude spectrogram, and a synthesis operators given bye the matrix decomposition.
+Instead of imposing the temporal consistency of the decomposition through
+sophisticated structured penalties in the synthesis stage,
+we propose to change the analysis operator for a deep scattering representation. This new signal representation is
+invariant to smooth changes in the signal, consistent with the temporal dynamics.
+The proposed approach is evaluate in a speech enhancement task producing promising results.
+\end{abstract}
+%
+\begin{keywords}
+One, two, three, four, five
+\end{keywords}
+%
+
+\input{introduction}
+\input{nmf}
+\input{scatt}
+\input{results}
+
+% References should be produced using the bibtex program from suitable
+% BiBTeX files (here: strings, refs, manuals). The IEEEbib.bst bibliography
+% style file from IEEE produces unsorted bibliography list.
+% -------------------------------------------------------------------------
+\bibliographystyle{IEEEbib}
+\bibliography{refs}
+
+\end{document}

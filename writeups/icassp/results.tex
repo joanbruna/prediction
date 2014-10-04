@@ -1,0 +1,86 @@
+\section{Experimental results}
+\label{sec:experiments}
+
+\mypara{Data sets} We evaluated the separation performance of the proposed methods on a subset of the GRID dataset \cite{cooke2006audio}. 
+Three randomly chosen sets of distinct clips each were used for training ($500$ clips), validation ($10$ clips), and testing ($50$ clips).
+The clips were resampled to $8$ KHz. For the noise signals we used the AURORA corpus \cite{PearceH00}, which contains six categories of noise recorded from different real environments (street, restaurant, car, exhibition, train, and airport). As before, three sets of distinct clips each were used for training ($15$ clips), validation ($3$ clips), and testing ($15$ clips).
+
+\mypara{Evaluation measures} As the evaluation criteria, we used the \emph{source-to-distortion ratio} (SDR), \emph{source-to-interference ratio} (SIR), and
+\emph{source-to-artifact ratio} (SAR) from the BSS-EVAL metrics \cite{vincent2006performance}. 
+%
+We also computed the standard \emph{signal-to-noise ratio} (SNR).
+%
+When dealing with several frames, we computed a global score (GSDR, GSIR, GSAR and GSNR) by averaging the metrics over all test clips from the same speaker and noise weighted by the clip duration.
+
+\mypara{Training setting} The same training settings were used in all experiments.
+We used dictionaries of size 60 and 10 atoms for representing the speech and noise, respectively. These values were obtained
+using cross-validation. We used $\lambda_{\mathrm{s}}=0.1$ and $\lambda_{\mathrm{n}}=0$ (which means that no sparsity was promoted in the representation of the noise)
+and $\mu=0.001$. As the example, we used $\beta=1$ and $\beta=0$, and $\alpha=0$ in the high level cost  (\ref{eq:dict-learn-task-specific}).
+%
+For the SGD algorithm we used $\eta=0.1$ and minibatch of size $50$. These were obtained by trying several values of during a small number of iterations, keeping those producing the lowest error on a small validation set. 
+%
+All training signals where mixed at 5 $dB$.
+
+\mypara{Results} Figure~\ref{fig:SGD} shows the evolution of the high level cost (\ref{eq:dict-learn-task-specific}) and the SDR on
+the validation set with the SGD iterations. The algorithm converges to a dictionary that achieves about 2 $dB$ better
+SDR on the validation set. Tables~\ref{ta:eval} and \ref{ta:eval2} show some initial results for the proposed approach.
+We compare the performance of standard supervised sparse-NMF (referred simply as NMF) against
+the performance of the same sparse-NMF model trained on a task-specific manner (referred as TS-NMF)
+on denoising two with different SNR levels.
+Observe that the task-specific supervision leads to improvements in performance, maintaining (at 5$dB $ SNR) the improvements observed on the validation set. 
+Interestingly, the method also works when using $\beta=0$ (Itakura-Saito), even if the developments in Section~\ref{sec:optimization}
+are technically not valid in this case, since the divergence is not convex.
+In future work
+we plan to analyze what happens when a non-speaker specific dictionaries are trained. We
+expect to observe similar improvements, if the training data is diverse enough.
+
+\begin{table}[tb]
+\caption{Average performance (in $dB$) for NMF and proposed supervised NMF methods measured in terms of SDR, SIR, SAR and SNR.
+Speech and noise were mixed at $5dB$ of SNR. The standard deviation of each result is shown between brackets. \label{ta:eval}}
+\vspace{-1.5ex}
+\begin{center}
+\small{
+\begin{tabular}{l|c|c|c|c}
+  \hline\hline
+& SDR & SIR & SAR & SNR\\
+\hline
+NMF $\beta=1$   &7.5 [1.5] & 13.7 [0.9] &   8.9 [1.7] &    8.2 [1.3]\\
+\hline
+TS-NMF $\beta=1$ & 9.5 [1.4] &   15.2 [0.7] & 11.0 [1.7] &    10.0 [1.2]\\
+TS-NMF $\beta=0$ &  8.6 [1.3] & 14.1 [1.2]  & 10.3 [1.5] &  9.1 [1.1]\\
+  \hline\hline
+\end{tabular}
+}
+\end{center}
+\vspace{-2.5ex}
+\end{table}
+
+\begin{table}[tb]
+\caption{See description of Table~\ref{ta:eval}. In this case, speech and noise were mixed at $0dB$ of SNR. \label{ta:eval2}}
+\vspace{-1.5ex}
+\begin{center}
+\small{
+\begin{tabular}{l|c|c|c|c}
+  \hline\hline
+& SDR & SIR & SAR & SNR\\
+\hline
+NMF $\beta=1$   & 4.5 [1.1] &  9.3 [0.9] &   6.8 [1.2]  &  5.8 [0.8]\\
+\hline
+TS-NMF $\beta=1$ & 6.3 [1.0] &   11.9 [0.7] & 8.0 [1.1] &    7.2 [0.8]\\
+TS-NMF $\beta=0$ & 5.2 [1.2] &   12.0 [1.7] & 6.6 [1.2] &    6.3 [0.9]\\
+  \hline\hline
+\end{tabular}
+}
+\end{center}
+\vspace{-1.5ex}
+\end{table}
+
+\section{Conclusion}
+
+In this work we presented an algorithm for the task-supervised training of NMF models. 
+Unlike standard supervised NMF, the proposed approach matches the optimization objective used at the train and testing stages. 
+In this way, the dictionaries can be trained in a task-specific manner. 
+We cast this problem as bilevel optimization that can be efficiently solved via stochastic gradient descent. 
+The proposed approach allows non-Euclidean data terms such as $\beta$-divergences. 
+A limited case study of sparse NMF with task specific supervision demonstrates promising results. 
+Including temporal dynamics into this model is the subject of ongoing research.

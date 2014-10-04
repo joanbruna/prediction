@@ -1,0 +1,326 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+
+\documentclass[11pt]{article} % use larger type; default would be 10pt
+
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+
+
+\usepackage{geometry} % to change the page dimensions
+\geometry{letterpaper} % or letterpaper (US) or a5paper or....
+% \geometry{margin=2in} % for example, change the margins to 2 inches all round
+% \geometry{landscape} % set up the page for landscape
+%   read geometry.pdf for detailed page layout information
+
+\usepackage{graphicx} % support the \includegraphics command and options
+
+% \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+\usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+% These packages are all incorporated in the memoir class to one degree or another...
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
+
+% additional packages for math typesetting
+\usepackage{amsmath}
+\usepackage{amsfonts}
+
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\W}{\mathcal{W}}
+\newcommand{\Rel}{\mathbb{Z}}
+\newcommand{\Int}{\mathbb{N}}
+\newcommand{\Eff}{\mathcal{E}}
+\newcommand{\Compl}{\mathscr{C}}
+
+\title{Prediction and Inverse Problems in Dynamical Systems}
+\author{Joan Bruna, Pablo Sprechmann}
+%\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed 
+
+\begin{document}
+\maketitle
+
+
+\section{Status/Planning}
+
+The problem is now well defined. 
+We study the following general question: Given temporally coherent data, how to learn 
+a nonlinear representation that linearizes dynamics? 
+
+In particular, we use two criteria to evaluate models. 
+The first one is prediction error. Given an observed sequence $x_t$, we construct an 
+estimate $\hat{x}_t$, either from the past observations (casual inference), or from past and future (sort of 
+non-linear interpolation). Currently we measure performance with $\| x_t - \hat{x}_t \|$, which 
+corresponds to a Gaussian likelihood around a point estimate. 
+
+The second is denoising or source separation. We have observations $y_t = x_{1,t} + x_{2,t}$, where
+$x_{i,t}$ $i=1,2$ correspond to different sources, or source and noise. Assuming we have training sets for 
+each of the sources (or only one of them), we attempt to estimate $\hat{x}_{i,t}$ by exploiting the temporal 
+dynamics of each source. 
+We are starting with speech data, and then we will eventually try video data.
+
+So far we have tested:
+\begin{itemize}
+\item NMF Kalman dynamics on each speaker separately, and on the joint speakers. 
+\item Spatio-temporal group lasso on log spectrogram.
+\item Pooling operators (analysis) on the log spectrogram.
+\item ``LISTA" predictors using only two past frames.
+\item Frequency scattering on the spectrogram, followed by linear prediction. 
+\end{itemize}
+
+Conclusions so far:
+\begin{itemize}
+\item Linear dynamics on NMF synthesis coefficients is too strong: it cannot disentangle position and momentum.
+\item Non-linear decoders from pooling are unstable. The gains produced by the pooling are ofset by these unstablilities in our experiments so far.
+\item Reconstruction based dictionary learning converges too fast, suggesting that bi-level with prediction task is necessary.
+\item Having a Gaussian posterior for prediction might be too ambitious in general. 
+\end{itemize}
+
+
+Next things to do:
+\begin{itemize}
+\item Construct simple synthetic data with oracle dynamics (smooth warpings, jitter, etc).
+\item Bi-level NMF with simple linear dynamics.
+\item Lista version.
+\item Implement RNNs as a matter of comparison (which ones? LSTMs, sigmoids).
+\item Bi-level group lasso where we put the dynamics on the modulus.
+\item Bilinear models (with exponential maps?)
+\end{itemize}
+
+
+
+
+\section*{Introduction}
+
+Extracting information from unlabeled data remains the main challenge of unsupervised learning. 
+In this work we consider semi-supervised learning, in which one observes the evolution of a dynamical system 
+and attempts to learn through the underlying dynamics. 
+The main strategy to understand the dynamics is by linearizing them through an appropriate non-linear representation.
+
+This work considers the setting of speech and temporal video data. 
+There are two main taks we are interested in: prediction and source separation/denoising. 
+Other works on NLP have shown that training systems to perform prediction is a very effective surrogate that 
+can be applied to other tasks, such as recognition. On the other hand, source separation is a major application
+of speech representations that requires exploiting the temporal coherence of different sources. 
+
+Dynamics can be learnt with a variety of models. The simplest are Kalman Filter and Hidden Markov Models, which
+learn dynamics in the form of linear equations, assuming Gaussian distributions in the former and discrete variables in the latter. 
+On the other hand, recent works on speech and natural language processing have developed Recurrent Neural Networks (RNNs), 
+which the capacity to learn more complex nonlinear dynamics. 
+
+Our objective is to develop a model which progressively moves from linear to RNNs, which keeps the interpretability but also 
+handles non-linear dynamics. 
+Since we are interested in inverse problems, models need to be generative. 
+
+Given a temporally ordered sequence $x_t \in \mathbb{R}^N$ , we can 
+write $x_t = U_{t} x_{t-1}$, where $U_t$ is any operator in $\mathbb{R}^{N \times N}$.
+Clearly, there is too much freedom in the choice of these dynamics. The 
+goal is to estimate $x_t$ by inferring $U_t$ on a much restricted class of possible dynamics.
+
+One particular class of dynamics is to write $U_t = D A \Phi$, where 
+$x_t \approx D \Phi(x_t)$
+
+We assume a dynamical system $z(t)$ governed by some dynamics 
+$z(t+\Delta) = F( z(t), \partial z(t))$ in a high-dimensional space. 
+Our observations $x(t)$ are obtained 
+
+
+Summary of contributions:
+\begin{itemize}
+\item bla 
+\item bla
+\end{itemize}
+
+
+\section{Optical Flow Dynamics}
+
+We train a dictionary in which coefficients have smooth optical flow.
+
+\begin{equation}
+\min \| X - D Z \|^2  + \| Z \|_{1,slow} + \| \delta_t Z - \nabla Z \cdot \tau_t \|^2 + \| \tau - \widetilde{D} \beta \|^2 + \| \beta\|_{1,slow}   ~.
+\end{equation}
+
+Comments:
+\begin{itemize}
+
+\item This is the simplest bilinear model that linearizes optical flow in the code space. THe bilinear operator is given by 
+$$U(z, \tau) = z + \nabla z \cdot \tau~.$$
+
+Other alternatives are:
+
+$$U^{w}(z, \tau)_k = z(k - \tau_k)~~\mbox{(warping)}~.$$
+
+$$U^{e}(z, \tau)_k = exp(i \tau) z_k ~~\mbox{exponential}~.$$
+
+\item We initialize the dictionary $D$ with either NMF with ordered atoms, either grouped NMF across features and time. 
+
+\item We initialize $\tau$ to $0$ (slowness). 
+
+\item The structure in the dynamics is captured by the dictionary $\widetilde{D}$. The objective of the model is that 
+the momentum variables $\tau$ have linear, smooth dynamics (corresponding to a world of small acceleration).
+
+\item The topology in $D$ appears in the gradient $\nabla z$. We can consider more general topologies (eg convolutional for images).
+
+\item If the dictionary $\widetilde{D}$ has $M$ atoms, then $U(z,\tau)$ becomes a bilinear operator 
+$$U(z,\tau) = (I + \sum_{m=1}^M \beta_m \nabla \cdot  \widetilde{d}_m ) z~,$$
+where $\tau = \sum_m \beta_m \widetilde{d}_m$.
+
+\end{itemize}
+
+\section{Roadmap}
+
+- Dictionary $\widetilde{D}$ of dynamics. 
+
+- Topology of $D$. Study how it affects the performance. 
+
+- How to evaluate the various models. 
+
+- Problem of learning long-term dependencies; 
+
+- learning jumps or large displacements.
+
+- pooling
+
+- Relationship with RNN.
+
+- Compare our model with slowness
+
+
+\section{Linearizing Dynamics}
+
+\subsection{Linear NMF Dynamics}
+
+This is the basic first model:
+\begin{eqnarray}
+\min_{z_t, A, D} \| x_t - D z_t \|^2 + \lambda \|z_t \|_1 + \mu \|z_t - A z_{t-1} \|^2
+\end{eqnarray}
+
+Properties:
+\begin{itemize}
+\item + Easy to train, compact model with few parameters
+\item + Gives good results on source separation
+\item + It is easily interpreted as a sparse Kalman FIlter.
+\item - The model has a fundamental limitation in that the dynamics on the hidden states are linear. 
+\item - All the uncertainty/inference power in the model is in the latent variables $z_t$. The temporal relationship is rigid and given by
+a single linear operator $A$. The model can capture different trajectories, but at the expense of making the dictionary $D$ large and unstable.
+\item - Optimiziation is too ``easy": there are many local minima, and the objective function is not directly optimizing what we want.
+\end{itemize}
+
+\subsection{Position and Momentum Dynamics}
+
+We want to explicitly disentangle the representation of position, encoding 
+the current state of the system, from the representation of momentum, encoding 
+how the position is going to evolve in time:
+
+$$\mu_{t+1} = \mathcal{F}(\mu_t, v_t)~,$$
+$$v_{t+1} \approx v_{t}~,\mbox{ or} ~~v_{t+1} \approx A v_{t}~,$$
+
+In that setting, our observations are typically obtained from $\mu_t$ through a linear decoder. 
+The critical part of the model is the operator $\mathcal{F}$.
+If the $\mu_t$ are sparse, then it is natural to expect that the momentum will act by moving the active set. 
+In that case, we want to model 
+$$\mathcal{F}(\mu, v)(k)= \mu(k - v(k))~.$$
+Here, $v$ can model a deformation field in the dictionary where $\mu$ is defined, or a more compact
+feature vector encoding only smooth vector fields.
+
+Another model is to consider a bilinear operator:
+$$\mathcal{F}(\mu, v)(k) = \sum_{i,j} v(i) \mu(j) F_{i,j,k}~,$$
+
+And yet a simpler model is the linear version:
+$$\mathcal{F}(\mu, v) = F_1 \mu + F_2 v~,$$
+
+The question is how these dynamics compare with non-linear models of RNNs:
+$$[\mu_{t+1}, v_{t+1}] = \rho( F_\mu \mu_t + F_v v_t)~.$$
+
+
+\subsection{The exponential mapping} 
+
+
+\subsection{Bilevel Linear NMF}
+
+A modification of the previous model is to train it discriminatively to predict the next frame:
+
+If we denote 
+$$z*_t(D, A, x) = \arg \min_z \| x_t - D z_t \|^2 + \|z_t \|_1 +  \| z_t - A z_{t-1} \|^2~,$$
+we optimize
+$$\min_{D, A, E} \| x_{t+1} - E z*_t(D, A, x) \|^2~.$$
+
+(Lista version) also 
+
+
+\subsection{Linear Pooling NMF}
+
+\subsection{Bi-Linear NMF}
+
+\section{Examples: Newton Dynamics, Jitter}
+
+\section{Pooling and Scattering}
+
+Optical FLow
+
+\section{Relationship to Previous work}
+
+Cedric et al. Linear dynamics on NMF. 
+
+RNN for music
+
+RNN for speech recognition (Graves et al). 
+
+Yann's papers.
+
+\section{Experimental Results}
+
+Prediction
+
+Source Separation.
+
+
+
+
+
+Important points:
+
+\begin{itemize}
+\item deformation operators are phase modulations 
+\item proximal operators
+\item link with optical flow estimation
+\item cascade: we must show at least two layers of prediciton.
+\item scattering; link with commutation error.
+\item deep network performs gradient steps of a proximal operator: this ressembles LISTA.
+\item causal vs non-causal
+\item relationship with RNN
+\item Consider a model: jitter, local deformations. Can I prove things there? What is the optimum system?
+\end{itemize}
+
+
+
+\end{document}
+
+
+
+
+
+
