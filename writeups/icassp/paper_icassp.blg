@@ -1,0 +1,48 @@
+This is BibTeX, Version 0.99d (TeX Live 2011)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: paper_icassp.aux
+The style file: IEEEbib.bst
+Database file #1: refs.bib
+Warning--I didn't find a database entry for "XX"
+You've used 23 entries,
+            1838 wiz_defined-function locations,
+            591 strings with 7311 characters,
+and the built_in function-call counts, 5993 in all, are:
+= -- 531
+> -- 233
+< -- 9
++ -- 86
+- -- 63
+* -- 428
+:= -- 875
+add.period$ -- 24
+call.type$ -- 23
+change.case$ -- 21
+chr.to.int$ -- 0
+cite$ -- 23
+duplicate$ -- 299
+empty$ -- 620
+format.name$ -- 63
+if$ -- 1411
+int.to.chr$ -- 0
+int.to.str$ -- 23
+missing$ -- 25
+newline$ -- 118
+num.names$ -- 23
+pop$ -- 94
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 161
+stack$ -- 0
+substring$ -- 397
+swap$ -- 105
+text.length$ -- 9
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 0
+while$ -- 53
+width$ -- 25
+write$ -- 250
+(There was 1 warning)

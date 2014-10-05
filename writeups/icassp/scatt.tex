@@ -1,7 +1,144 @@
 \section{Scattering transform}
 
-\subsection{Analysis operator}
+The rythmic and modulation structure characteristic of accoustic pulse trains 
+can be efficiently extracted with the scattering transform \cite{pami, mallat}, 
+computed by iterating wavelet transforms and complex modulus nonlinearitites.
+This section reviews its definition and main properties. 
 
-Common choices are the (non-negative) spectrogram or the the constant $Q-$transform \cite{}. 
+\subsection{Wavelet Filter Bank}
 
-Given the observed noisy signal $x$, we denote it's spectrogram as $\bb{\Phi}(x) = |\bb{X}| \in \RR^{m \times n}$ comprising $m$ frequency bins and $n$ temporal frames. $\bb{X} \in \CC^{m \times n}$ contains in it's $i-$th column the Discrete Fourier Transform (DFT) of the $i-th$ frame of $x$, $\bb{x}_i\in \RR^{m}$ ,and it is given by, $\bb{X}_i = \bb{W}^\Tr \bb{x}_i$.
+A wavelet $\psi (t)$ is a band-pass filter with good frequency and spatial localization.
+ We consider a complex wavelet with a quadrature phase, 
+whose Fourier transform satisfies
+$\widehat \psi(\om) \approx 0$ for $\om < 0$.
+We assume that the center frequency of $\widehat \psi$ is $1$ and 
+that its bandwidth is of the order of $Q^{-1}$. 
+Wavelet filters centered
+at the frequencies $\lambda = 2^{j/Q}$ are computed by dilating $\psi$:
+\begin{equation}
+\label{psidilation}
+\psi_\la (t) = \la\, \psi(\la\, t)~~\mbox{and hence}~~
+\widehat \psi_\la (\om) = \widehat \psi(\la^{-1} \omega)~.
+\end{equation}
+We denote by $\Lambda$ the index set of $\la = 2^{j/Q}$ over
+the signal frequency support, with $j \leq J$, 
+and we impose that these filters fully cover the positive frequencies
+\begin{equation}
+\label{consdf}
+\forall \om \geq 0~,~ 1- \epsilon 
+\leq |\widehat{\phi}(\omega)|^2 + \frac 1 2 \sum_{\la \in \Lambda} |\widehat{\psi}_{\lambda}(\omega)|^2 \leq 1~,
+\end{equation}
+for some $\epsilon <1$, where $\phi(t)$ is the lowpass filter carrying the 
+low frequency information at scales larger than $2^J$.
+The wavelet transform of a signal $I(t)$ is
+\[
+W I = \{I \ast \phi(t)~,~I \ast \psi_\la(t)  \}_{\la \in \Lambda}~.
+\]
+Thanks to (\ref{consdf}), one can verify that 
+\begin{equation}
+\label{lp_basic}
+\| I \|^2 (1- \epsilon) \leq \| I \ast \phi \|^2 + \sum_{\la \in \Lambda} \| |I \ast \psi_\la|^2 \|^2  \leq \| I \|^2~.
+\end{equation}
+
+\subsection{Joint Time-Frequency Scattering}
+
+Scattering coefficients provide a nonlinear representation 
+computed by 
+iterating over wavelet transforms and a modulus. 
+First order scattering coefficients
+are local averages of wavelet coefficient amplitudes:
+\[
+\forall \la \in \La~~,~~S I(\la; t) = |\, I \ast \psi_\la| \ast \phi(t)~. 
+\]
+The Q-factor $Q_1$ adjusts the frequency resolution of 
+these wavelets. Due to the temporal average, first order scattering coefficients 
+provide no information on the time-variation of the scalogram
+$|I \ast \psi_{\la_1} (t)|$ at temporal scales smaller than $2^J$. 
+It averages all modulations and 
+transient events, and thus lose perceptually important information.
+ 
+Second order scattering coefficients recover information on
+audio-modulations and transients by computing
+the wavelet coefficients of each envelope $|I \ast \psi_{\la_1}|$, and their
+local averagest:
+\[
+\forall \la_2~~,~~
+S I(\la_1,\la_2; t) = ||\, I \ast \psi_{\la_1}| \ast \psi_{\la_2}| \ast \phi(t)~ .
+\]
+These multiscale variations of each envelope $|I \ast \psi_{\la_1}|$ 
+specify the amplitude modulations of $I(t)$ \cite{deepscatt} and 
+thus have the capacity to detect rythmic structures appearing at different 
+frequency bands. 
+The Q-factor $Q_2$ of the second family of wavelets $\psi_{\la_2}$ 
+controls the time-frequency resolution of the transform. Smaller $Q_2$ 
+results in wavelets with good temporal resolution, and thus
+allows us to accurately measure the sharp transitions of
+amplitude modulations. On the other hand,  large $Q_2$ factors 
+are useful to detect regular and precise rythmic structures present in the 
+envelopes $| I \ast \psi_{\la_1}|$.
+Scattering coefficients have a negligible amplitude for
+$\la_2 > \la_1$ because $|I \ast \psi_{\la_1}|$ is then a regular envelop
+whose frequency support is below $\la_2$. Scattering coefficients are thus
+computed only for $\la_2 < \la_1$. 
+
+Applying more wavelet transform envelopes defines
+scattering moments at any order $m \geq 1$:
+\begin{equation}
+\label{expansdf}
+S I(\la_1,...,\la_m; t) =  |~|I \ast \psi_{\la_1}| \ast ... | \ast \psi_{\la_m}| \ast \phi(t)~.
+\end{equation}
+By iterating on the inequality (\ref{lp_basic}), one can 
+verify \cite{stephane}
+that the Euclidean norm of scattering coefficients
+\begin{equation}
+\label{enfsondf}
+\|S I\|^2 = \sum_{m=1}^{\infty} \sum_{(\la_1,...,\la_m) \in \La_m}
+\|S I (\la_1,...,\la_m; \cdot )\|^2 
+\end{equation}
+satisfies
+\[
+\|S I\|^2 \leq  \| I \|^2~.
+\]
+
+For most audio signals, the energy of the scattering
+vector $\|S I\|^2$ is concentrated over first and second layers. 
+In practice, we thus only compute $S I(\la_1)$ and
+$S I(\la_1,\la_2)$ for $1 \leq \la_1 = 2^{j_1/Q_1} \leq N$
+and $1 \leq \la_2 = 2^{j_2/Q_2} < \la_1$. 
+
+Scattering transforms have been extended along the frequency
+variables to capture frequency variability and provide transposition
+invariant representations \cite{deepscatt}. 
+Transpositions refer to translations
+along a log frequency variable. 
+We denote $\gamma = \log_2 \lambda_1$, and
+define 
+wavelets $\bar \psi_{\bar \la} (\gamma)$ having an octave bandwidth of $Q = 1$.
+The corresponding wavelet transform is thus computed with convolutions
+along the log-frequency variable $\gamma$.
+
+The scalogram is now considered as a function of $\gamma$ and $t$: 
+\[
+F (\gamma, t) = |I \ast \psi_{2^{\gamma}} (t)|~.
+\]
+Second order scattering can then be generalized 
+by computing them as first
+order coefficients of $F (\gamma,t )$ computed
+with a separable wavelet transform: %$along $\gamma$:
+\[
+S I (\la_1; t;  \la_2, \bar \la_2) = 
+ |F \ast \bar \Psi_{\la_2, \bar \la_2} | \ast \Phi( (\log_2 \la_1, t)~,
+\]
+where $\Psi(\la, \bar \la)(\gamma, t) = \psi_{\la}(t) \overline{\psi_{\bar \la}}(\gamma)$ and
+$\Phi(\gamma, t)$ is a two-dimensional blurring kernel.
+
+
+%
+%
+%\subsection{Analysis operator}
+%
+%Common choices are the (non-negative) spectrogram or the the constant $Q-$transform \cite{}. 
+%
+%Given the observed noisy signal $x$, we denote it's spectrogram as $\bb{\Phi}(x) = |\bb{X}| \in \RR^{m \times n}$ comprising $m$ frequency bins and $n$ temporal frames. $\bb{X} \in \CC^{m \times n}$ contains in it's $i-$th column the Discrete Fourier Transform (DFT) of the $i-th$ frame of $x$, $\bb{x}_i\in \RR^{m}$ ,and it is given by, $\bb{X}_i = \bb{W}^\Tr \bb{x}_i$.
+%
+%
