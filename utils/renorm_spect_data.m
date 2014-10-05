@@ -1,4 +1,4 @@
-function out=renorm_spect_data(in, stds)
+function [out,norms]=renorm_spect_data(in, stds)
 out=in;
 
 out = out./repmat(stds,1,size(out,2));

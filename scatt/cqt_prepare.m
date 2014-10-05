@@ -1,4 +1,4 @@
-function filts= cqt_prepare(options)
+function [filts, filt_opt]= cqt_prepare(options)
 
 N=getoptions(options,'N',4096);
 T=getoptions(options,'T',2048);

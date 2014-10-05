@@ -95,7 +95,7 @@ for i=1:N
     else
         
         speech1 = audioreconstruct(SPEECH1, pp, phmix);
-		speech2 = audioreconstruct(SPEECH2, pp, phmix);
+	speech2 = audioreconstruct(SPEECH2, pp, phmix);
         
         speech1 = speech1(1:T)';
         speech2 = speech2(1:T)';
