@@ -12,7 +12,7 @@ function [speech1, speech2, xest1, xest2] = demix_scatt2top(mix, Dnmf11, Dnmf12,
 	Srec21 = Dnmf21*H(1:size(Dnmf21,2),:);
 	Srec22 = Dnmf22*H(size(Dnmf21,2)+1:end,:);
 	
-	if 1
+	if 1 %works better
 		Srec21u = unrenorm_spect_data(Srec21,stds2,norm1);
 		Srec22u = unrenorm_spect_data(Srec22,stds2,norm1);
 	else
@@ -25,12 +25,18 @@ function [speech1, speech2, xest1, xest2] = demix_scatt2top(mix, Dnmf11, Dnmf12,
 	rec21 = audioreconstruct2(Srec21u, Plp, Php, filts, scratch);
 	rec22 = audioreconstruct2(Srec22u, Plp, Php, filts, scratch);
 
+	if 1 %works better
 	%%% 3. use mask to obtain Ui = |W1 hat{x_i} | 
 	eps = 1e-6;
         V_ap = rec21.^2 +rec22.^2 + eps;
         U1 = ((rec21.^2)./(V_ap)).*S1(:,1:size(V_ap,2));
         U2 = ((rec22.^2)./(V_ap)).*S1(:,1:size(V_ap,2));
+	else
+		U1 = rec21;
+		U2 = rec22;
+	end
 
+	if 1 %works better
 	%%% 2. estimate D1iz1i 
 	if 1
 		S1r = renorm_spect_data(U1,stds1);
@@ -46,7 +52,7 @@ function [speech1, speech2, xest1, xest2] = demix_scatt2top(mix, Dnmf11, Dnmf12,
         V_ap = rec11.^2 +rec12.^2 + eps;
         U1 = ((rec11.^2)./(V_ap)).*S1(:,1:size(V_ap,2));
         U2 = ((rec12.^2)./(V_ap)).*S1(:,1:size(V_ap,2));
-	
+	end
 		
 	speech1 = audioreconstruct1(U1, options, filts{1}, P);
 	speech2 = audioreconstruct1(U2, options, filts{1}, P);
