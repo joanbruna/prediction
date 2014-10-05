@@ -75,3 +75,12 @@ function [speech1, speech2, xest1, xest2] = demix_scatt2top(mix, Dnmf11, Dnmf12,
 	xest1 = audioreconstruct1(U1, options, filts{1}, P);
 	xest2 = audioreconstruct1(U2, options, filts{1}, P);
 
+	speech1 = speech1';
+	speech2 = speech2';
+	xest1 = xest1';
+	xest2 = xest2';
+
+	speech1 = speech1(1:length(mix));
+	speech2 = speech2(1:length(mix));
+	xest1 = xest1(1:length(mix));
+	xest2 = xest2(1:length(mix));

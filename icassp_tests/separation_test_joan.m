@@ -28,8 +28,8 @@ for i=1:N
     test_file_name_1 = test_files_1{id1(i,1)}{id1(i,2)}{id1(i,3)}.speaker;
     x1 = test_files_1{id1(i,1)}{id1(i,2)}{id1(i,3)}.x;
     
-    test_file_name_2 = test_files_2{id2(i,1)}{id2(i,2)}{id2(i,3)}.speaker;
-    x2 = test_files_2{id2(i,1)}{id2(i,2)}{id2(i,3)}.x;
+    test_file_name_2 = test_files_2{id2(j,1)}{id2(j,2)}{id2(j,3)}.speaker;
+    x2 = test_files_2{id2(j,1)}{id2(j,2)}{id2(j,3)}.x;
     
     T = min(length(x1),length(x2));
     x1 = x1(1:T)/norm(x1);
@@ -42,6 +42,11 @@ for i=1:N
     
     x2 = x2/norm(x2)*power(10,(-SNR_dB)/20);
     mix = x1 + x2;
+ 
+    TT=min(length(mix),options.N);
+    mix = mix(1:TT);
+    x1=x1(1:TT);
+    x2=x2(1:TT);
 
     [speech1, speech2]=testFun(mix);
 

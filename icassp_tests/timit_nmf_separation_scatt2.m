@@ -100,16 +100,22 @@ clear options
 options.id1 = idf;
 options.id2 = idm;
 
-options.epsilon = epsilon;
+%options.epsilon = epsilon;
 options.fs = data1.fs;
-options.NFFT = data1.NFFT;
-options.hop = data1.hop;
+%options.NFFT = data1.NFFT;
+%options.hop = data1.hop;
 
 %options.model_params = param;
 
+Npad = 2^16;
+options.N = Npad;
+options.T = T;
+options.Q = 32;
+filts = create_scattfilters(options);
+
 %testFun    = @(Xn) nmf_demix(Xn,D1,D2,param);
 %[speech1, speech2, xest1, xest2] = demix_scatt2top(mix, Dnmf11, Dnmf12, Dnmf21, Dnmf22, stds1, stds2, data1.filts, data1.scparam, param1, param2, Npad);
-testFun    = @(mix) demix_scatt2top(mix, Dnmf11, Dnmf12, Dnmf21, Dnmf22, stds1, stds2, data1.filts, data1.scparam, param1, param2, 2^15);
+testFun    = @(mix) demix_scatt2top(mix, Dnmf11, Dnmf12, Dnmf21, Dnmf22, stds1, stds2, filts, options, param1, param2, Npad);
 
 options.SNR_dB = 0;
 output = separation_test_joan(testFun,test_female,test_male,options);
