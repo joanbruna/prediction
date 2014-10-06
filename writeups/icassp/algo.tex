@@ -2,7 +2,6 @@
 \label{algosec}
 We show in this section how the inverse problem of source separation 
 can be solved via a sparse coding in the scattering domain, followed by phase recovery.
-
 We consider the supervised 
 monoaural source separation problem (\ref{ssep}), 
  in which the components $x_i$, $i=1,2$ come from sources for 
@@ -21,18 +20,17 @@ the spectrogram \cite{deepscatt,pami}.
 \centering
 \begin{tabular}{l|c|c|c || c |c |c }
   \hline\hline
-  & \multicolumn{3}{c||}{Speaker-specific} & \multicolumn{3}{c}{Multi-Speaker} \\
+  & \multicolumn{3}{c||}{Speaker-Specific} & \multicolumn{3}{c}{Multi-Speaker} \\
   \hline
  & SDR & SIR & SAR & SDR & SIR & SAR\\
 \hline
-NMF  &7.5 [1.5] & 13.7 [0.9] &   8.9 [1.7] & 6.1 [2.9] &   14.1 [3.8] & 7.4 [2.1] \\
+NMF  &8.8 [2] & 18.6 [3] &   9.6 [1.6] & 6.1 [2.9] &   14.1 [3.8] & 7.4 [2.1] \\
 \hline
 \emph{scatt-NMF\textsubscript{1}} & 10.3 [2.0]  & 19.7 [3.3]  & 11.0 [1.7] &  6.2 [2.8] &   13.5 [3.5] & 7.8 [2.2] \\
-\emph{scatt-NMF\textsubscript{2}} &  10.6 [1.8] & 20.5 [3.0]  & 11.3 [1.7]  &  6.9 [2.7] & 16.0 [3.5]  & 7.9 [2.2] \\
+\emph{scatt-NMF\textsubscript{2}} &  {\bf 10.6} [1.8] & {\bf 20.5} [3.0]  & {\bf 11.3} [1.7]  &  {\bf 6.9} [2.7] & {\bf 16.0} [3.5]  & {\bf 7.9} [2.2] \\
   \hline
   \hline
 \end{tabular}
-
 \caption{Separation with speakers-specific and multi-speaker settings. Average SDR, SIR and SAR (in $dB$) for NMF and proposed  and \emph{scatt-NMF\textsubscript{2}}. Standard deviation of each result shown between brackets. \label{ta:eval}}
 \vspace{-2ex}
 \end{table*}
@@ -64,14 +62,13 @@ When the analysis operator $\Phi$ is able to produce sparse representations of t
 then 
 {\small
 \begin{eqnarray*}
-\| \Phi(x'_1) - D_1 z_1 \|_2^2 + \| \Phi(x'_2) - D_2 z_2 \|^2 &\approx& \\
-\| \Phi(x'_1) + \Phi(x'_2) - \sum_{i=1,2} D_i z_i \|_2^2 &\approx& \\
- \| \Phi(x) - D_1 z_1 - D_2 z_2 \|_2^2 ~,
+&&\| \Phi(x'_1) - D_1 z_1 \|_2^2 + \| \Phi(x'_2) - D_2 z_2 \|^2 \approx \\
+&&\| \Phi(x'_1) + \Phi(x'_2) - \sum_{i=1,2} D_i z_i \|_2^2  \approx \| \Phi(x) - D_1 z_1 - D_2 z_2 \|_2^2 ~,
 \end{eqnarray*}}
 which can be used in practice to produce a greedy initialization for (\ref{model}) as follows. 
 We first obtain $\widehat{\Phi(x_i)}= D_i z^*_i$, where the $z^*_i$ are defined as 
 $$z^*_i = \arg\min_{z_i} \frac{1}{2}\| \Phi(x) - \sum_{i=1,2} D_i z_i \|_2^2 +\lambda \| z_i \|_1~.$$
-Since the scattering $\Phi(x)$ is defined as \\$\Phi(x)= \{ A |W_1 x | \,,\, A | W_2 | W_1 x | | \}$, 
+Since the scattering satisfies {\small $\Phi(x)= \{ A |W_1 x | \,,\, A | W_2 | W_1 x | | \}$}, 
 where $A$ is the lowpass filter and $W_1$ and $W_2$ are respectively the first and 
 second layer wavelet decompositions, we can produce an estimate $\widehat{x}_i$ from 
 $\widehat{\Phi(x_i)}$ by using the complex phases of $W_1 x$ and $W_2 |W_1 x|$.
