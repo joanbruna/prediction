@@ -1,27 +1,31 @@
-\section{NMF speech enhancement}
-\label{sec:nmf}
+\section{NMF speech source separation}
+\label{nmfsec}
 
 %
-We consider the setting in which we are given a noisy time-domain signal $x(t)$ that is the sum of a speech signal $s(t)$ and a non-stationary noise $n(t)$,
-$$ x(t) = s(t) + n(t),$$
-and we aim at finding a clean estimate $\hat{s}(t)$ of $s(t)$.
-NMF-based denoising techniques typically operate on a (non-negative) time-frequency representation of $s(t)$ (such as the spectrogram or the power spectrum)
-that we denote as $\bb{V} \in \RR^{m \times n}$, comprising $m$ frequency bins and $n$ temporal frames. NMF attempts to find the non-negative activations $\bb{H}_{\mathrm{s}} \in \RR^{q \times n}$ and $\bb{H}_{\mathrm{n}} \in \RR^{r \times n}$ best representing the speech and the noise components, respectively, in two fixed dictionaries $\bb{W}_{\mathrm{s}} \in \RR^{n \times q}$ and $\bb{W}_{\mathrm{n}} \in \RR^{n \times r}$.
+We consider the setting in which we are given a temporal signal $x(t)$ that is the sum of  
+two speech signals $x_i(t)$, $i=1,2$:
+$$ x(t) = x_1(t) + x_2(t),$$
+and we aim at finding estimates $\widehat{x_i}(t)$.
+NMF-based source separation 
+techniques typically operate on a (non-negative) time-frequency representation of $x(t)$ (such as the spectrogram or the power spectrum)
+that we denote as $\Phi(x) \in \RR^{m \times n}$, comprising $m$ frequency bins and $n$ temporal frames. 
+NMF attempts to find the non-negative activations $\bb{Z}_i \in \RR^{q \times n}$, $i=1,2$ 
+best representing the different speech components in two dictionaries ${D}_{i} \in \RR^{m \times q}$.
 %
 This task is achieved through the solution of %the minimization problem
 \begin{eqnarray}
 \label{eq:optim_general}
-\min_{ \bb{H}_{\mathrm{s}}, \bb{H}_{\mathrm{n}} \ge \bb{0}  } D( \bb{V} |  \bb{W}_{\mathrm{s}} \bb{H}_{\mathrm{s}} + \bb{W}_{\mathrm{n}}\bb{H}_{\mathrm{n}} ) + 
-\lambda\, \psi(\bb{H}_{\mathrm{s}}, \bb{H}_{\mathrm{n}}).
+\min_{ \bb{Z}_i \ge \bb{0}  } \mu( \Phi(x) |  \, \sum_{i=1,2} {D}_i \bb{Z}_{i}  ) + 
+\lambda\, \sum_{i=1,2} \mathcal{R}(\bb{Z}_i)~.
 \end{eqnarray}
 The first term in the optimization objective measures the dissimilarity between the input data and the estimated channels. 
 %Typically, this data fitting term is assumed to be separable,  
 %$$
 %D( \bb{A} | \bb{B} ) = \sum_{i,j} D(a_{ij} | b_{ij}).
 %$$ 
-Frequent choices of $D$ are the squared Euclidean distance,
+Frequent choices of $\mu$ are the squared Euclidean distance,
 the Kullback-Leibler divergence, and the Itakura-Saito divergence, for which there exist standard optimization algorithms \cite{fevotte2011algorithms}.
-In this work we concentrate on a (weighted) Euclidean distance, but any other option could be used instead.
+In this work we concentrate on a reweighted Euclidean distance, but any other option could be used instead.
 %
 %Significant attention has been devoted in the literature to the case in which the scalar divergence $D$
 %belongs to the family of the so-called $\beta$-divergences, 
@@ -39,16 +43,14 @@ In this work we concentrate on a (weighted) Euclidean distance, but any other op
 %the Kullback-Leibler divergence ($\beta=1$), and the Itakura-Saito divergence ($\beta=0$).
 %For $\beta \ge 1$, the divergence is convex. The case of $\beta=0$ is attractive despite the lack of convexity, due to the scale-invariance of the Itakura-Saito divergence, which makes the NMF procedure insensitive to volume changes
 %
-The second (optional) term in the minimization objective is included to promote some desired structure of the activations. This is done using a designed regularization function $\psi$ and its relative importance is controlled by the parameters $\lambda$. 
+The second (optional) term in the minimization objective is included to promote some desired structure of the activations. This is done using a designed regularization function $\mathcal{R}$ 
+and its relative importance is controlled by the parameters $\lambda$. 
 
-Once the optimal activations are solved for, the spectral envelopes of the speech and the noise are estimated as $ \bb{W}_{\mathrm{s}} \bb{H}_{\mathrm{s}}$ and $ \bb{W}_{\mathrm{n}} \bb{H}_{\mathrm{n}}$, respectively. Since these estimated speech spectrum envelope contains no phase information, they are used to build soft masks to filter the signals mixture signal \cite{schmidt07mlsp}.
+Once the optimal activations are solved for, the spectral envelopes of the speech and the noise are 
+estimated as $ {D}_{i} \bb{Z}_{i}$. Since these estimated speech spectrum envelope contains no phase information, 
+they are used to build soft masks to filter the signals mixture signal \cite{schmidt07mlsp}.
 %Since these estimated speech spectrum envelope contains no phase information, speech signal is estimated
 %from the mixture by Wiener filtering. 
-
-In the semi-supervised setting, it is assumed that the model for one of the observed signals (speech or noise) is not available beforehand
-and is estimated along in the inference.
-%and it is es
-Following \cite{}, we adopt the semi-supervised setting where $\bb{W}_{\mathrm{n}}$ and $\bb{H}_{\mathrm{n}}$ are unknown and with no particular structure, and learned from the data. %The semi-supervised NMF setting described in
 
 
 %In supervised NMF, the speech and noise dictionaries are trained independently from available training data. 

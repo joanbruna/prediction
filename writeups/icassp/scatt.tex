@@ -1,9 +1,9 @@
 \section{Scattering transform}
+\label{scattsec}
 
-The rythmic and modulation structure characteristic of accoustic pulse trains 
-can be efficiently extracted with the scattering transform \cite{pami, mallat}, 
-computed by iterating wavelet transforms and complex modulus nonlinearitites.
-This section reviews its definition and main properties. 
+Discriminative features having longer temporal context can be constructed with the 
+scattering transform \cite{pami, deepscatt}. 
+This section reviews its definition and main properties when applied to speech signals.
 
 \subsection{Wavelet Filter Bank}
 
@@ -22,7 +22,7 @@ at the frequencies $\lambda = 2^{j/Q}$ are computed by dilating $\psi$:
 \end{equation}
 We denote by $\Lambda$ the index set of $\la = 2^{j/Q}$ over
 the signal frequency support, with $j \leq J$, 
-and we impose that these filters fully cover the positive frequencies
+and we impose that these filters fully cover the positive frequencies:
 \begin{equation}
 \label{consdf}
 \forall \om \geq 0~,~ 1- \epsilon 
@@ -30,14 +30,15 @@ and we impose that these filters fully cover the positive frequencies
 \end{equation}
 for some $\epsilon <1$, where $\phi(t)$ is the lowpass filter carrying the 
 low frequency information at scales larger than $2^J$.
-The wavelet transform of a signal $I(t)$ is
+The resulting filter bank has a constant number $Q$ of bands per 
+octave. The wavelet transform of a signal $x(t)$ is
 \[
-W I = \{I \ast \phi(t)~,~I \ast \psi_\la(t)  \}_{\la \in \Lambda}~.
+W x = \{x \ast \phi(t)~,~I \ast \psi_\la(t)  \}_{\la \in \Lambda}~.
 \]
 Thanks to (\ref{consdf}), one can verify that 
 \begin{equation}
 \label{lp_basic}
-\| I \|^2 (1- \epsilon) \leq \| I \ast \phi \|^2 + \sum_{\la \in \Lambda} \| |I \ast \psi_\la|^2 \|^2  \leq \| I \|^2~.
+\| x \|^2 (1- \epsilon) \leq \| x \ast \phi \|^2 + \sum_{\la \in \Lambda} \| |x \ast \psi_\la|^2 \|^2  \leq \| x \|^2~.
 \end{equation}
 
 \subsection{Joint Time-Frequency Scattering}
@@ -48,89 +49,94 @@ iterating over wavelet transforms and a modulus.
 First order scattering coefficients
 are local averages of wavelet coefficient amplitudes:
 \[
-\forall \la \in \La~~,~~S I(\la; t) = |\, I \ast \psi_\la| \ast \phi(t)~. 
+\forall \la \in \La~~,~~S x(t,\la) = |\, x \ast \psi_\la| \ast \phi(t)~. 
 \]
 The Q-factor $Q_1$ adjusts the frequency resolution of 
-these wavelets. Due to the temporal average, first order scattering coefficients 
+these wavelets, and for speech it is typically around $Q_1=32$.
+ Due to the temporal average, first order scattering coefficients 
 provide no information on the time-variation of the scalogram
-$|I \ast \psi_{\la_1} (t)|$ at temporal scales smaller than $2^J$. 
+$|x \ast \psi_{\la_1} (t)|$ at temporal scales smaller than $2^J$. 
 It averages all modulations and 
 transient events, and thus lose perceptually important information.
  
 Second order scattering coefficients recover information on
-audio-modulations and transients by computing
-the wavelet coefficients of each envelope $|I \ast \psi_{\la_1}|$, and their
-local averagest:
+audio modulations and pitch temporal variations by computing
+the wavelet coefficients of the envelopes $|x \ast \psi_{\la_1}|$, and their
+local averages:
 \[
 \forall \la_2~~,~~
-S I(\la_1,\la_2; t) = ||\, I \ast \psi_{\la_1}| \ast \psi_{\la_2}| \ast \phi(t)~ .
+S x(t,\la_1,\la_2) = ||\, x \ast \psi_{\la_1}| \ast \psi_{\la_2}| \ast \phi(t)~ .
 \]
-These multiscale variations of each envelope $|I \ast \psi_{\la_1}|$ 
-specify the amplitude modulations of $I(t)$ \cite{deepscatt} and 
+These multiscale variations of each envelope $|x \ast \psi_{\la_1}|$ 
+specify the amplitude modulations of $x(t)$ \cite{deepscatt} and 
 thus have the capacity to detect rythmic structures appearing at different 
 frequency bands. 
 The Q-factor $Q_2$ of the second family of wavelets $\psi_{\la_2}$ 
 controls the time-frequency resolution of the transform. Smaller $Q_2$ 
 results in wavelets with good temporal resolution, and thus
 allows us to accurately measure the sharp transitions of
-amplitude modulations. On the other hand,  large $Q_2$ factors 
-are useful to detect regular and precise rythmic structures present in the 
-envelopes $| I \ast \psi_{\la_1}|$.
+amplitude modulations. 
 Scattering coefficients have a negligible amplitude for
-$\la_2 > \la_1$ because $|I \ast \psi_{\la_1}|$ is then a regular envelop
-whose frequency support is below $\la_2$. Scattering coefficients are thus
-computed only for $\la_2 < \la_1$. 
+$\la_2 > \la_1$ because $|x \ast \psi_{\la_1}|$ is a regular envelop
+whose frequency support is below $\la_2$ \cite{pami}. 
+Scattering coefficients are thus computed only for $\la_2 < \la_1$. 
 
-Applying more wavelet transform envelopes defines
-scattering moments at any order $m \geq 1$:
-\begin{equation}
-\label{expansdf}
-S I(\la_1,...,\la_m; t) =  |~|I \ast \psi_{\la_1}| \ast ... | \ast \psi_{\la_m}| \ast \phi(t)~.
-\end{equation}
-By iterating on the inequality (\ref{lp_basic}), one can 
-verify \cite{stephane}
-that the Euclidean norm of scattering coefficients
-\begin{equation}
-\label{enfsondf}
-\|S I\|^2 = \sum_{m=1}^{\infty} \sum_{(\la_1,...,\la_m) \in \La_m}
-\|S I (\la_1,...,\la_m; \cdot )\|^2 
-\end{equation}
-satisfies
-\[
-\|S I\|^2 \leq  \| I \|^2~.
-\]
-
-For most audio signals, the energy of the scattering
-vector $\|S I\|^2$ is concentrated over first and second layers. 
-In practice, we thus only compute $S I(\la_1)$ and
-$S I(\la_1,\la_2)$ for $1 \leq \la_1 = 2^{j_1/Q_1} \leq N$
-and $1 \leq \la_2 = 2^{j_2/Q_2} < \la_1$. 
-
+%
+%
+%Applying more wavelet transform envelopes defines
+%scattering coefficients at any order $m \geq 1$:
+%\begin{equation}
+%\label{expansdf}
+%S I(\la_1,...,\la_m; t) =  |~|I \ast \psi_{\la_1}| \ast ... | \ast \psi_{\la_m}| \ast \phi(t)~.
+%\end{equation}
+%By iterating on the inequality (\ref{lp_basic}), one can 
+%verify \cite{stephane}
+%that the Euclidean norm of scattering coefficients
+%\begin{equation}
+%\label{enfsondf}
+%\|S I\|^2 = \sum_{m=1}^{\infty} \sum_{(\la_1,...,\la_m) \in \La_m}
+%\|S I (\la_1,...,\la_m; \cdot )\|^2 
+%\end{equation}
+%satisfies
+%\[
+%\|S I\|^2 \leq  \| I \|^2~.
+%\]
+%
+%For most audio signals, the energy of the scattering
+%vector $\|S I\|^2$ is concentrated over first and second layers. 
+%In practice, we thus only compute $S I(\la_1)$ and
+%$S I(\la_1,\la_2)$ for $1 \leq \la_1 = 2^{j_1/Q_1} \leq N$
+%and $1 \leq \la_2 = 2^{j_2/Q_2} < \la_1$. 
+%
 Scattering transforms have been extended along the frequency
-variables to capture frequency variability and provide transposition
-invariant representations \cite{deepscatt}. 
-Transpositions refer to translations
-along a log frequency variable. 
-We denote $\gamma = \log_2 \lambda_1$, and
-define 
-wavelets $\bar \psi_{\bar \la} (\gamma)$ having an octave bandwidth of $Q = 1$.
-The corresponding wavelet transform is thus computed with convolutions
-along the log-frequency variable $\gamma$.
+variables to capture the joint time-frequency 
+variability of spectral envelopes and therefore provide 
+ representations locally stable to pitch variations \cite{deepscatt}. 
+We denote $\gamma = \log_2 \lambda_1$, and consider
+the scalogram as a two-dimensional function of $\gamma$ and $t$: 
+\[
+F (\gamma, t) = |x \ast \psi_{2^{\gamma}} (t)|~.
+\]
 
-The scalogram is now considered as a function of $\gamma$ and $t$: 
+In this work, we consider a second layer scattering with 
+a separable wavelet transform $F \ast \Psi_{\gamma_2, \la_2} (\gamma, t)~,$
+with
+$$\Psi_{{\gamma_2}, {\la_2}}(\gamma,t) = \widetilde{\psi}_{\gamma_2}(\gamma) \psi_{\la_2}(t)~.$$
+The temporal wavelets $\psi(t)$ are dyadic complex Morlet wavelets. 
+In this implementation, 
+we choose $\widetilde{\psi}$ to be dyadic real Haar wavelets to preserve good frequency localization.
+
+The resulting second order scattering coefficients are thus
 \[
-F (\gamma, t) = |I \ast \psi_{2^{\gamma}} (t)|~.
+\tilde{S} x (t, \la_1, \gamma_2,  \la_2) = 
+ |F \ast \bar \Psi_{\gamma_2, \la_2} | \ast \overline{\phi}( (\log_2 \la_1, t)~,
 \]
-Second order scattering can then be generalized 
-by computing them as first
-order coefficients of $F (\gamma,t )$ computed
-with a separable wavelet transform: %$along $\gamma$:
-\[
-S I (\la_1; t;  \la_2, \bar \la_2) = 
- |F \ast \bar \Psi_{\la_2, \bar \la_2} | \ast \Phi( (\log_2 \la_1, t)~,
-\]
-where $\Psi(\la, \bar \la)(\gamma, t) = \psi_{\la}(t) \overline{\psi_{\bar \la}}(\gamma)$ and
-$\Phi(\gamma, t)$ is a two-dimensional blurring kernel.
+where $\overline{\phi}(\gamma, t)$ is a two-dimensional blurring kernel with temporal 
+scale $2^J$ and log-frequency scale $2^{J_h}$.
+ The final representation regrouping first and second order scattering
+coefficients and sampling at intervals $k\,2^{J-\delta}$
+is $\Phi(x) = \{ Sx(k 2^{J-\delta} k,\la_1)\,,\, \tilde{S}x(k 2^{J-\delta} ,\la_1,\la_2,\gamma_2)\} $, 
+where the oversampling factor $\delta$ is typically set to $\delta=1$.
 
 
 %

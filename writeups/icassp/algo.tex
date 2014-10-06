@@ -1,12 +1,63 @@
-\section{Algorithm}
-This section explains how to solve the ill-posed inverse problem of source separation 
-via a sparse coding in the scattering domain followed by phase recovery.
+\section{Source Separation Algorithm}
+\label{algosec}
+We show in this section how the inverse problem of source separation 
+can be solved via a sparse coding in the scattering domain, followed by phase recovery.
 
+We consider the supervised 
+monoaural source separation problem, in which one observes mixtures 
+\begin{equation}
+\label{ssep}
+x(t) = x_1(t) + x_2(t)~,
+\end{equation}
+where $x_i$ come from sources from which we assume training data $X_i=\{x_{ij}\}_{j \leq K}$, 
+and one is asked to produce estimates $\widehat{x_i}$. 
+For example, we might consider a male-vs-female separation task, by 
+collecting male and female training examples. 
 
-Write down the energy minization problem.
+The supervision provides  prior information on the nature of each of the 
+components. However, high-dimensional speech signals have large variability, 
+most of which is uninformative for the purposes of estimating $x_i$ in (\ref{ssep}).
+The training data can be exploited more efficiently in the scattering domain, since 
+intra-class variability given by small pitch and timber variations is linearized up to 
+larger temporal scales without loosing as much discriminative information as 
+the spectrogram \cite{deepscatt,pami}.
 
-Explain the greedy algorithm 
+Let $\Phi(X_i)$ be the scattering representation of the training examples of each 
+source. We consider a non-linear approximation of each source using non-Negative
+matrix factorization:
+\begin{equation}
+\min_{D_i\geq 0, Z_i\geq 0} \frac{1}{2} \| \Phi(X_i) - D_i \, Z_i \|_F^2 + \lambda \| Z_i \|_1~.
+\end{equation}
+This model exploits the linearization properties of scattering coefficients since it 
+searches low-dimensional locally linear approximations. 
 
+At test time, given and input $x$, $x_1$ and $x_2$ are estimated by minimizing
+\begin{equation}
+\label{model}
+\min_{x'_i, z_i} \sum_{i=1,2} \frac{1}{2} \| \Phi(x'_i) - D_i z_i \|_2^2 + \lambda \| z_i \|_1 \quad\,s.t. ~x=x'_1 + x'_2~.
+\end{equation}
+Problem (\ref{model}) is minimized with an alternating gradient descent between $x'_i$ and $z_i$. 
+Fixing $z_i$ and minimizing with respect to $x'_i$ requires locally inverting the scattering 
+operator $\Phi$, which amounts to solve an overcomplete phase recovery problem and 
+can be solved with gradient descent, as shown in \cite{bruna2013audio}. 
+Fixed $x'_i$, solving for $z_i$ is a standard $\ell_1$ sparse coding problem, which can be solved 
+efficiently with proximal splitting algorithms. In this work, we use the LARS algorithm. 
+ 
+%Explain the greedy algorithm.
+When the analysis operator $\Phi$ is able to produce sparse representations of the sources, 
+then 
+\begin{eqnarray*}
+\| \Phi(x'_1) - D_1 z_1 \|_2^2 + \| \Phi(x'_2) - D_2 z_2 \|^2 &\approx& \\
+\| \Phi(x'_1) + \Phi(x'_2) - \sum_{i=1,2} D_i z_i \|_2^2 &\approx& \\
+ \| \Phi(x) - D_1 z_1 - D_2 z_2 \|_2^2 ~,
+\end{eqnarray*}
+which can be used in practice to produce a greedy initialization for (\ref{model}) as follows. 
+We first obtain $\widehat{\Phi(x_i)}= D_i z^*_i$, where the $z^*_i$ are defined as 
+$$z^*_i = \arg\min_{z_i} \frac{1}{2}\| \Phi(x) - \sum_{i=1,2} D_i z_i \|_2^2 +\lambda \| z_i \|_1~.$$
+Since the scattering $\Phi(x)$ is defined as \\$\Phi(x)= \{ A |W_1 x | \,,\, A | W_2 | W_1 x | | \}$, 
+where $A$ is the lowpass filter and $W_1$ and $W_2$ are respectively the first and 
+second layer wavelet decompositions, we can produce an estimate $\widehat{x}_i$ from 
+$\widehat{\Phi(x_i)}$ by using the complex phases of $W_1 x$ and $W_2 |W_1 x|$.
 
 
 
