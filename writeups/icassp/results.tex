@@ -1,42 +1,52 @@
 \section{Experimental results}
 \label{sec:experiments}
 
-\mypara{Data sets} We evaluated the separation performance of the proposed methods on a subset of the GRID dataset \cite{cooke2006audio}. 
-Three randomly chosen sets of distinct clips each were used for training ($500$ clips), validation ($10$ clips), and testing ($50$ clips).
-The clips were resampled to $8$ KHz. For the noise signals we used the AURORA corpus \cite{PearceH00}, which contains six categories of noise recorded from different real environments (street, restaurant, car, exhibition, train, and airport). As before, three sets of distinct clips each were used for training ($15$ clips), validation ($3$ clips), and testing ($15$ clips).
+\mypara{Evaluation settings} We evaluated the proposed method in two settings: speaker-specific and multi-speaker. In the first setting 
+we train a speaker-specific model for each speaker and test it using sentences from the same speaker outside the training set. 
+In the second setting, we trained the model on a mixed group of male and female speakers, none of which were included in the test set.
+Comparing the results obtained for these two settings we can understand the generalization and adaptation properties of the algorithm. 
+All signals where mixed at 0 $dB$.
+
+\mypara{Data sets} We used a subset of the GRID dataset \cite{cooke2006audio} for evaluating the speaker-specific setting.
+For each speaker, $500$ randomly-chosen clips were used for training (around 25 minutes) and $200$ clips were used for testing.
+For the multi-speaker case we used a subset of the TIMIT dataset. We adopted the standard test-train division, using all the training recordings for bulding the models
+and a subset of 10 different speakers (6 males and 6 females) for testing. For each speaker we randomly chose two clips and compared
+all female-male combinations (144 mixtures). All clips were resampled to $16$ KHz. 
 
 \mypara{Evaluation measures} As the evaluation criteria, we used the \emph{source-to-distortion ratio} (SDR), \emph{source-to-interference ratio} (SIR), and
 \emph{source-to-artifact ratio} (SAR) from the BSS-EVAL metrics \cite{vincent2006performance}. 
 %
 We also computed the standard \emph{signal-to-noise ratio} (SNR).
 %
-When dealing with several frames, we computed a global score (GSDR, GSIR, GSAR and GSNR) by averaging the metrics over all test clips from the same speaker and noise weighted by the clip duration.
+%When dealing with several frames, we computed a global score (GSDR, GSIR, GSAR and GSNR) by averaging the metrics over all test clips from the same speaker and noise weighted by the clip duration.
 
-\mypara{Training setting} The same training settings were used in all experiments.
-We used dictionaries of size 60 and 10 atoms for representing the speech and noise, respectively. These values were obtained
-using cross-validation. We used $\lambda_{\mathrm{s}}=0.1$ and $\lambda_{\mathrm{n}}=0$ (which means that no sparsity was promoted in the representation of the noise)
-and $\mu=0.001$. As the example, we used $\beta=1$ and $\beta=0$, and $\alpha=0$ in the high level cost  (\ref{eq:dict-learn-task-specific}).
+\mypara{Training setting} We evaluated the proposed scattering NMF model with one and two layers, reffered
+as \emph{scatt-NMF\textsubscript{1}} and \emph{scatt-NMF\textsubscript{2}} respectively. As a baseline we used standard NMF 
+using frame lengths of 1024 samples and 50\% overlap. 
 %
-For the SGD algorithm we used $\eta=0.1$ and minibatch of size $50$. These were obtained by trying several values of during a small number of iterations, keeping those producing the lowest error on a small validation set. 
+The dictionaries in standard NMF were chosen with $200$ and $400$ atoms for the speaker-specific and multi-speaker
+settings respectively. These values were obtained using cross-validation on a few clips separated from the training as validation set.
 %
-All training signals where mixed at 5 $dB$.
+In all cases, we applied \emph{scatt-NMF} using a scattering transforms with resolution $Q_1= Q_2 = 32$.
+The resulting representation had $175$ coefficients for the first level and around $2000$ for the second layer (many of which are
+zero by construction as explained in Section \ref{scattsec})
+%
+For the single speaker case we trained dictionaries with $200$ atoms for \emph{scatt-NMF\textsubscript{1}}  and $800$ atoms for \emph{scatt-NMF\textsubscript{2}}.
+While for the multi-speaker case we used $400$ atoms for \emph{scatt-NMF\textsubscript{1}}  and $1000$ atoms for \emph{scatt-NMF\textsubscript{2}}.
+In all cases, the features were frame-wise normalized and we used $\lambda=1$. 
 
-\mypara{Results} Figure~\ref{fig:SGD} shows the evolution of the high level cost (\ref{eq:dict-learn-task-specific}) and the SDR on
-the validation set with the SGD iterations. The algorithm converges to a dictionary that achieves about 2 $dB$ better
-SDR on the validation set. Tables~\ref{ta:eval} and \ref{ta:eval2} show some initial results for the proposed approach.
-We compare the performance of standard supervised sparse-NMF (referred simply as NMF) against
-the performance of the same sparse-NMF model trained on a task-specific manner (referred as TS-NMF)
-on denoising two with different SNR levels.
-Observe that the task-specific supervision leads to improvements in performance, maintaining (at 5$dB $ SNR) the improvements observed on the validation set. 
-Interestingly, the method also works when using $\beta=0$ (Itakura-Saito), even if the developments in Section~\ref{sec:optimization}
-are technically not valid in this case, since the divergence is not convex.
-In future work
-we plan to analyze what happens when a non-speaker specific dictionaries are trained. We
-expect to observe similar improvements, if the training data is diverse enough.
+%
+%For the SGD algorithm we used $\eta=0.1$ and minibatch of size $50$. These were obtained by trying several values of during a small number of iterations, keeping those producing the lowest error on a small validation set. 
+%
+
+\mypara{Results} Tables~\ref{ta:eval}~and~\ref{ta:eval2} show the results obtained for the speaker-specific and multi-speaker settings respectively.
+In all cases we observe that using the one layer scattering transform outperforms the STFT. 
+Also, there is again in including a deeper representation \emph{scatt-NMF\textsubscript{2}} performs always better than \emph{scatt-NMF\textsubscript{1}} 
+
+In all the experiments, we solved (\ref) using a greedy approximation. We expect that solving it explicitly would bring some additional improvement.
 
 \begin{table}[tb]
-\caption{Average performance (in $dB$) for NMF and proposed supervised NMF methods measured in terms of SDR, SIR, SAR and SNR.
-Speech and noise were mixed at $5dB$ of SNR. The standard deviation of each result is shown between brackets. \label{ta:eval}}
+\caption{Separation with speakers-specific models. Average SDR, SIR, SAR and SNR (in $dB$) for NMF and proposed  and \emph{scatt-NMF\textsubscript{2}}. Standard deviation of each result shown between brackets. \label{ta:eval}}
 \vspace{-1.5ex}
 \begin{center}
 \small{
@@ -44,10 +54,10 @@ Speech and noise were mixed at $5dB$ of SNR. The standard deviation of each resu
   \hline\hline
 & SDR & SIR & SAR & SNR\\
 \hline
-NMF $\beta=1$   &7.5 [1.5] & 13.7 [0.9] &   8.9 [1.7] &    8.2 [1.3]\\
+NMF  &7.5 [1.5] & 13.7 [0.9] &   8.9 [1.7] &    8.2 [1.3]\\
 \hline
-TS-NMF $\beta=1$ & 9.5 [1.4] &   15.2 [0.7] & 11.0 [1.7] &    10.0 [1.2]\\
-TS-NMF $\beta=0$ &  8.6 [1.3] & 14.1 [1.2]  & 10.3 [1.5] &  9.1 [1.1]\\
+\emph{scatt-NMF\textsubscript{1}} & 10.2 [1.4] &   15.2 [0.7] & 11.0 [1.7] &    10.0 [1.2]\\
+\emph{scatt-NMF\textsubscript{2}} &  10.7 [1.3] & 14.1 [1.2]  & 10.3 [1.5] &  9.1 [1.1]\\
   \hline\hline
 \end{tabular}
 }
@@ -56,7 +66,7 @@ TS-NMF $\beta=0$ &  8.6 [1.3] & 14.1 [1.2]  & 10.3 [1.5] &  9.1 [1.1]\\
 \end{table}
 
 \begin{table}[tb]
-\caption{See description of Table~\ref{ta:eval}. In this case, speech and noise were mixed at $0dB$ of SNR. \label{ta:eval2}}
+\caption{Separation with multi-speaker models.  See description of Table~\ref{ta:eval}. \label{ta:eval2}}
 \vspace{-1.5ex}
 \begin{center}
 \small{
@@ -64,10 +74,10 @@ TS-NMF $\beta=0$ &  8.6 [1.3] & 14.1 [1.2]  & 10.3 [1.5] &  9.1 [1.1]\\
   \hline\hline
 & SDR & SIR & SAR & SNR\\
 \hline
-NMF $\beta=1$   & 4.5 [1.1] &  9.3 [0.9] &   6.8 [1.2]  &  5.8 [0.8]\\
+NMF    & 6.1 [2.9] &   14.1 [3.8] & 7.4 [2.1] &   6.4 [2.7]\\
 \hline
-TS-NMF $\beta=1$ & 6.3 [1.0] &   11.9 [0.7] & 8.0 [1.1] &    7.2 [0.8]\\
-TS-NMF $\beta=0$ & 5.2 [1.2] &   12.0 [1.7] & 6.6 [1.2] &    6.3 [0.9]\\
+\emph{scatt-NMF\textsubscript{1}} &  6.1 [2.9] &   14.1 [3.8] & 7.4 [2.1] &   6.4 [2.7]\\
+\emph{scatt-NMF\textsubscript{2}} &  6.9 [2.7] & 16.0 [3.5]  & 7.9 [2.2] &  9.1 [1.1]\\
   \hline\hline
 \end{tabular}
 }
@@ -75,12 +85,17 @@ TS-NMF $\beta=0$ & 5.2 [1.2] &   12.0 [1.7] & 6.6 [1.2] &    6.3 [0.9]\\
 \vspace{-1.5ex}
 \end{table}
 
-\section{Conclusion}
+\section{Discussion}
+NMF-based audio source separation techniques can be thought as applying a synthesis operator on a feature space
+given by a pooled analysis operator. Leveraging recent developemnts in signal processing, we propose to substitute
+%the STFT normally used in 
+the first stage with a deep scattering transform. 
+The obtained features are designed to capture the joint time-frequency variability of speech signals
+and efficiently represent a longer temporal context. Experimental evaluation showed that using deeper representations
+leads to a tangible improvement in performance in challenging source separation settings.
+A natural extension of this work would be to investigate the use of learned representations instead (or on top of)
+the designed ones.
+%
+Future work includes testing more thoroughly the potential of the proposed model in combination
+with the convolutional neural networks which have been very successful in other signal and image processing problems.
 
-In this work we presented an algorithm for the task-supervised training of NMF models. 
-Unlike standard supervised NMF, the proposed approach matches the optimization objective used at the train and testing stages. 
-In this way, the dictionaries can be trained in a task-specific manner. 
-We cast this problem as bilevel optimization that can be efficiently solved via stochastic gradient descent. 
-The proposed approach allows non-Euclidean data terms such as $\beta$-divergences. 
-A limited case study of sparse NMF with task specific supervision demonstrates promising results. 
-Including temporal dynamics into this model is the subject of ongoing research.
