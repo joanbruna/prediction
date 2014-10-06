@@ -1,4 +1,4 @@
-function varargout=bss_decomp_filt(varargin)
+function varargout=bss_decomp_filt_RNN(varargin)
 
 % decompose an estimated source into target/interference/noise/artefacts components, assuming the admissible distortion is a pure time-invariant filter.
 % components, assuming the admissible distortion is a pure time-invariant
@@ -73,8 +73,8 @@ e_artif=zeros(1,T);
 if isempty(noise_space)==0, e_noise=zeros(1,T); end
 
 %%% Target source(s) contribution %%%
-s_target = bss_proj(se,target_space);
-%s_target = target_space; %<---------!
+%s_target = bss_proj(se,target_space);
+s_target = target_space; %<---------! RNN code
 
 %%% Interferences contribution %%%
 P_S_se = bss_proj(se,sources_space);

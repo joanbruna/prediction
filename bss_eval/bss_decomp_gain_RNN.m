@@ -1,4 +1,4 @@
-function varargout=bss_decomp_gain(varargin)
+function varargout=bss_decomp_gain_RNN(varargin)
 
 % decompose an estimated source into target/interference/noise/artefacts components, assuming the admissible distortion is a pure time-invariant gain.
 %
@@ -27,9 +27,9 @@ function varargout=bss_decomp_gain(varargin)
 
 switch nargin
     case 3
-        [varargout{1},varargout{2},varargout{3}]=bss_decomp_filt(varargin{1},varargin{2},varargin{3},0);
+        [varargout{1},varargout{2},varargout{3}]=bss_decomp_filt_RNN(varargin{1},varargin{2},varargin{3},0);
     case 4
-        [varargout{1},varargout{2},varargout{3},varargout{4}]=bss_decomp_filt(varargin{1},varargin{2},varargin{3},varargin{4},0);
+        [varargout{1},varargout{2},varargout{3},varargout{4}]=bss_decomp_filt_RNN(varargin{1},varargin{2},varargin{3},varargin{4},0);
     otherwise
         disp('Wrong number of arguments.')
 end

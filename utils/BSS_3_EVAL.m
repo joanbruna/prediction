@@ -21,6 +21,8 @@ res(3,:)=SAR_bss3(perm)';
 [SDR_, SIR_, SAR_, perm] = bss_eval_sources (  wav_mix', wav_truth_signal');
 sdr_ = SDR_(perm)';
 
+sdr_
+
 Parms.SDR_bss3=res(1,2);
 Parms.SIR_bss3=res(2,2);
 Parms.SAR_bss3=res(3,2);
