@@ -1,6 +1,6 @@
 \section{Introduction}
 
-The problem of identifying and extracting different speech signals 
+The problem of identifying and extracting multiple speech signals 
 recorded in a single, noisy environment has been widely
 studied in the audio processing community \cite{loizou2007speech,hansler2008speech}. 
 It becomes particularly challenging when only one microphone is used, or in the presence of 
@@ -43,22 +43,26 @@ First, the signal is represented in a feature space given by a non-linear analys
 typically defined as the magnitude of a time-frequency representation such
 as the Short-Time Fourier Transform (STFT). 
 Then a synthesis operator, given by the dictionary learning stage, is applied to produce an unmixing in the feature space.
-Finally, the separation is obtained by inverting these representations. 
+ The separation is obtained by inverting these representations. 
 Performing the separation in the non-linear representation is key to the success of the algorithm. The magnitude STFT is in general sparse (simplifying the separation process) and invariant to variations in the phase, thus relieving the NMF from
 learning this irrelevant variability. 
 This comes at the expense of inverting the unmixed estimates in the feature space, normally known as the
 phase recovery problem \cite{yonina}. In the case of standard NMF, this is easily done via Wiener filtering technique discussed in Section \ref{sec:nmf}.
 
-In this work, rather than seeking for a coding scheme with temporal regularity, we seek to encode a representation of the audio signal at a larger scale in which natrual variability in speech is highly compressible. 
-Increasing the temporal scale of STFT or MEL representations either produces unstabilities due to 
-variations in pitch and timbre, or looses important discriminative information \cite{deepscatt}. 
+In this work, rather than seeking a coding scheme with improved temporal coherence, 
+we concentrate in extracting discriminative and stable speech features. 
+For that purpose, it is crucial to increase the temporal context of the representation, 
+reducing uninformative variability while preserving distinctive speech characteristics.
+Increasing the temporal scale of STFT or MEL representations results 
+in loss of important discriminative information \cite{deepscatt}. 
 In order to overcome the limitations of these shallow representations, 
-scattering transforms \cite{pami, deepscatt} cascade several 
-stages of complex wavelet decompositions and complex modulus, achieving 
+scattering transforms \cite{deepscatt, pami} cascade several 
+stages of complex wavelet decompositions and complex modulus, yielding 
 discriminative representations with the ability to capture temporal structures at larger scales, 
 e.g. smooth changes in pitch and envelope. 
 Scattering transforms achieve state-of-the-art results on auditory texture discrimination, and music genre recognition \cite{deepscatt, phdjoan}.
-A dictionary learnt to represent the signal in this deep representation would implicitly be learning the short term temporal dynamics of the signal.
+A dictionary learnt to represent the signal in this deep representation implicitly learns the short term temporal dynamics of the signal,
+capitalizing on the stability properties of scattering coefficients.
 
 %Scattering transforms have recently been introduced \cite{XX} to represent audio signals and images, A scattering transform iterates on complex wavelet transforms and modulus operators which compute their envelop. It has close relations with psychophysical and physiological models \cite{XX}. %Their success in audio classification comes from the fact that they can reduce the intra class variability (like temporal redundancy).
 
@@ -73,7 +77,7 @@ the authors explain that the learning the temporal dynamics in NMF via a Kalman 
 when the coding is sparse due to the instability and jitter in the codes.
 In contrast, analysis operators are stable by construction.
 
-Section \ref{nmfsec} reviews non-negative matrix factorization, while section \ref{scattsec} describes scattering 
+Section \ref{nmfsec} reviews non-negative matrix factorization, while Section \ref{scattsec} describes scattering 
 representations for speech. Our source separation algorithm is described in Section \ref{algosec} and 
 numerical experiments on TIMIT and Grid datasets are reported in Section \ref{resultssec}.
 
