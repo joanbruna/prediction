@@ -5,7 +5,7 @@ The style file: IEEEbib.bst
 Database file #1: refs.bib
 You've used 27 entries,
             1838 wiz_defined-function locations,
-            605 strings with 7637 characters,
+            605 strings with 7626 characters,
 and the built_in function-call counts, 6950 in all, are:
 = -- 625
 > -- 270
