@@ -33,12 +33,12 @@ low frequency information at scales larger than $2^J$.
 The resulting filter bank has a constant number $Q$ of bands per 
 octave. The wavelet transform of a signal $x(t)$ is
 \[
-W x = \{x \ast \phi(t)~,~I \ast \psi_\la(t)  \}_{\la \in \Lambda}~.
+W x = \{x \ast \phi(t)~,~x \ast \psi_\la(t)  \}_{\la \in \Lambda}~.
 \]
 Thanks to (\ref{consdf}), one can verify that 
 \begin{equation}
 \label{lp_basic}
-\| x \|^2 (1- \epsilon) \leq \| x \ast \phi \|^2 + \sum_{\la \in \Lambda} \| |x \ast \psi_\la|^2 \|^2  \leq \| x \|^2~.
+\| x \|^2 (1- \epsilon) \leq \| x \ast \phi \|^2 + \sum_{\la \in \Lambda} \| x \ast \psi_\la \|^2  \leq \| x \|^2~.
 \end{equation}
 
 \subsection{Joint Time-Frequency Scattering}
@@ -129,13 +129,13 @@ we choose $\widetilde{\psi}$ to be dyadic real Haar wavelets to preserve good fr
 The resulting second order scattering coefficients are thus
 \[
 \tilde{S} x (t, \la_1, \gamma_2,  \la_2) = 
- |F \ast \bar \Psi_{\gamma_2, \la_2} | \ast \overline{\phi}( (\log_2 \la_1, t)~,
+ |F \ast \bar \Psi_{\gamma_2, \la_2} | \ast \overline{\phi}( \log_2 \la_1, t)~,
 \]
 where $\overline{\phi}(\gamma, t)$ is a two-dimensional blurring kernel with temporal 
 scale $2^J$ and log-frequency scale $2^{J_h}$.
  The final representation regrouping first and second order scattering
 coefficients and sampling at intervals $k\,2^{J-\delta}$
-is $\Phi(x) = \{ Sx(k 2^{J-\delta} k,\la_1)\,,\, \tilde{S}x(k 2^{J-\delta} ,\la_1,\la_2,\gamma_2)\} $, 
+is $\Phi(x) = \{ Sx(k 2^{J-\delta} k,\la_1)\,,\, \tilde{S}x(k 2^{J-\delta} ,\la_1,\gamma_2, \la_2)\} $, 
 where the oversampling factor $\delta$ is typically set to $\delta=1$.
 
 
