@@ -35,7 +35,6 @@ zero by construction as explained in Section \ref{scattsec})
 For the single speaker case we trained dictionaries with $200$ atoms for \emph{scatt-NMF\textsubscript{1}}  and $800$ atoms for \emph{scatt-NMF\textsubscript{2}}.
 While for the multi-speaker case we used $400$ atoms for \emph{scatt-NMF\textsubscript{1}}  and $1000$ atoms for \emph{scatt-NMF\textsubscript{2}}.
 In all cases, the features were frame-wise normalized and we used $\lambda=1$. 
-
 %
 %For the SGD algorithm we used $\eta=0.1$ and minibatch of size $50$. These were obtained by trying several values of during a small number of iterations, keeping those producing the lowest error on a small validation set. 
 %
@@ -55,10 +54,10 @@ In all the experiments with  \emph{scatt-NMF\textsubscript} , we using a greedy 
 
 
 \begin{table}[tb]
-\caption{Separation with multi-speaker models.  See description of Table~\ref{ta:eval}. \label{ta:eval2}}
+\caption{Comparison against models with discriminative training \label{ta:eval2}}
 \vspace{-1.5ex}
 \begin{center}
-\small{
+\footnotesize{
 \begin{tabular}{l|c|c|c}
   \hline\hline
 & SDR & SIR & SAR \\
