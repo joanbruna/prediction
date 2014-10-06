@@ -4,22 +4,17 @@ We show in this section how the inverse problem of source separation
 can be solved via a sparse coding in the scattering domain, followed by phase recovery.
 
 We consider the supervised 
-monoaural source separation problem, in which one observes mixtures 
-\begin{equation}
-\label{ssep}
-x(t) = x_1(t) + x_2(t)~,
-\end{equation}
-where $x_i$ come from sources from which we assume training data $X_i=\{x_{ij}\}_{j \leq K}$, 
+monoaural source separation problem (\ref{ssep}), 
+ in which the components $x_i$, $i=1,2$ come from sources for 
+ which we have training data $X_i=\{x_{ij}\}_{j \leq K}$, 
 and one is asked to produce estimates $\widehat{x_i}$. 
-For example, we might consider a male-vs-female separation task, by 
-collecting male and female training examples. 
 
 The supervision provides  prior information on the nature of each of the 
 components. However, high-dimensional speech signals have large variability, 
 most of which is uninformative for the purposes of estimating $x_i$ in (\ref{ssep}).
 The training data can be exploited more efficiently in the scattering domain, since 
 intra-class variability given by small pitch and timber variations is linearized up to 
-larger temporal scales without loosing as much discriminative information as 
+ temporal scales $2^J$ without loosing as much discriminative information as 
 the spectrogram \cite{deepscatt,pami}.
 
 \begin{table*}[t]
@@ -66,11 +61,12 @@ efficiently with proximal splitting algorithms. In this work, we use the LARS al
 %Explain the greedy algorithm.
 When the analysis operator $\Phi$ is able to produce sparse representations of the sources, 
 then 
+{\small
 \begin{eqnarray*}
 \| \Phi(x'_1) - D_1 z_1 \|_2^2 + \| \Phi(x'_2) - D_2 z_2 \|^2 &\approx& \\
 \| \Phi(x'_1) + \Phi(x'_2) - \sum_{i=1,2} D_i z_i \|_2^2 &\approx& \\
  \| \Phi(x) - D_1 z_1 - D_2 z_2 \|_2^2 ~,
-\end{eqnarray*}
+\end{eqnarray*}}
 which can be used in practice to produce a greedy initialization for (\ref{model}) as follows. 
 We first obtain $\widehat{\Phi(x_i)}= D_i z^*_i$, where the $z^*_i$ are defined as 
 $$z^*_i = \arg\min_{z_i} \frac{1}{2}\| \Phi(x) - \sum_{i=1,2} D_i z_i \|_2^2 +\lambda \| z_i \|_1~.$$
