@@ -4,7 +4,7 @@ root_save = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/';
 
 % sampling parameters
 fs = 16000;
-Npad = 2^15;
+Npad = 2^16;
 T = 2048;
 
 options.N = Npad;

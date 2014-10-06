@@ -1,11 +1,11 @@
-function [speech1, speech2, xest1, xest2] = demix_scatt2top(mix, Dnmf11, Dnmf12, Dnmf21, Dnmf22, stds1, stds2, filts, options, param1, param2, Npad)
+function [speech1, speech2, xest1, xest2] = demix_scatt2top(mix, Dnmf11, Dnmf12, Dnmf21, Dnmf22, stds1, stds2, epsf, filts, options, param1, param2, Npad)
 
 	%%% we will use a simpler algo: 
 	%%% 1. compute |W1 x|
 	[S2, S1, P, Plp, Php, scratch] = audioscatt_fwd_haar(pad_mirror(mix',Npad), filts, options);
 	
 	if 1
-		[S2r,norm1] = renorm_spect_data(S2, stds2);
+		[S2r,norm1] = renorm_spect_data(S2, stds2, epsf);
 	end
 	
 	H = full(mexLasso(S2r,[Dnmf21,Dnmf22],param2));
@@ -39,8 +39,8 @@ function [speech1, speech2, xest1, xest2] = demix_scatt2top(mix, Dnmf11, Dnmf12,
 	if 1 %works better
 	%%% 2. estimate D1iz1i 
 	if 1
-		S1r = renorm_spect_data(U1,stds1);
-		S2r = renorm_spect_data(U2,stds1);
+		S1r = renorm_spect_data(U1,stds1,epsf);
+		S2r = renorm_spect_data(U2,stds1,epsf);
 	end
         H1=  full(mexLasso(S1r,[Dnmf11],param1));
         H2=  full(mexLasso(S2r,[Dnmf12],param1));
@@ -61,7 +61,7 @@ function [speech1, speech2, xest1, xest2] = demix_scatt2top(mix, Dnmf11, Dnmf12,
 	%%%%first level estimator
 
 	if 1
-		S1r = renorm_spect_data(S1,stds1);
+		S1r = renorm_spect_data(S1,stds1, epsf);
 	end
         H =  full(mexLasso(S1r,[Dnmf11,Dnmf12],param1));
         rec11 = Dnmf11*H(1:size(Dnmf11,2),:);
