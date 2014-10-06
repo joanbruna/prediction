@@ -6,13 +6,13 @@
 we train a speaker-specific model for each speaker and test it using sentences from the same speaker outside the training set. 
 In the second setting, we trained the model on a mixed group of male and female speakers, none of which were included in the test set.
 Comparing the results obtained for these two settings we can understand the generalization and adaptation properties of the algorithm. 
-All signals where mixed at 0 $dB$.
+All signals where mixed at 0 $dB$ and clips resampled to $16$ KHz. 
 
 \mypara{Data sets} We used a subset of the GRID dataset \cite{cooke2006audio} for evaluating the speaker-specific setting.
 For each speaker, $500$ randomly-chosen clips were used for training (around 25 minutes) and $200$ clips were used for testing.
 For the multi-speaker case we used a subset of the TIMIT dataset. We adopted the standard test-train division, using all the training recordings for bulding the models
 and a subset of 10 different speakers (6 males and 6 females) for testing. For each speaker we randomly chose two clips and compared
-all female-male combinations (144 mixtures). All clips were resampled to $16$ KHz. 
+all female-male combinations (144 mixtures). 
 
 \mypara{Evaluation measures} As the evaluation criteria, we used the \emph{source-to-distortion ratio} (SDR), \emph{source-to-interference ratio} (SIR), and
 \emph{source-to-artifact ratio} (SAR) from the BSS-EVAL metrics \cite{vincent2006performance}. 
@@ -39,23 +39,25 @@ In all cases, the features were frame-wise normalized and we used $\lambda=1$.
 %For the SGD algorithm we used $\eta=0.1$ and minibatch of size $50$. These were obtained by trying several values of during a small number of iterations, keeping those producing the lowest error on a small validation set. 
 %
 
-\mypara{Results} Tables~\ref{ta:eval}~and~\ref{ta:eval2} show the results obtained for the speaker-specific and multi-speaker settings respectively.
+\mypara{Results} Table~\ref{ta:eval} shows the results obtained for the speaker-specific and multi-speaker settings respectively.
 In all cases we observe that using the one layer scattering transform outperforms the STFT. 
 Further, there is a tangible gain in including a deeper representation \emph{scatt-NMF\textsubscript{2}} performs always better than \emph{scatt-NMF\textsubscript{1}} 
-As is to be expected, the results obtained with the speaker-specific setting are significantly better than those of the more challanging problem
+As is to be expected, the results obtained with the speaker-specific setting are better than those of the more challanging problem
 of multi-speaker setting. 
 
 We also compared the proposed approach with the speaker-specific setting discussed in \cite{Huang_DNN_Separation_ICASSP2014}. In this work
 the authods investigate several alternatives of using Recurrent Neural Networks (RNN) for speech separation.
 Several optimization settings are evaluated on two given speakers of the TIMIT dataset. This is a very challenging setting
-due to the very small available training data (less than 10 seconds per speaker). The evaluations of \emph{scatt-NMF\textsubscript{2}} were performed using the setting provided in \cite{} (with the corresponding training, developement and testing data) while their results are copied from the paper.
-
-In all the experiments with  \emph{scatt-NMF\textsubscript} , we using a greedy approximation explained in Section \ref{scattsec}. We expect that solving it explicitly would bring some additional improvement.
+due to the very small available training data (less than 10 seconds per speaker). The evaluations of \emph{scatt-NMF\textsubscript{2}} were performed using the setting provided in \cite{Huang_DNN_Separation_ICASSP2014} (with the corresponding training, developement and testing data) while their results are copied from the paper.
+The proposed approach significantly outperforms the benchmar Kullbac-Leiber NMF and competitive (slightly inferior) with the best performing network
+reported in \cite{Huang_DNN_Separation_ICASSP2014} which was trained in a joint discriminative way, see Table~\ref{ta:eval2}.
+%In all the experiments with  \emph{scatt-NMF\textsubscript} , we using a greedy approximation explained in Section \ref{scattsec}. We expect that solving it explicitly would bring some additional improvement.
 
 
 \begin{table}[tb]
-\caption{Comparison against models with discriminative training \label{ta:eval2}}
-\vspace{-1.5ex}
+\caption{Comparison against models with discriminative training 
+and small training set. \label{ta:eval2}}
+\vspace{-4.5ex}
 \begin{center}
 \footnotesize{
 \begin{tabular}{l|c|c|c}
@@ -64,14 +66,14 @@ In all the experiments with  \emph{scatt-NMF\textsubscript} , we using a greedy 
 \hline
 NMF-KL     & 5.4 &   7.3 & 7.8 \\
 \hline
-RNN & 7.4  &   11.8 & 7.5  \\
+RNN \cite{Huang_DNN_Separation_ICASSP2014} & 7.4  &   11.8 & 7.5  \\
 \hline
 \emph{scatt-NMF\textsubscript{2}} &  6.7 & 11.1  & 6.9 \\
   \hline\hline
 \end{tabular}
 }
 \end{center}
-\vspace{-1.5ex}
+\vspace{-4.0ex}
 \end{table}
 
 
