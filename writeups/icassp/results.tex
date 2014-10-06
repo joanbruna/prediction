@@ -14,7 +14,7 @@ For the multi-speaker case we used a subset of the TIMIT dataset. We adopted the
 and a subset of 12 different speakers (6 males and 6 females) for testing. For each speaker we randomly chose two clips and compared
 all female-male combinations (144 mixtures). 
 
-\mypara{Evaluation measures} As the evaluation criteria, we used the \emph{source-to-distortion ratio} (SDR), \emph{source-to-interference ratio} (SIR), and
+\mypara{Evaluation measures} We used the \emph{source-to-distortion ratio} (SDR), \emph{source-to-interference ratio} (SIR), and
 \emph{source-to-artifact ratio} (SAR) from the BSS-EVAL metrics \cite{vincent2006performance}. 
 %
 %We also computed the standard \emph{signal-to-noise ratio} (SNR).
@@ -47,7 +47,8 @@ of multi-speaker setting.
 
 We also compared the proposed approach with the speaker-specific setting discussed in \cite{Huang_DNN_Separation_ICASSP2014}. In this work
 the authors investigate several alternatives of using Recurrent Neural Networks (RNN) for speech separation.
-Several optimization settings are evaluated on two given speakers of the TIMIT dataset. This is a very challenging setting
+Several optimization settings are evaluated on two given speakers of the TIMIT dataset, some of which
+aim at learning short-term temporal dynamics. This is a very challenging setting
 due to the very small available training data (less than 10 seconds per speaker). The evaluations of \emph{scatt-NMF\textsubscript{2}} were performed using the setting provided in \cite{Huang_DNN_Separation_ICASSP2014} (with the corresponding training, developement and testing data) while their results are copied from the paper.
 The proposed approach outperforms the benchmark KL-NMF, and is competitive 
 with the best performing network
@@ -82,7 +83,7 @@ RNN \cite{Huang_DNN_Separation_ICASSP2014} & {\bf 7.4}  &   {\bf 11.8} & 7.5  \\
 \end{tabular}
 }
 \end{center}
-\vspace{-4.0ex}
+\vspace{-4.5ex}
 \end{table}
 
 

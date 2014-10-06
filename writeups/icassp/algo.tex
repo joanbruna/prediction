@@ -1,7 +1,7 @@
 \section{Source Separation Algorithm}
 \label{algosec}
 We show in this section how the inverse problem of source separation 
-can be solved via a sparse coding in the scattering domain, followed by phase recovery.
+can be solved via a sparse NMF in the scattering domain, followed by phase recovery.
 We consider the supervised 
 monoaural source separation problem (\ref{ssep}), 
  in which the components $x_i$, $i=1,2$ come from sources for 
@@ -37,13 +37,12 @@ NMF  &8.8 [2] & 18.6 [3] &   9.6 [1.6] & 6.1 [2.9] &   14.1 [3.8] & 7.4 [2.1] \\
 
 
 Let $\Phi(X_i)$ be the scattering representation of the training examples of each 
-source. We consider a non-linear approximation of each source using non-Negative
-matrix factorization:
+source. We consider a non-linear approximation of each source using sparse NMF:
 \begin{equation}
 \min_{D_i\geq 0, Z_i\geq 0} \frac{1}{2} \| \Phi(X_i) - D_i \, Z_i \|_F^2 + \lambda \| Z_i \|_1~.
 \end{equation}
 This model exploits the linearization properties of scattering coefficients since it 
-searches low-dimensional locally linear approximations. 
+searches low-dimensional linear approximations. 
 
 At test time, given and input $x$, $x_1$ and $x_2$ are estimated by minimizing
 \begin{equation}
@@ -54,7 +53,7 @@ Problem (\ref{model}) is minimized with an alternating gradient descent between 
 Fixing $z_i$ and minimizing with respect to $x'_i$ requires locally inverting the scattering 
 operator $\Phi$, which amounts to solve an overcomplete phase recovery problem and 
 can be solved with gradient descent, as shown in \cite{bruna2013audio}. 
-Fixed $x'_i$, solving for $z_i$ is a standard $\ell_1$ sparse coding problem, which can be solved 
+Fixed $x'_i$, solving for $z_i$ is a standard $\ell_1$ non-negative sparse coding problem, which can be solved 
 efficiently with proximal splitting algorithms. In this work, we use the LARS algorithm. 
  
 %Explain the greedy algorithm.

@@ -101,7 +101,7 @@
 \name{Joan Bruna, Pablo Sprechmann, Yann LeCun}
 \address{New York University\\
 	Courant Instittute of Mathematical Sciences\\
-	\{bruna, pablo, yann\}@cs.nyu.edu}
+	\{bruna, pablo\}@cims.nyu.edu, yann@cs.nyu.edu}
 %
 % For example:
 % ------------
@@ -112,15 +112,14 @@
 % Two addresses (uncomment and modify for two-address case).
 % ----------------------------------------------------------
 %\twoauthors
-%  {A. Author-one, B. Author-two\sthanks{Thanks to XYZ agency for funding.}}
-%	{School A-B\\
-%	Department A-B\\
-%	Address A-B}
-%  {C. Author-three, D. Author-four\sthanks{The fourth author performed the work
-%	while at ...}}
-%	{School C-D\\
-%	Department C-D\\
-%	Address C-D}
+%  {Joan Bruna, Pablo Sprechmann}
+% {New York University\\
+%%	Courant Instittute of Mathematical Sciences\\
+%	\{bruna, pablo\}@cims.nyu.edu}
+%  {Yann Lecun}
+%	{New York University and Facebook Inc.\\
+%%	Courant Instittute of Mathematical Sciences\\
+%	yann@cs.nyu.edu}
 %
 \begin{document}
 %\ninept
@@ -128,15 +127,15 @@
 \maketitle
 %
 \begin{abstract}
-This paper presents a single channel source separation method
-that extendes the method of Nonnegative Matrix Factorization (NMF).
+This paper presents a single-channel source separation method
+that extendes the ideas of Nonnegative Matrix Factorization (NMF).
 We interpret the approach of audio demixing via NMF as a cascade of a pooled analysis operator, given
 for example by the magnitude spectrogram, and a synthesis operators given bye the matrix decomposition.
 Instead of imposing the temporal consistency of the decomposition through
 sophisticated structured penalties in the synthesis stage,
 we propose to change the analysis operator for a deep scattering representation. This new signal representation is
-invariant to smooth changes in the signal, consistent with the temporal dynamics.
-The proposed approach is evaluate in a speech enhancement task producing promising results.
+invariant to smooth changes in the signal, consistent with its temporal dynamics.
+We evaluate the proposed approach in a speech separation task obtaining promising results.
 \end{abstract}
 %
 \begin{keywords}

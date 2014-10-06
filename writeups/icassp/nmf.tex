@@ -13,7 +13,7 @@ NMF-based source separation
 techniques typically operate on a non-negative time-frequency representation of $x(t)$, 
 such as the spectrogram or the power spectrum,
 that we denote as $\Phi(x) \in \RR^{m \times n}$, comprising $m$ frequency bins and $n$ temporal frames. 
-NMF attempts to find the non-negative activations $\bb{Z}_i \in \RR^{q \times n}$, $i=1,2$ 
+NMF attempts to find the non-negative activations $Z_i \in \RR^{q \times n}$, $i=1,2$ 
 best representing the different speech components in two dictionaries ${D}_{i} \in \RR^{m \times q}$.
 %
 This task is achieved through the solution of %the minimization problem
@@ -49,8 +49,8 @@ In this work we concentrate on a reweighted Euclidean distance, but any other op
 %
 The second term in the minimization objective is included to promote some desired structure of the activations. 
 Once the optimal activations are solved for, the spectral envelopes of the speech and the noise are 
-estimated as $ {D}_{i} \bb{Z}_{i}$. Since these estimated speech spectrum envelope contains no phase information, 
-they are used to build soft masks to filter the signals mixture signal \cite{schmidt07mlsp}.
+estimated as $ {D}_{i} Z_{i}$. Since these estimated speech spectrum envelope contain no phase information, 
+they are used to build soft masks to filter the mixture signal \cite{schmidt07mlsp}.
 %This is done using a designed regularization function $\mathcal{R}$ 
 %and its relative importance is controlled by the parameters $\lambda$. 
 %Since these estimated speech spectrum envelope contains no phase information, speech signal is estimated
