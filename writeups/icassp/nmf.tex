@@ -19,8 +19,8 @@ best representing the different speech components in two dictionaries ${D}_{i} \
 This task is achieved through the solution of %the minimization problem
 \begin{eqnarray}
 \label{eq:optim_general}
-\min_{ \bb{Z}_i \ge \bb{0}  } \mu( \Phi(x) |  \, \sum_{i=1,2} {D}_i \bb{Z}_{i}  ) + 
-\lambda\, \sum_{i=1,2} \mathcal{R}(\bb{Z}_i)~.
+\min_{ Z_i \ge 0 } \mu( \Phi(x) |  \, \sum_{i=1,2} {D}_i Z_i  ) + 
+\lambda\, \sum_{i=1,2} \mathcal{R}(Z_i)~.
 \end{eqnarray}
 The first term in the optimization objective measures the dissimilarity between the input data and the estimated channels. 
 %Typically, this data fitting term is assumed to be separable,  
