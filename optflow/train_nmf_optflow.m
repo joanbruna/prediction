@@ -39,6 +39,8 @@ if init_nmf
     param0.posD = 1;
     param0.posAlpha = 1;
     param0.iter = 200;
+    param0.D = max(1+randn(N,K),0) + 0.1;
+    
     D = mexTrainDL(X, param0);
 elseif init_rand
     
@@ -123,14 +125,22 @@ options.lambda_tr = ptheta.lambdar;
 options.hn = ptheta.hn;
 options.sigma = ptheta.sigma;
 
+if M<=batchsize
+    data = X;
+    p = 1;
+    beta = 0;
+    niters = 20;
+end
+
 for n=1:niters
     
     %update synthesis coefficients
+    if M>batchsize
     init= mod( n, floor(M/batchsize)-1);
     init_batch = batchsize*II(1+init);
     I0 = init_batch:(init_batch+batchsize-1);
     data=X(:,I0);
-    
+    end
     
     %data = X(:,1+init:batchsize+init);
 %     update_t0=getoptions(options,'update_t0',0);
@@ -164,7 +174,9 @@ for n=1:niters
 %    update the dictionary every p mini-batches
     if mod(n,p)==p-1
         
-        beta = (1-(p-1)/n).^rho;
+        if M>batchsize
+            beta = (1-(p-1)/n).^rho;
+        end
         
         A = beta * A + 1/p/batchsize*Aaux;
         B = beta * B + 1/p/batchsize*Baux;
@@ -196,7 +208,7 @@ for n=1:niters
         drawnow
         end
         
-        save temp_dic D options 
+        %save temp_dic D options 
         
     end
     
