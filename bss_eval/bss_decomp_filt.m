@@ -74,6 +74,7 @@ if isempty(noise_space)==0, e_noise=zeros(1,T); end
 
 %%% Target source(s) contribution %%%
 s_target = bss_proj(se,target_space);
+%s_target = target_space; %<---------!
 
 %%% Interferences contribution %%%
 P_S_se = bss_proj(se,sources_space);

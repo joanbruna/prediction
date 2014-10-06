@@ -1,0 +1,122 @@
+
+
+root = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/TRAIN/';
+root_save = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/';
+
+% sampling parameters
+fs = 16000;
+NFFT = 1024;
+hop = NFFT/2;
+
+
+label = 'spect';
+
+save_folder_train = sprintf('%s%s_fs%d_NFFT%d_hop%d/',root_save,label,fs/1000,NFFT,hop);
+
+unix(sprintf('mkdir %s',save_folder_train));
+unix(sprintf('chmod 777 %s ',save_folder_train));
+
+save_folder = sprintf('%sTRAIN/',save_folder_train);
+
+unix(sprintf('mkdir %s',save_folder));
+unix(sprintf('chmod 777 %s ',save_folder));
+
+
+d1 = dir(root);
+
+for i = 1:length(d1)
+    
+    if d1(i).isdir && ~strcmp(d1(i).name(1),'.')
+    
+        dialect = d1(i).name;
+        
+        folder = sprintf('%s%s/',root,dialect);
+        
+        d2 = dir(folder);
+        
+        for j = 1:length(d2)
+    
+        if d2(j).isdir && ~strcmp(d2(j).name(1),'.')
+            
+            speaker = d2(j).name;
+            folder_speaker = sprintf('%s%s/',folder,speaker);
+            files = dir(sprintf('%s/*.WAV',folder_speaker));
+            
+            disp('----------------------------------------------')
+            fprintf('%s\n',d2(j).name)
+            
+            X = [];
+            
+            for k = 1:length(files)
+                
+                
+                fprintf('%s\n',files(k).name)
+                
+                [x,Fs] = audioread(sprintf('%s%s',folder_speaker,files(k).name));
+                x = resample(x,fs,Fs);
+                x = x(:)';
+                
+                Xt = compute_spectrum(x,NFFT,hop);
+                
+                X = [X,Xt];
+            end
+            
+            data.X = X;
+            data.dialect = dialect;
+            data.speaker = speaker;
+            data.NFFT = NFFT;
+            data.hop = hop;
+            data.fs = fs;
+            data.files = files;
+            data.folder = folder_speaker;
+            
+            save_file = sprintf('%s/%s_%s.mat',save_folder,dialect,speaker);
+            save(save_file,'data')
+            unix(sprintf('chmod 777 %s ',save_file));
+            
+            clear data X
+        end
+        
+        end
+        
+
+    end
+end
+
+    
+%     folder = sprintf('%s%s%d/',root,'s',i);
+%     fprintf('%s\n',folder)
+%     d = dir(sprintf('%s%s',folder,'*.wav'));
+%     
+%     % get indexes
+%     training_idx = idx(1:Ntrain);
+%     testing_idx = idx(Ntrain+1:end);
+%     
+%     
+%     X = [];
+%     
+%     for j=1:Ntrain
+%         
+%         [x,Fs] = audioread(sprintf('%s%s',folder,d(training_idx(j) ).name));
+%         x = resample(x,fs,Fs);
+%         x = x(:)';
+%         
+%         Xt = compute_spectrum(x,NFFT,hop);
+%         
+%         X = [X,Xt];
+%         
+%     end
+%     
+%     data.X = X;
+%     data.NFFT = NFFT;
+%     data.hop = hop;
+%     data.fs = fs;
+%     data.training_idx = training_idx;
+%     data.testing_idx = testing_idx;
+%     data.d = d;
+%     data.folder = folder;
+%     
+%     save_file = sprintf('%s%s%d.mat',save_folder,'s',i);
+%     save(save_file,'data')
+%     unix(sprintf('chmod 777 %s ',save_file));
+

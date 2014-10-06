@@ -42,10 +42,16 @@ end
 
 
 pt=getoptions(options,'plot_dict',0);
+ptvid=getoptions(options,'plot_viddict',0);
 if pt
     figure
     dbimagesc(D+0.001);
     drawnow
+end
+if ptvid
+figure(1);
+displayPatches(options.dewhitenMatrix*D);
+drawnow
 end
 
 %D(:,2:2:end) = D(:,1:2:end);
@@ -89,6 +95,8 @@ rho = 5;
 Aaux= zeros(size(Aaux));
 Baux= zeros(size(Baux));
 cost = 0;
+cost1= 0;
+cost2=0;
 
 for n=1:niters
     
@@ -111,7 +119,9 @@ for n=1:niters
     [alpha,cost_aux] = group_pooling_semisup( D, data, options,t0);
     
     
-    cost = cost + cost_aux;
+    cost = cost + cost_aux.tot;
+    cost1 = cost1 + cost_aux.c1;
+    cost2 = cost2 + cost_aux.c2;
     
     aux = (alpha*alpha');
     Aaux = Aaux + aux;
@@ -138,14 +148,24 @@ for n=1:niters
             fprintf('done chunk %d of %d\n',ceil(n/ch),chunks )
         end
         
-        fprintf('Costs %f \n', cost );
+        fprintf('It %d of %d; Costs (%f %f %f) \n', n, niters, cost, cost1, cost2 );
         cost = 0;     
+        cost1 = 0;     
+        cost2 = 0;     
         
         if pt
         figure
         dbimagesc(D+0.001);
         drawnow
         end
+
+	if ptvid & mod(n,8*p)==p-1
+	figure(1);
+	displayPatches(options.dewhitenMatrix*D);
+	figure(2);
+	imagesc(alpha);
+	drawnow
+	end
         
         
     end

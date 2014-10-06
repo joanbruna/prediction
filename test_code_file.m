@@ -35,7 +35,6 @@ epsilon = 1;
 
 %% Coding
 
-DD = D;
 
 options.K=100;
 options.epochs=2;
@@ -54,40 +53,10 @@ ptheta.hn = 11;
 ptheta.lambda = 0.1;
 ptheta.lambdar = 0.00001;
 
-options.lambda_t = ptheta.lambda;
-options.lambda_tr = ptheta.lambdar;
-options.hn = ptheta.hn;
-options.sigma = ptheta.sigma;
+% options.lambda_t = ptheta.lambda;
+% options.lambda_tr = ptheta.lambdar;
+% options.hn = ptheta.hn;
+% options.sigma = ptheta.sigma;
 
 
-K = size(DD,2);
-M = size(X,2);
-
-A0 = nmf_optflow( X, DD, zeros(K,M), options);
-A = A0;
-
-
-[theta,estim] = optflow_taylor2(A0, ptheta,zeros(K,M));
-%[theta,estim] = optflow_taylor_temp(A0, ptheta);
-
-theta0 = theta;
-
-niter = 6;
-for i = 1:niter
-    
-   [A,c(i),SA] = nmf_optflow( X, DD, theta, options,A);
-   
-   [theta,estim] = optflow_taylor2(A, ptheta,theta);
-   %[theta,estim] = optflow_taylor_temp(A, ptheta);
-   
-   
-%   b(i+1) = norm(A(:,2:end)-estim(:,1:end-1),'fro');
-end
-
-
-subplot(311)
-dbimagesc(X+0.001);
-subplot(312)
-imagesc(A)
-subplot(313)
-imagesc(SA)
+[A,theta] = nmf_optflow_smooth(X,D,options,ptheta);

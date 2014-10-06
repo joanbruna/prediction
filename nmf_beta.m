@@ -7,7 +7,7 @@ V = abs(S);
 beta = getoptions(params,'beta',2);
 Kn = getoptions(params,'Kn',5);
 lambda1 = getoptions(params,'lambda',0.1);
-lambda_ast = getoptions(params,'lambda_ast',0);
+lambda_ast = getoptions(params,'lambda_ast',0.1);
 tol = getoptions(params,'tol',0);
 n_iter_max = getoptions(params,'iter',50);
 
@@ -96,7 +96,7 @@ while (iter < n_iter_max)
     err = (obj(iter-1)-obj(iter))/obj(iter);
     end
     
-    if rem(iter,1)==0 && (verbo == 1)
+    if rem(iter,100)==0 && (verbo == 1)
         fprintf('iter = %4i | obj = %+5.2E | err = %4.2E (target is %4.2E) \n',iter,obj(iter),err,tol)
     end
         

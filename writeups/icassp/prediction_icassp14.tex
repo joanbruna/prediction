@@ -1,0 +1,210 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+
+\documentclass[11pt]{article} % use larger type; default would be 10pt
+
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+
+
+\usepackage{geometry} % to change the page dimensions
+\geometry{letterpaper} % or letterpaper (US) or a5paper or....
+% \geometry{margin=2in} % for example, change the margins to 2 inches all round
+% \geometry{landscape} % set up the page for landscape
+%   read geometry.pdf for detailed page layout information
+
+\usepackage{graphicx} % support the \includegraphics command and options
+
+% \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+\usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+% These packages are all incorporated in the memoir class to one degree or another...
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
+
+% additional packages for math typesetting
+\usepackage{amsmath}
+\usepackage{amsfonts}
+
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\W}{\mathcal{W}}
+\newcommand{\Rel}{\mathbb{Z}}
+\newcommand{\Int}{\mathbb{N}}
+\newcommand{\Eff}{\mathcal{E}}
+\newcommand{\Compl}{\mathscr{C}}
+
+\title{Prediction and Inverse Problems in Dynamical Systems}
+\author{Joan Bruna, Pablo Sprechmann}
+%\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed 
+
+\begin{document}
+\maketitle
+
+
+\section{Introduction}
+
+
+$x$ is the input speech signal. 
+We define $\Phi(x)$ a pooling analysis operator, which can be
+either the spectrogram, the scattering, or something that we learn. 
+It can have several layers. 
+
+Then, given training examples $X=(x_i)_i$, we learn a synthesis dictionary $D$
+on $\Phi(X)$. 
+
+
+What is the role of the analysis operator $\Phi$? 
+Its role is to perform a contraction of each speaker's class, so that each source 
+is embedded into a smooth manifold, which is then encoded using sparse coding. 
+ It needs to preserve discriminability between sources. 
+We can also specialize the analysis operators for each class (TODO: why? what do we gain 
+by that?). 
+
+We will restrict ourselves to analysis operators of the form 
+$\Phi(x) = | W x |$, where $W$ is overcomplete, and close to a tight frame.
+
+Variations of the model. There are several options for choosing the analysis $\Phi$ 
+and several options for choosing the synthesis. 
+
+
+
+Estimation algorithm. 
+Given $y=x_1 +  x_2$, we construct estimates $\hat{x_1}$ and $\hat{x_2}$ 
+by solving
+\begin{equation}
+\label{estalgo}
+\arg\min_{x'_i, z_i} \| y - x'_1 - x'_2 \|^2 + \sum_{i=1,2} \| \Phi(x'_i) - D_i z_i \|^2 + \lambda \| z_i \|~.
+\end{equation}
+A priori, this algorithm does not require computing the modulus/phase of the observation $y$. 
+An initialization of this algorithm, in the case where $\Phi(x)= | W x |$, assumes that 
+$$\Phi(y)_k^2 \approx \Phi(x_1)_k^2 + \Phi(x_2)_k^2~,$$
+and then estimates $\Phi(x_i)$ independently using each dictionary. Finally, $\hat{x}_i$ are obtained
+by using the phase of $Wy$.
+
+In terms of the model, we need to decide which analysis operator to use, and 
+how to train the dictionaries. 
+
+Alternative: Use a synthesis+pooling operator combined with analysis. In other words, 
+
+Definition of $\Phi$. We have verified empirically that constant $Q$-transform yields better 
+separation than STFT as the first layer. Now, we have several options:
+\begin{itemize}
+\item $\Phi_1(x) = Sc_1 x $ (CQT (1 layer scattering). 
+\item $\Phi_2(x) = F_1 x$ (STFT)
+\item $\Phi_3(x) = Sc_2 Sc_1 x$ (2 layer scattering)
+\item $\Phi_4(x)= |A_2| Sc_1 x$ (1 layer scattering followed by learnt scattering). 
+\item $\Phi_5(x)= |S_2| Sc_1 x$ (1 layer scattering followed by group lasso). 
+%\item $\Phi_5(x) =  Sc_1 x$ 1 layer scattering followed by  group lasso.
+\end{itemize}
+
+$\Phi_4$ is more stable than $\Phi_5$, but it may produce coefficients harder to separate 
+in the final layer. 
+
+One layer vs two layers: A major difference is the temporal context. Two layer operators can
+extract temporal coherence and exploit temporal dynamics on a larger range than first layer operators. 
+
+Definition of the discriminative layer: We will stick to standard Dictionary learning.
+
+There are several levels of supervision:
+\begin{itemize}
+\item Male vs Female: one dictionary for male and another for female.
+\item Unsupervised: A single ``speech" dictionary. 
+\item Speaker vs ``rest of the world". We prioritize one speaker and consider the rest to be noise. 
+\end{itemize}
+
+
+
+Planning:
+\begin{enumerate}
+\item Move to the setting with various speakers. The exhaustive test
+is 3 levels of supervision and 2 datasets (Timit and Grid). [P, 9/30]
+\item In priority, we try: TIMIT denoising and TIMIT speaker separation (Male vs Female). [P, 9/30]
+\item Test $\Phi_1$ vs $\Phi_2$ vs $\Phi_3$. [J, 10/1-2]
+\item Implement the estimation algorithm (\ref{estalgo}) [J, 10/1-2].
+\item Optimize temporal context. This is governed by $\Phi$. [P, 10/1-2].
+\item Implement the learning of analysis operator $A(x) = |Wx|$. Perhaps start with 
+the algorithm from paper ??. What criteria??
+\item If we have time, compare also $\Phi_4$.
+\item Maths: explain why analysis is a better idea than synthesis for $\Phi$. 
+\item Writeup. 
+\item Discriminative fine-tuning (probably out of time). 
+\end{enumerate}
+
+
+\section{Previous work}
+
+
+\section{Spatio-temporal Pooling and Inhibition}
+
+
+\section{Unsupervised Learning}
+
+We describe first the case with two known speakers. 
+We train two dictionaries $\mathcal{D}_i$, $i=1,2$ using 
+the following model:
+
+\begin{equation}
+\| x - \mathcal{D} z \|^2 + \phi_{\mathcal{G}}(z) 
+\end{equation}
+with $\phi_{\mathcal{G}}$ being a spatio-temporal group lasso. 
+ Denoting ${z}^p = \phi_{\mathcal{G}}(z) $, 
+the second layer is
+\begin{equation}
+\|{z}^p  - \widetilde{\mathcal{D}} \tilde{z} \|^2 + \phi_{\mathcal{G}}(\tilde{z}) 
+\end{equation}
+
+
+\section{Discriminative Training with Bi-level}
+
+\subsection{Inference}
+Given $x=x_1 + x_2$, we want to infer $x_1$ and $x_2$. 
+We use the following scheme:
+
+\begin{equation}
+(z_1^*, z_2^*) = arg \min \| x - [\mathcal{D}_1 \mathcal{D}_2] [z_1 ; z_2] \|^2 + \phi_{\mathcal{G}}(z_1)  + \phi_{\mathcal{G}}(z_2) 
+\end{equation}
+\begin{equation}
+(\tilde{z}_1^*, \tilde{z}_2^*) = arg \min \|  - [\mathcal{D}_1 \mathcal{D}_2] [z_1 ; z_2] \|^2 + \phi_{\mathcal{G}}(z_1)  + \phi_{\mathcal{G}}(z_2) 
+\end{equation}
+
+
+
+
+\section{Experimental Results}
+
+
+
+
+
+
+
+\end{document}
+
+
+
+
+
+
