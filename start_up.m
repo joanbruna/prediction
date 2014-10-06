@@ -7,3 +7,6 @@ addpath ../spams-matlab/build/
 addpath optflow/
 addpath bss_eval_3/
 addpath scripts/
+addpath benchmanrk_nmf_separation/
+addpath standard_tests/
+addpath bss_eval/
