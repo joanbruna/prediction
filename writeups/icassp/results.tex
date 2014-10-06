@@ -41,9 +41,16 @@ In all cases, the features were frame-wise normalized and we used $\lambda=1$.
 
 \mypara{Results} Tables~\ref{ta:eval}~and~\ref{ta:eval2} show the results obtained for the speaker-specific and multi-speaker settings respectively.
 In all cases we observe that using the one layer scattering transform outperforms the STFT. 
-Also, there is again in including a deeper representation \emph{scatt-NMF\textsubscript{2}} performs always better than \emph{scatt-NMF\textsubscript{1}} 
+Further, there is a tangible gain in including a deeper representation \emph{scatt-NMF\textsubscript{2}} performs always better than \emph{scatt-NMF\textsubscript{1}} 
+As is to be expected, the results obtained with the speaker-specific setting are significantly better than those of the more challanging problem
+of multi-speaker setting. 
 
-In all the experiments, we solved (\ref) using a greedy approximation. We expect that solving it explicitly would bring some additional improvement.
+We also compared the proposed approach with the speaker-specific setting discussed in \cite{Huang_DNN_Separation_ICASSP2014}. In this work
+the authods investigate several alternatives of using Recurrent Neural Networks (RNN) for speech separation.
+Several optimization settings are evaluated on two given speakers of the TIMIT dataset. This is a very challenging setting
+due to the very small available training data (less than 10 seconds per speaker). The evaluations of \emph{scatt-NMF\textsubscript{2}} were performed using the setting provided in \cite{} (with the corresponding training, developement and testing data) while their results are copied from the paper.
+
+In all the experiments with  \emph{scatt-NMF\textsubscript} , we using a greedy approximation explained in Section \ref{scattsec}. We expect that solving it explicitly would bring some additional improvement.
 
 \begin{table}[t]
 \caption{Separation with speakers-specific models. Average SDR, SIR and SAR (in $dB$) for NMF and proposed  and \emph{scatt-NMF\textsubscript{2}}. Standard deviation of each result shown between brackets. \label{ta:eval}}
@@ -74,10 +81,11 @@ NMF  &7.5 [1.5] & 13.7 [0.9] &   8.9 [1.7] & 6.1 [2.9] &   14.1 [3.8] & 7.4 [2.1
   \hline\hline
 & SDR & SIR & SAR \\
 \hline
-NMF    & 6.1 [2.9] &   14.1 [3.8] & 7.4 [2.1] \\
+NMF-KL     & 5.4 &   7.3 & 7.8 \\
 \hline
-\emph{scatt-NMF\textsubscript{1}} & 6.1 [2.9] &   14.1 [3.8] & 7.4 [2.1] \\
-\emph{scatt-NMF\textsubscript{2}} &  6.9 [2.7] & 16.0 [3.5]  & 7.9 [2.2] \\
+RNN & 7.4  &   11.8 & 7.5  \\
+\hline
+\emph{scatt-NMF\textsubscript{2}} &  6.7 & 11.1  & 6.9 \\
   \hline\hline
 \end{tabular}
 }
