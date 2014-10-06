@@ -3,15 +3,15 @@
 
 
 \mypara{Evaluation settings} We evaluated the proposed method in two settings: speaker-specific and multi-speaker. In the first setting 
-we train a speaker-specific model for each speaker and test it using sentences from the same speaker outside the training set. 
-In the second setting, we trained the model on a mixed group of male and female speakers, none of which were included in the test set.
+we trained a speaker-specific model for each speaker in the mixture and tested it using sentences (from the same speakers) outside the training set. 
+In the second setting, we trained a generic model on a mixed group of male and female speakers, none of which were included in the test set.
 Comparing the results obtained for these two settings we can understand the generalization and adaptation properties of the algorithm. 
 All signals where mixed at 0 $dB$ and clips resampled to $16$ KHz. 
 
 \mypara{Data sets} We used a subset of the GRID dataset \cite{cooke2006audio} for evaluating the speaker-specific setting.
 For each speaker, $500$ randomly-chosen clips were used for training (around 25 minutes) and $200$ clips were used for testing.
 For the multi-speaker case we used a subset of the TIMIT dataset. We adopted the standard test-train division, using all the training recordings for bulding the models
-and a subset of 10 different speakers (6 males and 6 females) for testing. For each speaker we randomly chose two clips and compared
+and a subset of 12 different speakers (6 males and 6 females) for testing. For each speaker we randomly chose two clips and compared
 all female-male combinations (144 mixtures). 
 
 \mypara{Evaluation measures} As the evaluation criteria, we used the \emph{source-to-distortion ratio} (SDR), \emph{source-to-interference ratio} (SIR), and
@@ -23,10 +23,10 @@ We also computed the standard \emph{signal-to-noise ratio} (SNR).
 
 \mypara{Training setting} We evaluated the proposed scattering NMF model with one and two layers, reffered
 as \emph{scatt-NMF\textsubscript{1}} and \emph{scatt-NMF\textsubscript{2}} respectively. As a baseline we used standard NMF 
-using frame lengths of 1024 samples and 50\% overlap. 
+with frame lengths of 1024 samples and 50\% overlap. 
 %
 The dictionaries in standard NMF were chosen with $200$ and $400$ atoms for the speaker-specific and multi-speaker
-settings respectively. These values were obtained using cross-validation on a few clips separated from the training as validation set.
+settings respectively. These values were obtained using cross-validation on a few clips separated from the training as a validation set.
 %
 In all cases, we applied \emph{scatt-NMF} using a scattering transforms with resolution $Q_1= Q_2 = 32$.
 The resulting representation had $175$ coefficients for the first level and around $2000$ for the second layer (many of which are
