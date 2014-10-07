@@ -54,7 +54,7 @@ Fixing $z_i$ and minimizing with respect to $x'_i$ requires locally inverting th
 operator $\Phi$, which amounts to solve an overcomplete phase recovery problem and 
 can be solved with gradient descent, as shown in \cite{bruna2013audio}. 
 Fixed $x'_i$, solving for $z_i$ is a standard $\ell_1$ non-negative sparse coding problem, which can be solved 
-efficiently with proximal splitting algorithms. In this work, we use the LARS algorithm. 
+efficiently with proximal splitting algorithms. In this work, we use the LARS algorithm using the SPAMS package \cite{mairal2009online}. 
  
 %Explain the greedy algorithm.
 When the analysis operator $\Phi$ is able to produce sparse representations of the sources, 

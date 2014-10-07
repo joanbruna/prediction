@@ -16,8 +16,7 @@ D.D. Lee and H.S. Seung,
 \newblock {\em Nature}, vol. 401, no. 6755, pp. 788--791, 1999.
 
 \bibitem{smaragdis2014static}
-Paris Smaragdis, Cedric Fevotte, G~Mysore, Nasser Mohammadiha, and Matthew
-  Hoffman,
+P.~Smaragdis, C.~Fevotte, G~Mysore, N.~Mohammadiha, and M.~Hoffman,
 \newblock ``Static and dynamic source separation using nonnegative
   factorizations: A unified view,''
 \newblock {\em Signal Processing Magazine, IEEE}, vol. 31, no. 3, pp. 66--75,
@@ -35,19 +34,13 @@ M.~V.~S. Shashanka, B.~Raj, and P.~Smaragdis,
   Separation},''
 \newblock in {\em ICASSP}, 2007.
 
-\bibitem{JoderWEVS12}
-C.~Joder, F.~Weninger, F.~Eyben, D.~Virette, and B.~Schuller,
-\newblock ``Real-time speech separation by semi-supervised nonnegative matrix
-  factorization,''
-\newblock in {\em LVA/ICA}, 2012, pp. 322--329.
-
 \bibitem{DuanMS12}
 Z.~Duan, G.~J. Mysore, and P.~Smaragdis,
 \newblock ``Online plca for real-time semi-supervised source separation,''
 \newblock in {\em LVA/ICA}, 2012, pp. 34--41.
 
 \bibitem{mohammadiha2013supervised}
-Nasser Mohammadiha, Paris Smaragdis, and Arne Leijon,
+N.~Mohammadiha, P.~Smaragdis, and A.~Leijon,
 \newblock ``Supervised and unsupervised speech enhancement using nonnegative
   matrix factorization,''
 \newblock {\em Audio, Speech, and Language Processing, IEEE Transactions on},
@@ -89,18 +82,18 @@ R.~W. Gerchberg and W.~Owen Saxton,
 \newblock {\em Optik}, vol. 35, pp. 237--246, 1972.
 
 \bibitem{deepscatt}
-Joakim And{\'e}n and St{\'e}phane Mallat,
+J.~And{\'e}n and S.~Mallat,
 \newblock ``Deep scattering spectrum,''
 \newblock {\em arXiv preprint arXiv:1304.6763}, 2013.
 
 \bibitem{pami}
-Joan Bruna and St{\'e}phane Mallat,
+J.~Bruna and S.~Mallat,
 \newblock ``Invariant scattering convolution networks,''
 \newblock {\em Pattern Analysis and Machine Intelligence, IEEE Transactions
   on}, vol. 35, no. 8, pp. 1872--1886, 2013.
 
 \bibitem{phdjoan}
-Joan Bruna,
+J.~Bruna,
 \newblock {\em Scattering Representations for Recognition},
 \newblock Ph.D. thesis, Palaiseau, Ecole polytechnique, 2013.
 
@@ -111,12 +104,12 @@ G.~Wolf, S.~Mallat, and S.~Shamma,
   Processing}, 2014.
 
 \bibitem{bruna2013audio}
-Joan Bruna and St{\'e}phane Mallat,
+J.~Bruna and S.~Mallat,
 \newblock ``Audio texture synthesis with scattering moments,''
 \newblock {\em arXiv preprint arXiv:1311.0407}, 2013.
 
 \bibitem{jenatton2012local}
-Rodolphe Jenatton, R{\'e}mi Gribonval, and Francis Bach,
+R.~Jenatton, R.~Gribonval, and F.~Bach,
 \newblock ``Local stability and robustness of sparse dictionary learning in the
   presence of noise,''
 \newblock {\em arXiv preprint arXiv:1210.0685}, 2012.
@@ -131,6 +124,11 @@ C.~F{\'e}votte and J.~Idier,
 M.~N. Schmidt, J.~Larsen, and F.-T. Hsiao,
 \newblock ``Wind noise reduction using non-negative sparse coding,''
 \newblock in {\em MLSP}, Aug 2007, pp. 431--436.
+
+\bibitem{mairal2009online}
+J.~Mairal, F.~Bach, J.~Ponce, and G.~Sapiro,
+\newblock ``Online dictionary learning for sparse coding,''
+\newblock in {\em ICML}, 2009, pp. 689--696.
 
 \bibitem{cooke2006audio}
 M.~Cooke, J.~Barker, S.~Cunningham, and X.~Shao,
@@ -152,7 +150,7 @@ P.-S. Huang, M.~Kim, M.~Hasegawa-Johnson, and P.~Smaragdis,
 
 \bibitem{sprechmann2014supervised}
 P.~Sprechmann, A.~M. Bronstein, and G.~Sapiro,
-\newblock ``Supervised non-euclidean sparse nmf via bilevel optimization with
+\newblock ``Supervised non-euclidean sparse {NMF} via bilevel optimization with
   applications to speech enhancement,''
 \newblock in {\em HSCMA}. IEEE, 2014, pp. 11--15.
 

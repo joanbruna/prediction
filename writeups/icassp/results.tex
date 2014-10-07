@@ -49,10 +49,10 @@ We also compared the proposed approach with the speaker-specific setting discuss
 the authors investigate several alternatives of using Recurrent Neural Networks (RNN) for speech separation.
 Several optimization settings are evaluated on two given speakers of the TIMIT dataset, some of which
 aim at learning short-term temporal dynamics. This is a very challenging setting
-due to the very small available training data (less than 10 seconds per speaker). The evaluations of \emph{scatt-NMF\textsubscript{2}} were performed using the setting provided in \cite{Huang_DNN_Separation_ICASSP2014} (with the corresponding training, developement and testing data) while their results are copied from the paper.
-The proposed approach outperforms the benchmark KL-NMF, and is competitive 
-with the best performing network
-reported in \cite{Huang_DNN_Separation_ICASSP2014}, which was trained in a joint discriminative way, see Table~\ref{ta:eval2}.
+due to the very small available training data (less than 10 seconds per speaker). The evaluations of \emph{scatt-NMF\textsubscript{2}} were performed using the setting provided in \cite{Huang_DNN_Separation_ICASSP2014} (with the corresponding training, developement and testing data) while their results are taken from the paper.
+\emph{scatt-NMF\textsubscript{2}} outperforms the benchmark KL-NMF in SDR and SIR, and is competitive 
+with the best performing networks
+reported in \cite{Huang_DNN_Separation_ICASSP2014}, with and without joint discriminative training, see Table~\ref{ta:eval2}.
 We expect further gains by applying discriminative dictionary learning \cite{sprechmann2014supervised}.
 
 In summary, these results confirm that inverse problems such as speech source separation 
@@ -65,18 +65,19 @@ with gradient descent.
 
 
 \begin{table}[tb]
-\caption{Comparison against models with discriminative training 
-and small training set. \label{ta:eval2}}
-\vspace{-4.5ex}
+\caption{Comparison RNN based separation, with and without joint discriminative training
+with soft masks \cite{Huang_DNN_Separation_ICASSP2014}. \label{ta:eval2}}
+\vspace{-5.5ex}
 \begin{center}
 \footnotesize{
 \begin{tabular}{l|c|c|c}
   \hline\hline
 & SDR & SIR & SAR \\
 \hline
-NMF-KL     & 5.4 &   7.3 & {\bf 7.8} \\
+NMF-KL     & 5.4 &   7.3 &  7.8\\
 \hline
-RNN \cite{Huang_DNN_Separation_ICASSP2014} & {\bf 7.4}  &   {\bf 11.8} & 7.5  \\
+RNN \cite{Huang_DNN_Separation_ICASSP2014} & 6.0  &   8.1 & {\bf 8.1}  \\
+RNN joint disc. training \cite{Huang_DNN_Separation_ICASSP2014} & {\bf 7.4}  &   {\bf 11.8} & 7.5  \\
 \hline
 \emph{scatt-NMF\textsubscript{2}} &  6.7 & 11.1  & 6.9 \\
   \hline\hline

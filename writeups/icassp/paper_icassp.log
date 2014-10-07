@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.6.30)  6 OCT 2014 17:16
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.6.30)  7 OCT 2014 11:05
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -952,42 +952,27 @@ Overfull \hbox (3.22452pt too wide) in paragraph at lines 48--57
  []
 
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <8> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 77.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 79.
 
-Overfull \hbox (2.44414pt too wide) in paragraph at lines 91--103
+Overfull \hbox (2.44414pt too wide) in paragraph at lines 92--104
 \OT1/ptm/m/n/10 NMF-based au-dio source sep-a-ra-tion tech-niques can be though
 t
  []
 
 ) (./paper_icassp.bbl [4]
-Underfull \hbox (badness 2689) in paragraph at lines 33--37
+Underfull \hbox (badness 2689) in paragraph at lines 32--36
 []\OT1/ptm/m/n/10 M. V. S. Shashanka, B. Raj, and P. Smaragdis,
  []
 
 
-Underfull \hbox (badness 1454) in paragraph at lines 39--43
-[]\OT1/ptm/m/n/10 C. Joder, F. Weninger, F. Ey-ben, D. Virette, and
- []
-
-
-Underfull \hbox (badness 3068) in paragraph at lines 39--43
-\OT1/ptm/m/n/10 supervised non-neg-a-tive ma-trix fac-tor-iza-tion,''  in
- []
-
-
-Underfull \hbox (badness 1097) in paragraph at lines 114--117
-[]\OT1/ptm/m/n/10 Joan Bruna and St[]ephane Mal-lat,  ``Au-dio tex-ture
- []
-
-
-Underfull \hbox (badness 1292) in paragraph at lines 149--152
+Underfull \hbox (badness 1292) in paragraph at lines 147--150
 []\OT1/ptm/m/n/10 P.-S. Huang, M. Kim, M. Hasegawa-Johnson, and
  []
 
 ) [5] (./paper_icassp.aux) ) 
 Here is how much of TeX's memory you used:
  12946 strings out of 493488
- 208897 string characters out of 3141326
+ 208902 string characters out of 3141326
  304807 words of memory out of 3000000
  15942 multiletter control sequences out of 15000+200000
  41850 words of font info for 98 fonts, out of 3000000 for 9000
@@ -1017,7 +1002,7 @@ exlive/2012/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2
 dist/fonts/type1/urw/times/utmbi8a.pfb></usr/local/texlive/2012/texmf-dist/font
 s/type1/urw/times/utmr8a.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/ur
 w/times/utmri8a.pfb>
-Output written on paper_icassp.pdf (5 pages, 245467 bytes).
+Output written on paper_icassp.pdf (5 pages, 245436 bytes).
 PDF statistics:
  113 PDF objects out of 1000 (max. 8388607)
  82 compressed objects within 1 object stream
