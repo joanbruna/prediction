@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.6.30)  7 OCT 2014 11:05
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.6.30)  7 OCT 2014 11:14
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -969,7 +969,11 @@ Underfull \hbox (badness 1292) in paragraph at lines 147--150
 []\OT1/ptm/m/n/10 P.-S. Huang, M. Kim, M. Hasegawa-Johnson, and
  []
 
-) [5] (./paper_icassp.aux) ) 
+) [5] (./paper_icassp.aux)
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ ) 
 Here is how much of TeX's memory you used:
  12946 strings out of 493488
  208902 string characters out of 3141326
@@ -978,30 +982,29 @@ Here is how much of TeX's memory you used:
  41850 words of font info for 98 fonts, out of 3000000 for 9000
  957 hyphenation exceptions out of 8191
  44i,12n,72p,571b,409s stack positions out of 5000i,500n,10000p,200000b,50000s
-{/usr/local/texlive/2012/texmf-dist/fonts/enc/dvips
-/base/8r.enc}</usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmex10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cme
-xtra/cmex9.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmmi10.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/c
-m/cmmi5.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmmi6.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-mi7.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi
-9.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.
-pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb
-></usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></
-usr/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr
-/local/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/lo
-cal/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/loc
-al/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local
-/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/t
-exlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/tex
-live/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texli
-ve/2012/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/t
-exlive/2012/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2
-012/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2012/texmf-
-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/local/texlive/2012/texmf-dist/font
-s/type1/urw/times/utmr8a.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/ur
-w/times/utmri8a.pfb>
+{/usr/local/texlive/2012/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
+exlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/te
+xlive/2012/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.pfb></usr/local
+/texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/
+texlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/local/te
+xlive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texl
+ive/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texliv
+e/2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texlive/
+2012/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/20
+12/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/2012/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2012/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2012/texmf-
+dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2012/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2012/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2012/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2012/texmf-dist/fon
+ts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2012/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2012/texmf-dist/fonts/t
+ype1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2012/texmf-dist/fon
+ts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1
+/urw/times/utmb8a.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/urw/times
+/utmbi8a.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/urw/times/utmr8a.p
+fb></usr/local/texlive/2012/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
 Output written on paper_icassp.pdf (5 pages, 245436 bytes).
 PDF statistics:
  113 PDF objects out of 1000 (max. 8388607)
