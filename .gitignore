@@ -8,3 +8,15 @@
 *.pdf
 
 *.pdf
+
+*.log
+
+*.log
+
+writeups/icassp/paper_icassp.log
+
+writeups/icassp/paper_icassp.pdf
+
+writeups/prediction.log
+
+writeups/prediction.pdf
