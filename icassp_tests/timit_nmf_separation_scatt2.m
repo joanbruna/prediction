@@ -28,7 +28,7 @@ data1.X2 = renorm_spect_data(data1.X2, stds2, epsf);
 data2.X2 = renorm_spect_data(data2.X2, stds2, epsf);
 
 KK1 = [200];
-LL1 = [0.1];
+LL1 = [0.06];
 param1.K = KK1;
 param1.posAlpha = 1;
 param1.posD = 1;

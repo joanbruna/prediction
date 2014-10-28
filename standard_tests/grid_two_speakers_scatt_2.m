@@ -6,8 +6,8 @@ clear all;
 
 representation = '/misc/vlgscratch3/LecunGroup/bruna/grid_data/scatt2_fs16_NFFT2048/';
 
-id_1 = 1;
-id_2 = 4;
+id_1 = 8;
+id_2 = 7;
 
 % another man!
 %id_2 = 14;
@@ -26,16 +26,17 @@ options.renorm=1;
 if options.renorm
 %renormalize data: whiten each frequency component.
 eps=2e-3;
+epsf=1;
 Xtmp=[abs(data1.X1) abs(data2.X1)];
 stds1 = std(Xtmp,0,2) + eps;
-data1.X1 = renorm_spect_data(data1.X1, stds1);
-data2.X1 = renorm_spect_data(data2.X1, stds1);
+data1.X1 = renorm_spect_data(data1.X1, stds1, epsf);
+data2.X1 = renorm_spect_data(data2.X1, stds1, epsf);
 
 eps=1e-3;
 Xtmp=[abs(data1.X2) abs(data2.X2)];
 stds2 = std(Xtmp,0,2) + eps;
-data1.X2 = renorm_spect_data(data1.X2, stds2);
-data2.X2 = renorm_spect_data(data2.X2, stds2);
+data1.X2 = renorm_spect_data(data1.X2, stds2, epsf);
+data2.X2 = renorm_spect_data(data2.X2, stds2, epsf);
 end
 
 
@@ -46,7 +47,7 @@ model = 'NMF-scatt2';
 
 %%%%Plain NMF%%%%%%%
 KK1 = [160];
-LL1 = [0.1];
+LL1 = [0.04];
 param1.K = KK1;
 param1.posAlpha = 1;
 param1.posD = 1;
@@ -74,8 +75,6 @@ Dnmf21 = mexTrainDL(abs(data1.X2),param2);
 Dnmf22 = mexTrainDL(abs(data2.X2),param2);
 
 keyboard;
-
-
 
     model_name = sprintf('%s-K1%d-K2%d',model,KK1,KK2);
     save_folder = sprintf('/misc/vlgscratch3/LecunGroup/bruna/speech/%s-s%d-s%d-%s/',model_name,id_1,id_2,date());
@@ -121,13 +120,13 @@ end
 	%%% min || | W1 xi | - D1i z1i || + || |W2 | W1 xi | | - D2i z2i || st x=x1+x2
 
 	%[speech1, speech2, xest1, xest2] = demix_scatt2(mix, Dnmf11, Dnmf12, Dnmf21, Dnmf22, stds1, stds2, data1.filts, data1.scparam, param1, param2, Npad);
-	[speech1, speech2, xest1, xest2] = demix_scatt2top(mix, Dnmf11, Dnmf12, Dnmf21, Dnmf22, stds1, stds2, data1.filts, data1.scparam, param1, param2, Npad);
+	[speech1, speech2, xest1, xest2] = demix_scatt2top(mix, Dnmf11, Dnmf12, Dnmf21, Dnmf22, stds1, stds2, epsf, data1.filts, data1.scparam, param1, param2, Npad);
 	%[speech1b, speech2b] = demix_scatt2(mix, Dnmf11, Dnmf12, Dnmf21, Dnmf22, stds1, stds2, data1.filts, data1.scparam, param1, param2, Npad);
 
 
-        Parms =  BSS_EVAL(x1', x2', speech1(1:T), speech2(1:T), mix');
+        Parms =  BSS_EVAL(x1', x2', speech1(1:T)', speech2(1:T)', mix');
         %Parmsb =  BSS_EVAL(x1', x2', speech1b(1:T), speech2b(1:T), mix');
-        Parms1 =  BSS_EVAL(x1', x2', xest1(1:T), xest2(1:T), mix');
+        Parms1 =  BSS_EVAL(x1', x2', xest1(1:T)', xest2(1:T)', mix');
         
         SDR = SDR+mean(Parms.SDR)/N_test;
         NSDR = NSDR+mean(Parms.NSDR)/N_test;

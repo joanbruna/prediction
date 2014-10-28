@@ -1,4 +1,4 @@
-function [speech1, speech2, xest1, xest2] = demix_scatt2(mix, Dnmf11, Dnmf12, Dnmf21, Dnmf22, stds1, stds2, filts, options, param1, param2, Npad)
+function [speech1, speech2, xest1, xest2] = demix_scatt2(mix, Dnmf11, Dnmf12, Dnmf21, Dnmf22, stds1, stds2, epsf, filts, options, param1, param2, Npad)
 
 	%%% we will use a simpler algo: 
 	%%% 1. compute |W1 x|
@@ -6,7 +6,7 @@ function [speech1, speech2, xest1, xest2] = demix_scatt2(mix, Dnmf11, Dnmf12, Dn
 	
 	%%% 2. estimate D1iz1i 
 	if 1
-		S1r = renorm_spect_data(S1,stds1);
+		S1r = renorm_spect_data(S1,stds1,epsf);
 	end
         H =  full(mexLasso(S1r,[Dnmf11,Dnmf12],param1));
         rec11 = Dnmf11*H(1:size(Dnmf11,2),:);
@@ -32,8 +32,8 @@ function [speech1, speech2, xest1, xest2] = demix_scatt2(mix, Dnmf11, Dnmf12, Dn
 	[S22, S12, P2, P2lp, P2hp, scratch2] = audioscatt_fwd_haar(pad_mirror(speech2,Npad), filts, options);
 
 	if 1
-		[S21r,norm1] = renorm_spect_data(S21, stds2);
-		[S22r,norm2] = renorm_spect_data(S22, stds2);
+		[S21r,norm1] = renorm_spect_data(S21, stds2,epsf);
+		[S22r,norm2] = renorm_spect_data(S22, stds2,epsf);
 	end
 	
 	H1 = full(mexLasso(S21r,Dnmf21,param2));
@@ -50,7 +50,7 @@ function [speech1, speech2, xest1, xest2] = demix_scatt2(mix, Dnmf11, Dnmf12, Dn
 	rec22 = audioreconstruct2(Srec22u, P2lp, P2hp, filts, scratch2);
 
 	%%%5. denoise in the first level dictionary
-	if 0
+	if 1
 	rec1r = renorm_spect_data(rec21,stds1);
 	rec2r = renorm_spect_data(rec22,stds1);
 	H1 = full(mexLasso(rec1r,Dnmf11, param1));

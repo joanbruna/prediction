@@ -5,6 +5,7 @@ function [speech1, speech2, xest1, xest2] = demix_scatt2top(mix, Dnmf11, Dnmf12,
 	[S2, S1, P, Plp, Php, scratch] = audioscatt_fwd_haar(pad_mirror(mix',Npad), filts, options);
 	
 	if 1
+		size(S2)
 		[S2r,norm1] = renorm_spect_data(S2, stds2, epsf);
 	end
 	

@@ -47,7 +47,7 @@ Uh = permute(Ubis,[2 1 3]);
 
 [K1bis, M0, L] = size(Uh);
 
-if 1
+if scratch.dohaar
 Ubis = haarinvert(Uh(:,:), filts{2}, scratch);
 else
 Ubis = Uh;

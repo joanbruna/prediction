@@ -48,7 +48,7 @@ for i=1:N
     x1=x1(1:TT);
     x2=x2(1:TT);
 
-    [speech1, speech2]=testFun(mix);
+    [~,~,speech1, speech2]=testFun(mix);
 
     Parms =  BSS_EVAL(x1', x2', speech1', speech2', mix');
     
