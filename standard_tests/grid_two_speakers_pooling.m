@@ -7,10 +7,10 @@ clear all;
 representation = '/misc/vlgscratch3/LecunGroup/bruna/grid_data/scatt_fs16_NFFT2048_hop1024/';
 
 id_1 = 2;
-id_2 = 11;
+i%d_2 = 11;
 
 % another man!
-%id_2 = 14;
+id_2 = 6;
 
 
 load(sprintf('%ss%d',representation,id_1));
@@ -43,13 +43,13 @@ end
 model = 'NMF-pooling';
 spectrum = 0;
 
-KK = [160];
-KKgn = [64];
+KK = [50 100 160 160];
+KKgn = [32 32 32 64];
 LL = [0.05];
 
 for ii = 1:length(KK)
-for jj = 1:length(LL)
-
+%for jj = 1:length(LL)
+jj = ii;
 %%%%Plain NMF%%%%%%%
 param0.K = KK(ii);
 param0.posAlpha = 1;
@@ -69,7 +69,12 @@ alpha2= mexLasso(abs(data2.X),Dnmf2,param0);
 Dnmf1s = sortDZ(Dnmf1,full(alpha1)');
 Dnmf2s = sortDZ(Dnmf2,full(alpha2)');
 
+try
 gpud=gpuDevice(3);
+catch
+gpud=gpuDevice(1);
+end
+
 
 param.nmf=1;
 param.lambda=LL(jj)/4;
@@ -178,25 +183,25 @@ reset(gpud);
         Parms
         output{i} = Parms;
 
-        file1 = sprintf('%s%dspeech-1.wav',save_folder,i);
-        audiowrite(file1,speech1,fs);
-        unix(sprintf('chmod 777 %s',file1));
-
-        file2 = sprintf('%s%dspeech-2.wav',save_folder,i);
-        audiowrite(file2,speech2,fs);
-        unix(sprintf('chmod 777 %s',file2));
-
-        filemix = sprintf('%s%dmix.wav',save_folder,i);
-        audiowrite(filemix,mix,fs);
-        unix(sprintf('chmod 777 %s',filemix));
+%         file1 = sprintf('%s%dspeech-1.wav',save_folder,i);
+%         audiowrite(file1,speech1,fs);
+%         unix(sprintf('chmod 777 %s',file1));
+% 
+%         file2 = sprintf('%s%dspeech-2.wav',save_folder,i);
+%         audiowrite(file2,speech2,fs);
+%         unix(sprintf('chmod 777 %s',file2));
+% 
+%         filemix = sprintf('%s%dmix.wav',save_folder,i);
+%         audiowrite(filemix,mix,fs);
+%         unix(sprintf('chmod 777 %s',filemix));
 
     end
-    save_file = sprintf('%sresults.mat',save_folder,'s');
+    save_file = sprintf('results_%s.mat',num2str(ii),'s');
     save(save_file,'output','D1','D2','param','NSDR','SIR')
-    unix(sprintf('chmod 777 %s ',save_file));
-    AA{ii,jj}.res = output;
+    %unix(sprintf('chmod 777 %s ',save_file));
+    AA{ii}.res = output;
     clear output
 
 end
-end
+%end
 

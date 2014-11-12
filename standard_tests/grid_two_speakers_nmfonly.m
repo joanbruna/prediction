@@ -56,7 +56,7 @@ param0.posAlpha = 1;
 param0.posD = 1;
 param0.pos = 1;
 param0.lambda = LL(jj);
-param0.iter = 4000;
+param0.iter = 40;
 param0.numThreads=16;
 param0.batchsize=512;
 
@@ -180,17 +180,17 @@ param.K=KK(ii);
         Parms
         output{i} = Parms;
 
-        file1 = sprintf('%s%dspeech-1.wav',save_folder,i);
-        audiowrite(file1,speech1,fs);
-        unix(sprintf('chmod 777 %s',file1));
-
-        file2 = sprintf('%s%dspeech-2.wav',save_folder,i);
-        audiowrite(file2,speech2,fs);
-        unix(sprintf('chmod 777 %s',file2));
-
-        filemix = sprintf('%s%dmix.wav',save_folder,i);
-        audiowrite(filemix,mix,fs);
-        unix(sprintf('chmod 777 %s',filemix));
+%         file1 = sprintf('%s%dspeech-1.wav',save_folder,i);
+%         audiowrite(file1,speech1,fs);
+%         unix(sprintf('chmod 777 %s',file1));
+% 
+%         file2 = sprintf('%s%dspeech-2.wav',save_folder,i);
+%         audiowrite(file2,speech2,fs);
+%         unix(sprintf('chmod 777 %s',file2));
+% 
+%         filemix = sprintf('%s%dmix.wav',save_folder,i);
+%         audiowrite(filemix,mix,fs);
+%         unix(sprintf('chmod 777 %s',filemix));
 
     end
     save_file = sprintf('%sresults.mat',save_folder,'s');

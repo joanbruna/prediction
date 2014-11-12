@@ -4,8 +4,8 @@
 
 representation = '/misc/vlgscratch3/LecunGroup/bruna/grid_data/spect_fs16_NFFT1024_hop512/';
 
-id_1 = 2;
-id_2 = 11;
+id_1 = 18;
+id_2 = 19;
 
 % another man!
 %id_2 = 14;
@@ -16,20 +16,36 @@ data1 = data;
 clear data
 
 
-
 load(sprintf('%ss%d',representation,id_2));
 data2 = data;
 clear data
 
+% epsilon = 1;
+param.epsilon = 0.1;
+epsilon = param.epsilon;
+data1.X = softNormalize(abs(data1.X),epsilon);
+data2.X = softNormalize(abs(data2.X),epsilon);
 
+param.renorm=0;
+param.save_files = 0;
+
+if param.renorm
+%renormalize data: whiten each frequency component.
+eps=4e-1;
+Xtmp=[abs(data1.X) abs(data2.X)];
+stds = std(Xtmp,0,2) + eps;
+
+data1.X = renorm_spect_data(data1.X, stds);
+data2.X = renorm_spect_data(data2.X, stds);
+end
 
 
 %% train models
 
-model = 'NMF-L2';
+model = 'NMF-L2-softnorm';
 
-KK = [10,50,100,200];
-LL = [0.01,0.05,0.1,0.2];
+KK = [200];
+LL = [0.1];
 
 for ii = 1:length(KK)
 
@@ -41,8 +57,8 @@ for jj = 1:length(LL)
     param.pos = 1;
     param.lambda = LL(jj);
     param.lambda2 = 0;
-    param.iter = 500;
-
+    param.iter = 1000;
+    
 
     D1 = mexTrainDL(abs(data1.X), param);
 
@@ -55,14 +71,19 @@ for jj = 1:length(LL)
     %% test models
 
     % saving setting
-
-    save_folder = sprintf('../../public_html/speech/%s-s%d-s%d-%s/',model_name,id_1,id_2,date());
-
-    try
-        unix(sprintf('mkdir %s',save_folder));
-        unix(sprintf('chmod 777 %s ',save_folder));
-    catch
+    if param.save_files
+        
+        save_folder = sprintf('%s-s%d-s%d-%s/',model_name,id_1,id_2,date());
+        %save_folder = sprintf('../../public_html/speech/%s-s%d-s%d-%s/',model_name,id_1,id_2,date());
+        
+        try
+            unix(sprintf('mkdir %s',save_folder));
+            unix(sprintf('chmod 777 %s ',save_folder));
+        catch
+        end
+        
     end
+    
 
     %%
 
@@ -96,20 +117,26 @@ for jj = 1:length(LL)
         mix = (x1+x2);
 
         X = compute_spectrum(mix,NFFT,hop);
-
+        
+        if param.renorm
+            Xn = renorm_spect_data(abs(X), stds);
+        end
+        %epsilon = 1;
+        Xn = softNormalize(abs(X),epsilon);
+        
         % compute decomposition
-        H =  full(mexLasso(abs(X),[D1,D2],param));
+        H =  full(mexLasso(Xn,[D1,D2],param));
 
         W1H1 = D1*H(1:size(D1,2),:);
         W2H2 = D2*H(size(D1,2)+1:end,:);
 
-        eps = 1e-6;
-        V_ap = W1H1 +W2H2 + eps;
+        eps_1 = 1e-6;%eps_1=0;
+        V_ap = W1H1.^2 +W2H2.^2 + eps_1;
 
         % wiener filter
 
-        SPEECH1 = ((W1H1.^2)./(V_ap.^2)).*X;
-        SPEECH2 = ((W2H2.^2)./(V_ap.^2)).*X;
+        SPEECH1 = ((W1H1.^2)./V_ap).*X;
+        SPEECH2 = ((W2H2.^2)./V_ap).*X;
         speech1 = invert_spectrum(SPEECH1,NFFT,hop,T);
         speech2 = invert_spectrum(SPEECH2,NFFT,hop,T);
 
@@ -120,6 +147,30 @@ for jj = 1:length(LL)
         
         Parms
         output{i} = Parms;
+        
+
+        %% ---
+%         Old with bug!
+%
+%         V_ap = W1H1 +W2H2 + eps;
+% 
+%         % wiener filter
+% 
+%         SPEECH1 = ((W1H1.^2)./(V_ap.^2)).*X;
+%         SPEECH2 = ((W2H2.^2)./(V_ap.^2)).*X;
+%         speech1 = invert_spectrum(SPEECH1,NFFT,hop,T);
+%         speech2 = invert_spectrum(SPEECH2,NFFT,hop,T);
+% 
+%         Parms =  BSS_EVAL(x1', x2', speech1', speech2', mix');
+%         
+%         NSDR = SDR+mean(Parms.NSDR)/N_test;
+%         SIR = SIR+mean(Parms.SIR)/N_test;
+%         
+%         Parms
+        
+        %%-----
+        
+        if param.save_files
 
         file1 = sprintf('%s%dspeech-1.wav',save_folder,i);
         audiowrite(file1,speech1,fs);
@@ -132,13 +183,17 @@ for jj = 1:length(LL)
         filemix = sprintf('%s%dmix.wav',save_folder,i);
         audiowrite(filemix,mix,fs);
         unix(sprintf('chmod 777 %s',filemix));
+        
+        end
 
     end
+
     save_file = sprintf('%sresults.mat',save_folder,'s');
     save(save_file,'output','D1','D2','param','NSDR','SIR')
     unix(sprintf('chmod 777 %s ',save_file));
+
     AA{ii,jj}.res = output;
-    clear output
+    %clear output
 end
 end
 

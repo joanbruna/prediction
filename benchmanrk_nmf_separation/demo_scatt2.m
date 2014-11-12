@@ -2,7 +2,7 @@ eps=2e-3;
 Npad = 2^17;
 options.N = Npad;
 options.T = 2048;
-options.Q = 32;
+options.Q = 64;
 options.fs = 16000;
 filts = create_scattfilters(options);
 
@@ -75,7 +75,7 @@ Dnmf12 = mexTrainDL(abs(data2.X1),param1);
 
 %%
 
-KK2 = [400];
+KK2 = [500];
 LL2 = [0.1];
 param2.K = KK2;
 param2.posAlpha = 1;

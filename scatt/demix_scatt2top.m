@@ -42,8 +42,8 @@ function [speech1, speech2, xest1, xest2] = demix_scatt2top(mix, Dnmf11, Dnmf12,
 		S1r = renorm_spect_data(U1,stds1,epsf);
 		S2r = renorm_spect_data(U2,stds1,epsf);
 	end
-        H1=  full(mexLasso(S1r,[Dnmf11],param1));
-        H2=  full(mexLasso(S2r,[Dnmf12],param1));
+        H1=  full(mexLasso(S1r,Dnmf11,param1));
+        H2=  full(mexLasso(S2r,Dnmf12,param1));
         rec11 = Dnmf11*H1;
         rec12 = Dnmf12*H2;
 

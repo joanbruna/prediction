@@ -5,15 +5,16 @@ n_iter_max = 1000;
 beta = 1;
 
 l_win = 1024;
-overlap = l_win/2;
+NFFT = l_win;
+overlap = l_win/4;
 Fs = 16000;
 
 lambda_ast = 0;
 lambda = 0;
 
 
-KK = [30 50 80 100];
-LL = [0.01 0.05 0.1 0.2];
+KK = [200];
+LL = [0.1];
 
 
 for hh = 1:length(KK)
@@ -27,31 +28,36 @@ param0.posD = 1;
 param0.pos = 1;
 param0.lambda = LL(jj);
 param0.lambda2 = 0;
-param0.iter = 1000;
+param0.iter = 200;
 
 
 
 p = 1;
 
-folderv = '../../external/deeplearningsourceseparation-master/codes/timit/Data_with_dev/';
+folderv = '../external/deeplearningsourceseparation-master/codes/timit/Data_with_dev/';
 train_file1 = 'female_train.wav';
 train_file2 = 'male_train.wav';
 
-test_file1 = 'female_dev.wav';
-test_file2 = 'male_dev.wav';
+test_file1 = 'female_test.wav';
+test_file2 = 'male_test.wav';
 
 %% Data
 %F = 50;
 %N = 100;
 %V = abs(randn(F,N));
 
-
 [x, fs] = audioread([folderv train_file1]);
 x = resample(x,Fs,fs);
 fs = Fs;
-x = x'/norm(x); T = length(x);
+x = x'; T = length(x);
 
-Xt1 = cf_stft(x,l_win,overlap);
+%Xt1 = cf_stft(x,l_win,overlap);
+Xt1 = compute_spectrum(x,NFFT,overlap);
+
+param.epsilon = 0.001;
+epsilon = param.epsilon;
+Xt1 = softNormalize(abs(Xt1),epsilon);
+
 V1 = abs(Xt1).^p;
 [F,N] = size(V1);
 
@@ -64,9 +70,14 @@ W1 = mexTrainDL(V1, param0);
 
 [x, fs] = audioread([folderv train_file2]);
 x = resample(x,Fs,fs);
-x = x'/norm(x); T = length(x);
+x = x'; T = length(x);
 
-Xt2 = cf_stft(x,l_win,overlap);
+%Xt2 = cf_stft(x,l_win,overlap);
+Xt2 = compute_spectrum(x,NFFT,overlap);
+
+
+Xt2 = softNormalize(abs(Xt2),epsilon);
+
 V2 = abs(Xt2).^p;
 [F,N] = size(V2);
 
@@ -94,16 +105,24 @@ x2 = x2(1:T);
 x1 = x1/norm(x1); 
 x2 = x2/norm(x2);
 
-X1 = cf_stft(x,l_win,overlap);
-V1 = abs(X1).^p;
-X2 = cf_stft(x2,l_win,overlap);
-V2 = abs(X2).^p;
+% X1 = cf_stft(x,l_win,overlap);
+% V1 = abs(X1).^p;
+% X2 = cf_stft(x2,l_win,overlap);
+% V2 = abs(X2).^p;
+X1 = compute_spectrum(x1,NFFT,overlap);
+X2 = compute_spectrum(x2,NFFT,overlap);
+
 
 mix = x1+x2;
 
-X = cf_stft(mix,l_win,overlap);
+%X = cf_stft(mix,l_win,overlap);
+X = compute_spectrum(mix,NFFT,overlap);
+
+[V,norms] = softNormalize(abs(X),epsilon);
 V = abs(X).^p;
 [F,N] = size(V);
+
+%%
 
 H =  full(mexLasso(V,[W1,W2],param0));
 
@@ -111,6 +130,7 @@ W1H1 = W1*H(1:K,:);
 W2H2 = W2*H(K+1:end,:);
 
 %% Display results
+if 1
 eps = 1e-6;
 V_ap = W1H1 +W2H2 + eps;
 im1 = log10(V+eps);
@@ -143,14 +163,18 @@ subplot(224);
 image(im4); 
 title('W2H2'); axis xy;
 drawnow
+end
 
 %% Reconstruct sources
-SPEECH1 = ((W1H1)./V_ap).*X;
-SPEECH2 = ((W2H2)./V_ap).*X;
-speech1 = cf_istft(SPEECH1,l_win,overlap);
-speech1 = speech1(overlap+1:overlap+T);
-speech2 = cf_istft(SPEECH2,l_win,overlap);
-speech2 = speech2(overlap+1:overlap+T);
+eps_1 = 1e-6;
+V_ap = W1H1.^2 +W2H2.^2 + eps_1;
+
+% wiener filter
+
+SPEECH1 = ((W1H1.^2)./V_ap).*X;
+SPEECH2 = ((W2H2.^2)./V_ap).*X;
+speech1 = invert_spectrum(SPEECH1,NFFT,overlap,T);
+speech2 = invert_spectrum(SPEECH2,NFFT,overlap,T);
 
 
 %x1 = x1(overlap+1:overlap+T);
@@ -160,32 +184,11 @@ Parms =  BSS_EVAL(x1', x2', speech1', speech2', mix');
 
 Parms
 
+Parms =  BSS_EVAL_RNN(x1', x2', speech1', speech2', mix');
 
-%%
+Parms
 
-valid.V1 = V1;
-valid.V2 = V2;
-valid.overlap = overlap;
-valid.x1 = x1;
-valid.x2 = x2;
-valid.mix = mix;
-valid.X = X;
-
-options.valid = valid;
-
-options.param0 = param0;
-options.beta = 2;
-
-[Wv,Wn,fv,r,Wv_max,Wn_max] = nmf_supervised(Xt1,Xt2,W1,W2,options);
-
-outputs{hh,jj}.W1 = W1;
-outputs{hh,jj}.W2 = W2;
-outputs{hh,jj}.Wv = Wv;
-outputs{hh,jj}.Wn = Wn;
-outputs{hh,jj}.fv = fv;
-outputs{hh,jj}.r = r;
-outputs{hh,jj}.Wv_max = Wv_max;
-outputs{hh,jj}.Wn_max = Wn_max;
+outputs{hh,jj}.r = Parms;
 
 
 

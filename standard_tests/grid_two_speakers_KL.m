@@ -134,7 +134,7 @@ for jj = 1:length(LL)
         H_ini = abs(randn(2*K,N)) + 1;
         E_ini = zeros(F,N);
 
-%[~, H, E, obj, fit, V_ap] = rnmf(V, beta, n_iter_max, tol, [W1,W2], H_ini, E_ini, lambda_ast,lambda,0);
+        %[~, H, E, obj, fit, V_ap] = rnmf(V, beta, n_iter_max, tol, [W1,W2], H_ini, E_ini, lambda_ast,lambda,0);
         [~,H] = nmf_admm(abs(X), [D1,D2], H_ini, beta, rho,1:2*K);
         %H =  full(mexLasso(abs(X),[D1,D2],param));
 

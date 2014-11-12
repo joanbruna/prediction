@@ -20,15 +20,15 @@ folderv = '../../external/deeplearningsourceseparation-master/codes/timit/Data_w
 train_file1 = 'female_train.wav';
 train_file2 = 'male_train.wav';
 
-test_file1 = 'female_dev.wav';
-test_file2 = 'male_dev.wav';
+test_file1 = 'female_test.wav';
+test_file2 = 'male_test.wav';
 
 %% Data
 %F = 50;
 %N = 100;
 %V = abs(randn(F,N));
 
-
+for i=1:20
 [x, fs] = audioread([folderv train_file1]);
 x = resample(x,Fs,fs);
 fs = Fs;
@@ -141,8 +141,11 @@ title('W2H2'); axis xy;
 drawnow
 
 %% Reconstruct sources
-SPEECH1 = ((W1H1)./V_ap).*X;
-SPEECH2 = ((W2H2)./V_ap).*X;
+eps = 1e-6;
+p = 1;
+V_ap = W1H1.^p +W2H2.^p + eps;
+SPEECH1 = ((W1H1.^p)./V_ap).*X;
+SPEECH2 = ((W2H2.^p)./V_ap).*X;
 speech1 = cf_istft(SPEECH1,l_win,overlap);
 speech1 = speech1(overlap+1:overlap+T);
 speech2 = cf_istft(SPEECH2,l_win,overlap);
@@ -156,6 +159,8 @@ Parms =  BSS_EVAL(x1', x2', speech1', speech2', mix');
 
 Parms
 
+RR{i} = Parms;
+end
 break
 
 %%

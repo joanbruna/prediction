@@ -25,11 +25,11 @@ gradFun_wn    = @(Vv,Vn,Wv,Hv,Wn,Hn)weight*betadiv_grad(Vn,Wn,Hn,beta2,'dW');
 % Stochastic gradient descent------------------------------------------------------------
 eta = 0.1;
 sigma = 0;
-step0 = 5e-2;
+step0 = 1e-1;
 totaliter = 2000;
 maxarmijoiter = 5;
 bsize = 100;
-    rho = 1;
+rho = 1;
 
 TNv = size(S1,2)-bsize;
 TNn = size(S2,2)-bsize;
@@ -81,9 +81,9 @@ for iter = 1:totaliter,
         
         
         if beta == 2
-            Hmix =  full(mexLasso(abs(valid.X),[Wv,Wn],param0));
+            Hmix =  full(mexLasso(abs(valid.S),[Wv,Wn],param0));
         else
-            [~,Hmix] = nmf_admm(abs(valid.X), [Wv,Wn], valid.H_ini, beta, rho,1:2*size(Wv,2));
+            [~,Hmix] = nmf_admm(abs(valid.S), [Wv,Wn], valid.H_ini, beta, rho,1:2*size(Wv,2));
         end
         
         
@@ -140,9 +140,9 @@ for iter = 1:totaliter,
     idn = max(round(TNn*rand(1)),1);
     
 
-    Sv = S1(:,idv:(idv+bsize-1));
+    Sv = [zeros(size(S1,1),50) S1(:,idv:(idv+bsize-1))];
     
-    Sn = S2(:,idn:(idn+bsize-1))*power(10,(-SNR_dB)/20);
+    Sn = [S2(:,idn:(idn+bsize-1))*power(10,(-SNR_dB)/20), zeros(size(S1,1),50)];
     S =  Sv + Sn;
     
     P = abs(S);
