@@ -1,89 +1,92 @@
 \section{Experimental results}
 \label{sec:experiments}
 
-\mypara{Evaluation settings} We evaluated the proposed method in two settings: speaker-specific and multi-speaker. In the first setting 
-we train a speaker-specific model for each speaker and test it using sentences from the same speaker outside the training set. 
-In the second setting, we trained the model on a mixed group of male and female speakers, none of which were included in the test set.
-Comparing the results obtained for these two settings we can understand the generalization and adaptation properties of the algorithm. 
-All signals where mixed at 0 $dB$.
 
-\mypara{Data sets} We used a subset of the GRID dataset \cite{cooke2006audio} for evaluating the speaker-specific setting.
+\mypara{Evaluation settings} We evaluated the proposed method in two settings: speaker-specific and multi-speaker. In the first setting 
+we trained a speaker-specific model for each speaker in the mixture and tested it using sentences (from the same speakers) outside the training set. 
+In the second setting, we trained a generic model on a mixed group of male and female speakers, none of which were included in the test set.
+%Comparing the results obtained for these two settings we can understand the generalization and adaptation properties of the algorithm. 
+All signals where mixed at 0 $dB$ and clips resampled to $16$ KHz. 
+
+\mypara{Data sets} We used a subset of speakers (3 males and 3 females) of the GRID dataset \cite{cooke2006audio} for evaluating the speaker-specific setting.
 For each speaker, $500$ randomly-chosen clips were used for training (around 25 minutes) and $200$ clips were used for testing.
 For the multi-speaker case we used a subset of the TIMIT dataset. We adopted the standard test-train division, using all the training recordings for bulding the models
-and a subset of 10 different speakers (6 males and 6 females) for testing. For each speaker we randomly chose two clips and compared
-all female-male combinations (144 mixtures). All clips were resampled to $16$ KHz. 
+and a subset of 12 different speakers (6 males and 6 females) for testing. For each speaker we randomly chose two clips and compared
+all female-male combinations (144 mixtures). 
 
-\mypara{Evaluation measures} As the evaluation criteria, we used the \emph{source-to-distortion ratio} (SDR), \emph{source-to-interference ratio} (SIR), and
+\mypara{Evaluation measures} We used the \emph{source-to-distortion ratio} (SDR), \emph{source-to-interference ratio} (SIR), and
 \emph{source-to-artifact ratio} (SAR) from the BSS-EVAL metrics \cite{vincent2006performance}. 
 %
-We also computed the standard \emph{signal-to-noise ratio} (SNR).
+%We also computed the standard \emph{signal-to-noise ratio} (SNR).
 %
 %When dealing with several frames, we computed a global score (GSDR, GSIR, GSAR and GSNR) by averaging the metrics over all test clips from the same speaker and noise weighted by the clip duration.
 
 \mypara{Training setting} We evaluated the proposed scattering NMF model with one and two layers, reffered
 as \emph{scatt-NMF\textsubscript{1}} and \emph{scatt-NMF\textsubscript{2}} respectively. As a baseline we used standard NMF 
-using frame lengths of 1024 samples and 50\% overlap. 
+with frame lengths of 1024 samples and 50\% overlap. 
 %
 The dictionaries in standard NMF were chosen with $200$ and $400$ atoms for the speaker-specific and multi-speaker
-settings respectively. These values were obtained using cross-validation on a few clips separated from the training as validation set.
+settings respectively. These values were obtained using cross-validation on a few clips separated from the training as a validation set.
 %
-In all cases, we applied \emph{scatt-NMF} using a scattering transforms with resolution $Q_1= Q_2 = 32$.
-The resulting representation had $175$ coefficients for the first level and around $2000$ for the second layer (many of which are
-zero by construction as explained in Section \ref{scattsec})
+In all cases, we applied \emph{scatt-NMF} using a scattering transforms with resolution $Q_1= 32$ and $Q_2=1$.
+The resulting representation had $175$ coefficients for the first level and around $2000$ for the second layer. 
 %
 For the single speaker case we trained dictionaries with $200$ atoms for \emph{scatt-NMF\textsubscript{1}}  and $800$ atoms for \emph{scatt-NMF\textsubscript{2}}.
 While for the multi-speaker case we used $400$ atoms for \emph{scatt-NMF\textsubscript{1}}  and $1000$ atoms for \emph{scatt-NMF\textsubscript{2}}.
-In all cases, the features were frame-wise normalized and we used $\lambda=1$. 
-
+In all cases, the features were frame-wise normalized and we used $\lambda=0.1$. 
 %
 %For the SGD algorithm we used $\eta=0.1$ and minibatch of size $50$. These were obtained by trying several values of during a small number of iterations, keeping those producing the lowest error on a small validation set. 
 %
 
-\mypara{Results} Tables~\ref{ta:eval}~and~\ref{ta:eval2} show the results obtained for the speaker-specific and multi-speaker settings respectively.
-In all cases we observe that using the one layer scattering transform outperforms the STFT. 
-Also, there is again in including a deeper representation \emph{scatt-NMF\textsubscript{2}} performs always better than \emph{scatt-NMF\textsubscript{1}} 
+\mypara{Results} Table~\ref{ta:eval} shows the results obtained for the speaker-specific and multi-speaker settings. \footnote{Audio samples are available at \url{www.cims.nyu.edu/~bruna/scatt_source_separation}.}
+In all cases we observe that the one layer scattering transform outperforms the STFT in terms of SDR.
+Furthermore, there is a tangible gain in including a deeper representation; \emph{scatt-NMF\textsubscript{2}} 
+performs always better than \emph{scatt-NMF\textsubscript{1}}. 
+As expected, the results obtained with the speaker-specific setting are better than those of the more challanging problem
+of multi-speaker setting. 
 
-In all the experiments, we solved (\ref) using a greedy approximation. We expect that solving it explicitly would bring some additional improvement.
+We also compared the proposed approach with the speaker-specific setting discussed in \cite{Huang_DNN_Separation_ICASSP2014}. In this work
+the authors investigate several alternatives of using Recurrent Neural Networks (RNN) for speech separation.
+Several optimization settings are evaluated on two given speakers of the TIMIT dataset, some of which
+aim at learning short-term temporal dynamics. This is a very challenging setting
+due to the very small available training data (less than 10 seconds per speaker). The evaluations of \emph{scatt-NMF\textsubscript{2}} were performed using the setting provided in \cite{Huang_DNN_Separation_ICASSP2014} (with the corresponding training, developement and testing data) while their results are taken from the paper.
+\emph{scatt-NMF\textsubscript{2}} outperforms the benchmark KL-NMF in SDR and SIR, and is competitive 
+with the best performing networks
+reported in \cite{Huang_DNN_Separation_ICASSP2014}, with and without joint discriminative training, see Table~\ref{ta:eval2}.
+We expect further gains by applying discriminative dictionary learning \cite{sprechmann2014supervised}.
 
-\begin{table}[t]
-\caption{Separation with speakers-specific models. Average SDR, SIR and SAR (in $dB$) for NMF and proposed  and \emph{scatt-NMF\textsubscript{2}}. Standard deviation of each result shown between brackets. \label{ta:eval}}
-\vspace{-1.5ex}
-\begin{center}
-\tiny{
-\begin{tabular}{l|c|c|c || c |c |c }
-  \hline\hline
- & SDR & SIR & SAR & SDR & SIR & SAR\\
-\hline
-NMF  &7.5 [1.5] & 13.7 [0.9] &   8.9 [1.7] & 6.1 [2.9] &   14.1 [3.8] & 7.4 [2.1] \\
-\hline
-\emph{scatt-NMF\textsubscript{1}} & 10.3 [2.0]  & 19.7 [3.3]  & 11.0 [1.7] &  5.4 [2.3] &   12.4 [3.0] & 7.4 [1.9] \\
-\emph{scatt-NMF\textsubscript{2}} &  10.6 [1.8] & 20.5 [3.0]  & 11.3 [1.7]  &  6.9 [2.7] & 16.0 [3.5]  & 7.9 [2.2] \\
-  \hline\hline
-\end{tabular}
-}
-\end{center}
-\vspace{-2.5ex}
-\end{table}
+In summary, these results confirm that inverse problems such as speech source separation 
+can benefit from the properties of stable and highly discriminative non-linear representations, 
+such as scattering operators. Sparse inference is able to extract more relevant information thanks 
+to the stability to time-frequency deformations, while the phase recovery can still be efficiently performed
+with gradient descent.
+
+%In all the experiments with  \emph{scatt-NMF\textsubscript} , we using a greedy approximation explained in Section \ref{scattsec}. We expect that solving it explicitly would bring some additional improvement.
+
 
 \begin{table}[tb]
-\caption{Separation with multi-speaker models.  See description of Table~\ref{ta:eval}. \label{ta:eval2}}
-\vspace{-1.5ex}
+\caption{Comparison RNN based separation, with and without joint discriminative training
+with soft masks \cite{Huang_DNN_Separation_ICASSP2014}. \label{ta:eval2}}
+\vspace{-5.5ex}
 \begin{center}
-\small{
+\footnotesize{
 \begin{tabular}{l|c|c|c}
   \hline\hline
 & SDR & SIR & SAR \\
 \hline
-NMF    & 6.1 [2.9] &   14.1 [3.8] & 7.4 [2.1] \\
+NMF-KL     & 5.4 &   7.3 &  7.8\\
 \hline
-\emph{scatt-NMF\textsubscript{1}} & 6.1 [2.9] &   14.1 [3.8] & 7.4 [2.1] \\
-\emph{scatt-NMF\textsubscript{2}} &  6.9 [2.7] & 16.0 [3.5]  & 7.9 [2.2] \\
+RNN \cite{Huang_DNN_Separation_ICASSP2014} & 6.0  &   8.1 & {\bf 8.1}  \\
+RNN joint disc. training \cite{Huang_DNN_Separation_ICASSP2014} & {\bf 7.4}  &   {\bf 11.8} & 7.5  \\
+\hline
+\emph{scatt-NMF\textsubscript{2}} &  6.7 & 11.1  & 6.9 \\
   \hline\hline
 \end{tabular}
 }
 \end{center}
-\vspace{-1.5ex}
+\vspace{-4.5ex}
 \end{table}
+
 
 \section{Discussion}
 NMF-based audio source separation techniques can be thought as applying a synthesis operator on a feature space
@@ -91,11 +94,11 @@ given by a pooled analysis operator. Leveraging recent developemnts in signal pr
 %the STFT normally used in 
 the first stage with a deep scattering transform. 
 The obtained features are designed to capture the joint time-frequency variability of speech signals
-and efficiently represent a longer temporal context. Experimental evaluation showed that using deeper representations
+and efficiently represent a longer temporal context. Experimental evaluation shows that using deeper representations
 leads to a tangible improvement in performance in challenging source separation settings.
-A natural extension of this work would be to investigate the use of learned representations instead (or on top of)
+A natural extension of this work is to investigate the use of learned representations instead, or on top of,
 the designed ones.
 %
 Future work includes testing more thoroughly the potential of the proposed model in combination
-with the convolutional neural networks which have been very successful in other signal and image processing problems.
+with convolutional neural networks, which have been very successful in other signal and image processing problems.
 

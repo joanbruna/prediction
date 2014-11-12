@@ -110,7 +110,8 @@ bprop    = @(X,DZ1,DZ2,X1) stft_bprop(X,DZ1,DZ2,X1,1,1);
 obj_init = measure_cost(D1,D2,Z1_init,Z2_init,X1_init,X2_init,fprop,lambda);
 
 
-%%
+%% GRADIENT DESCENT --------
+
 X1 = X1_init;
 X2 = X2_init;
 
@@ -125,37 +126,35 @@ min_ = 10000;
 
 for j=1:200
     
+    % gradient step on X1
     dfX1 = bprop(X,D1*Z1,D2*Z2,X1);
-    
     X1_aux = X1 - rho*dfX1;
     
+    % enforce signal to be audio
     At = invert_spectrum(X1_aux,NFFT,hop);
     X1 = compute_spectrum(At,NFFT,hop);
     
     obj(count) = measure_cost(D1,D2,Z1,Z2,X1,X-X1,fprop,lambda,1,X1);
     
+    % minimize over Z1 and Z2
     Z1 = mexLasso(fprop(X1),D1,param);  
     Z2 = mexLasso(fprop(X-X1),D2,param);
     
     count = count +1;
     obj(count) = measure_cost(D1,D2,Z1,Z2,X1,X-X1,fprop,lambda,10);
     
-
-    obj(count)
+    % save best result
     if min_ > obj(count)
         X1_end = X1;
         X2_end = X- X1;
         Z1_end = Z1;
         Z2_end = Z2;
         min_ = obj(count);
+        disp(obj(count))
     end
     
-        count = count +1;
-%     
-%     obj(i) = measure_cost(D1,D2,Z1_init,Z2_init,X1_init,X2_init,fprop,lambda);
-%     
-%     disp(obj(i))
-%     
+    count = count +1;
+
 end
 
 %%

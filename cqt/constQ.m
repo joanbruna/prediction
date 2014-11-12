@@ -7,5 +7,3 @@ t=-(Nwin+1)/2+sstep*[1:size(Y,2)];
 idx = find(t>=0);
 t = t(idx);
 A = abs(W*Y(:,idx));
-
-

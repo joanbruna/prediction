@@ -15,7 +15,6 @@ idf = getoptions(options,'idf',[1,1,1]);
 
 % representation parameters
 if is_stft
-    
     NFFT = getoptions(options,'NFFT',1024);
     fs = getoptions(options,'fs',1600);
     hop = getoptions(options,'hop',NFFT/2);
@@ -95,7 +94,7 @@ for i=1:N
     else
         
         speech1 = audioreconstruct(SPEECH1, pp, phmix);
-	speech2 = audioreconstruct(SPEECH2, pp, phmix);
+        speech2 = audioreconstruct(SPEECH2, pp, phmix);
         
         speech1 = speech1(1:T)';
         speech2 = speech2(1:T)';

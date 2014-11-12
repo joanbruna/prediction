@@ -4,6 +4,9 @@ function  result = separation_test(testFun,test_files_1,test_files_2,options)
 % SNR of the mixture - Always fixed
 SNR_dB = getoptions(options,'SNR_dB',0);
 
+
+Npad = getoptions(options,'Npad',2^16);
+
 % use spectrum or scatt
 is_stft = getoptions(options,'is_stft',1);
 
@@ -36,6 +39,7 @@ NSDR = zeros(M,N);
 SIR = zeros(M,N);
 SAR = zeros(M,N);
 
+
 for j=1:M
 for i=1:N
 
@@ -43,10 +47,10 @@ for i=1:N
     test_file_name_1 = test_files_1{id1(i,1)}{id1(i,2)}{id1(i,3)}.speaker;
     x1 = test_files_1{id1(i,1)}{id1(i,2)}{id1(i,3)}.x;
     
-    test_file_name_2 = test_files_2{id2(i,1)}{id2(i,2)}{id2(i,3)}.speaker;
-    x2 = test_files_2{id2(i,1)}{id2(i,2)}{id2(i,3)}.x;
+    test_file_name_2 = test_files_2{id2(j,1)}{id2(j,2)}{id2(j,3)}.speaker;
+    x2 = test_files_2{id2(j,1)}{id2(j,2)}{id2(j,3)}.x;
     
-    T = min(length(x1),length(x2));
+    T = min([length(x1),length(x2),Npad]);
     x1 = x1(1:T)/norm(x1);
     x2 = x2(1:T);
     
@@ -101,6 +105,7 @@ for i=1:N
     
 end
 end
+
 
 result.SDR = SDR;
 result.NSDR = NSDR;

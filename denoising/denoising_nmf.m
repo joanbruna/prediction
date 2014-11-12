@@ -1,4 +1,4 @@
-function [alpha,alphan,W,obj,Wo] = denoising_nmf(V,D,options,Px,Pn,A)
+function [W1H1,W2H2,alpha,alphan,W,obj,Wo] = denoising_nmf(V,D,options,Px,Pn,A)
 %
 %  0.5* || V -Ds*alphas - Dn*alphan ||^2 + lambda || alphas ||_1
 %
@@ -6,8 +6,6 @@ function [alpha,alphan,W,obj,Wo] = denoising_nmf(V,D,options,Px,Pn,A)
 % V is the magnitude spectrogram of the mixed signal
 
 % number of atoms for noise dictionary
-
-
 if nargin <6
     A = [];
 end
@@ -20,7 +18,7 @@ Wo = mexNormalize(max(0.1+rand(N,Kn),0));
 W = getoptions(options,'W',Wo);
 
 
-niter = getoptions(options,'iter',20);
+niter = getoptions(options,'niter',300);
 
 eps = 1e-9;
 
@@ -38,7 +36,7 @@ for i=1:niter
     options.t0 = .5 * (1/(L +norm(W,2)^2 )) ;
     [alpha,alphan] = nmf_semisup(V,D,W,A,options);
     
-  %a(i,:) = [norm(Px - D*alpha,'fro')^2/norm(Px,'fro')^2 norm(Pn - W*alphan,'fro')^2/norm(Px,'fro')^2 norm(V -D*alpha - W*alphan,'fro')^2/norm(V,'fro')^2 c];
+%a(i,:) = [norm(Px - D*alpha,'fro')^2/norm(Px,'fro')^2 norm(Pn - W*alphan,'fro')^2/norm(Px,'fro')^2 norm(V -D*alpha - W*alphan,'fro')^2/norm(V,'fro')^2 c];
     
     options.H = [alpha;alphan];
     
@@ -51,9 +49,12 @@ for i=1:niter
         W(W(:)<eps) = 0;
     end
     
+    obj(i) = compute_obj(V,[alpha;alphan],D,W,options);
     
     
 end
 
-obj = compute_obj(V,[alpha;alphan],D,W,options);
+
+W1H1 = D*alpha;
+W2H2 = W*alphan;
     

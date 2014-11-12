@@ -39,6 +39,8 @@ if init_nmf
     param0.posD = 1;
     param0.posAlpha = 1;
     param0.iter = 200;
+    param0.D = max(1+randn(N,K),0) + 0.1;
+    
     D = mexTrainDL(X, param0);
 elseif init_rand
     
@@ -67,12 +69,6 @@ pt=getoptions(options,'plot_dict',0);
 if pt
     figure
     dbimagesc(D+0.001);
-    drawnow
-end
-pt2=getoptions(options,'plot_dict2d',0);
-if pt2
-    figure
-    displayPatches(options.deWhiten*D);
     drawnow
 end
 
@@ -119,10 +115,9 @@ cost = 0;
 
 
 ptheta = struct;
-ptheta.sigma = 2;
+ptheta.sigma = 1;
 ptheta.hn = 11;
-ptheta.lambda = 0.001;
-ptheta.lambdat = 0.001;
+ptheta.lambda = 0.1;
 ptheta.lambdar = 0.00001;
 
 options.lambda_t = ptheta.lambda;
@@ -130,26 +125,24 @@ options.lambda_tr = ptheta.lambdar;
 options.hn = ptheta.hn;
 options.sigma = ptheta.sigma;
 
-D1 =D0;
+if M<=batchsize
+    data = X;
+    p = 1;
+    beta = 0;
+    niters = 20;
+end
 
 for n=1:niters
     
-    
-%     disp('diffrerence with initial dic')
-%     norm(D-D0,'fro')/norm(D0,'fro')
-%     
-%     
-%     disp('diffrerence with previous dic')
-%     norm(D-D1,'fro')/norm(D1,'fro')
-    
-    
     %update synthesis coefficients
+    if M>batchsize
     init= mod( n, floor(M/batchsize)-1);
     init_batch = batchsize*II(1+init);
     I0 = init_batch:(init_batch+batchsize-1);
     data=X(:,I0);
+    end
     
-    
+    %data = X(:,1+init:batchsize+init);
 %     update_t0=getoptions(options,'update_t0',0);
 %     if mod(n,update_t0)==update_t0-1
 %         t0 = getoptions(options,'alpha_step',0.25);
@@ -158,20 +151,18 @@ for n=1:niters
     
     
     % [alpha,cost_aux] = time_coeffs_update( D, data, options,t0);
-%     alpha = zeros(K,size(data,2));
-%     theta = alpha;
-%     for j = 1:3
-%         
-%         [alpha,cost_aux,Salpha] = nmf_optflow( data, D, theta, options);
-%         
-%         if use_flow
-%             %theta = optflow_taylor2(alpha, ptheta,theta);
-%             theta = optflow_taylor_temp(alpha, ptheta);
-%         end
-%         
-%     end
-    
-    [alpha,cost_aux,Salpha] = nmf_optflow_smooth(data,D,options,ptheta);
+    alpha = zeros(K,size(data,2));
+    theta = alpha;
+    for j = 1:3
+        
+        [alpha,cost_aux,Salpha] = nmf_optflow( data, D, theta, options);
+
+        if use_flow
+        %theta = optflow_taylor2(alpha, ptheta,theta);
+        theta = optflow_taylor_temp(alpha, ptheta);
+        end
+        
+    end
 
     cost = cost + cost_aux;
     
@@ -183,15 +174,14 @@ for n=1:niters
 %    update the dictionary every p mini-batches
     if mod(n,p)==p-1
         
-        beta = (1-(p-1)/n).^rho;
+        if M>batchsize
+            beta = (1-(p-1)/n).^rho;
+        end
         
         A = beta * A + 1/p/batchsize*Aaux;
         B = beta * B + 1/p/batchsize*Baux;
         
-        D1 = D;
         D = dictionary_update( D,  A,B,options);
-        
-        
         
         Aaux= zeros(size(Aaux));
         Baux= zeros(size(Baux));
@@ -199,14 +189,14 @@ for n=1:niters
         
         rast=rast+1;
         
-        if 1%mod(n,p)==ch-1
-            fprintf('done chunk %d of %d\n',n,niters )
+        if mod(n,ch)==ch-1
+            fprintf('done chunk %d of %d\n',ceil(n/ch),chunks )
         end
         
         fprintf('Average costs %f \n', cost/p );
         cost = 0;     
         
-        if pt
+        if 1
         figure(3)
 %         dbimagesc(D+0.001);
         subplot(311)
@@ -217,19 +207,8 @@ for n=1:niters
         dbimagesc(data+0.001);
         drawnow
         end
-        if pt2
-        figure(3)
-%         dbimagesc(D+0.001);
-        subplot(311)
-        imagesc(alpha)
-        subplot(312)
-        imagesc(Salpha)
-        subplot(313)
-	displayPatches(options.deWhiten*data);
-        drawnow
-        end
         
-        save temp_dic D D0 options 
+        %save temp_dic D options 
         
     end
     

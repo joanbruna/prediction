@@ -5,16 +5,22 @@
 \documentclass{article}
 \usepackage{spconf,amsmath,graphicx}
 
+\usepackage{anyfontsize}
+
 \usepackage{fixltx2e}
 \usepackage{overpic}
 \usepackage{multirow}
 \usepackage{graphicx} % more modern
 %\usepackage{epsfig} % less modern
-\usepackage{subfigure}
+\usepackage{subfig}
 \usepackage{sidecap}
 \usepackage{url}
-
+\usepackage[applemac]{inputenc}
+\usepackage{pst-sigsys}
+\usepackage{tabularx}
 \usepackage{xfrac}
+\usepackage{float}
+\restylefloat{table}
 
 % For algorithms
 \usepackage{algorithm}
@@ -23,8 +29,8 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{color}
-\usepackage{subfigure}
-\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{subfig}
+%\usepackage[font=small,labelfont=bf]{caption}
 
 % Example definitions.
 % --------------------
@@ -42,7 +48,7 @@
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\RR}{\mathbb{R}}
 \newcommand{\CC}{\mathbb{C}}
-\newcommand{\red}[1]{{#1}}
+%\newcommand{\red}[1]{{#1}}
 %\newcommand{\red}[1]{\textcolor{red}{#1}}
 \newcommand{\tr}{\mbox{tr}}
 
@@ -95,7 +101,7 @@
 \name{Joan Bruna, Pablo Sprechmann, Yann LeCun}
 \address{New York University\\
 	Courant Instittute of Mathematical Sciences\\
-	\{bruna, pablo, yann\}@cs.nyu.edu}
+	\{bruna, pablo\}@cims.nyu.edu, yann@cs.nyu.edu}
 %
 % For example:
 % ------------
@@ -106,15 +112,14 @@
 % Two addresses (uncomment and modify for two-address case).
 % ----------------------------------------------------------
 %\twoauthors
-%  {A. Author-one, B. Author-two\sthanks{Thanks to XYZ agency for funding.}}
-%	{School A-B\\
-%	Department A-B\\
-%	Address A-B}
-%  {C. Author-three, D. Author-four\sthanks{The fourth author performed the work
-%	while at ...}}
-%	{School C-D\\
-%	Department C-D\\
-%	Address C-D}
+%  {Joan Bruna, Pablo Sprechmann}
+% {New York University\\
+%%	Courant Instittute of Mathematical Sciences\\
+%	\{bruna, pablo\}@cims.nyu.edu}
+%  {Yann Lecun}
+%	{New York University and Facebook Inc.\\
+%%	Courant Instittute of Mathematical Sciences\\
+%	yann@cs.nyu.edu}
 %
 \begin{document}
 %\ninept
@@ -122,15 +127,15 @@
 \maketitle
 %
 \begin{abstract}
-This paper presents a single channel source separation method
-that extendes the approach of Nonnegative Matrix Factorization (NMF).
+This paper presents a single-channel source separation method
+that extendes the ideas of Nonnegative Matrix Factorization (NMF).
 We interpret the approach of audio demixing via NMF as a cascade of a pooled analysis operator, given
 for example by the magnitude spectrogram, and a synthesis operators given bye the matrix decomposition.
 Instead of imposing the temporal consistency of the decomposition through
 sophisticated structured penalties in the synthesis stage,
 we propose to change the analysis operator for a deep scattering representation. This new signal representation is
-invariant to smooth changes in the signal, consistent with the temporal dynamics.
-The proposed approach is evaluate in a speech enhancement task producing promising results.
+invariant to smooth changes in the signal, consistent with its temporal dynamics.
+We evaluate the proposed approach in a speech separation task obtaining promising results.
 \end{abstract}
 %
 \begin{keywords}
@@ -144,11 +149,14 @@ source separation, scattering, non-negative matrix factorization.
 \input{algo}
 \input{results}
 
+% a
+
 % References should be produced using the bibtex program from suitable
 % BiBTeX files (here: strings, refs, manuals). The IEEEbib.bst bibliography
 % style file from IEEE produces unsorted bibliography list.
 % -------------------------------------------------------------------------
 \bibliographystyle{IEEEbib}
-\bibliography{refs}
+
+\selectfont \bibliography{refs}
 
 \end{document}

@@ -12,6 +12,7 @@ J1 = size(filts{1}.psi,2);
 %os = getoptions(options,'os',1);
 %T = getoptions(options,'T',4096);
 %dse = getoptions(options,'dse',round(T*2^(-floor(J/Q)-os)));
+dohaar=getoptions(options,'dohaar',1);
 
 [N, L]=size(in);
 %Neff = floor(N/dse);
@@ -40,7 +41,7 @@ U=abs(scratch.X{1});
 
 [K1, Neff, L]=size(U);
 
-if 1
+if dohaar
 
 Utmp = U(:,:);
 
@@ -66,6 +67,7 @@ Ubis = U;
 K1bis=K1;
 end
 scratch.K1bis = K1bis;
+scratch.dohaar=dohaar;
 
 Ubis = permute(Ubis, [2 1 3]);
 Utmp = Ubis(:,:);
@@ -106,6 +108,7 @@ scratch.K2bis = K2bis;
 Utmp = reshape(Utmp, size(Utmp,1), K1bis*K2bis, L);
 %Utmp(:,end+1,:)=S0;
 S = permute(Utmp,[2 1 3]);
+S=abs(S);
 
 
 

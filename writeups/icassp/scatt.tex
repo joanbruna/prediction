@@ -2,7 +2,7 @@
 \label{scattsec}
 
 Discriminative features having longer temporal context can be constructed with the 
-scattering transform \cite{pami, deepscatt}. 
+scattering transform \cite{deepscatt,pami}. 
 This section reviews its definition and main properties when applied to speech signals.
 
 \subsection{Wavelet Filter Bank}
@@ -10,23 +10,19 @@ This section reviews its definition and main properties when applied to speech s
 A wavelet $\psi (t)$ is a band-pass filter with good frequency and spatial localization.
  We consider a complex wavelet with a quadrature phase, 
 whose Fourier transform satisfies
-$\widehat \psi(\om) \approx 0$ for $\om < 0$.
-We assume that the center frequency of $\widehat \psi$ is $1$ and 
+$\mathcal{F} \psi(\om) \approx 0$ for $\om < 0$.
+We assume that the center frequency of $\mathcal{F} \psi$ is $1$ and 
 that its bandwidth is of the order of $Q^{-1}$. 
 Wavelet filters centered
 at the frequencies $\lambda = 2^{j/Q}$ are computed by dilating $\psi$:
-\begin{equation}
-\label{psidilation}
-\psi_\la (t) = \la\, \psi(\la\, t)~~\mbox{and hence}~~
-\widehat \psi_\la (\om) = \widehat \psi(\la^{-1} \omega)~.
-\end{equation}
+$\psi_\la (t) = \la\, \psi(\la\, t)$, and hence $\mathcal{F} \psi_\la (\om) = \widehat \psi(\la^{-1} \omega)$.
 We denote by $\Lambda$ the index set of $\la = 2^{j/Q}$ over
 the signal frequency support, with $j \leq J$, 
 and we impose that these filters fully cover the positive frequencies:
 \begin{equation}
 \label{consdf}
 \forall \om \geq 0~,~ 1- \epsilon 
-\leq |\widehat{\phi}(\omega)|^2 + \frac 1 2 \sum_{\la \in \Lambda} |\widehat{\psi}_{\lambda}(\omega)|^2 \leq 1~,
+\leq |\mathcal{F}{\phi}(\omega)|^2 + \frac 1 2 \sum_{\la \in \Lambda} |\mathcal{F}{\psi}_{\lambda}(\omega)|^2 \leq 1~,
 \end{equation}
 for some $\epsilon <1$, where $\phi(t)$ is the lowpass filter carrying the 
 low frequency information at scales larger than $2^J$.
@@ -45,19 +41,19 @@ Thanks to (\ref{consdf}), one can verify that
 
 Scattering coefficients provide a nonlinear representation 
 computed by 
-iterating over wavelet transforms and a modulus. 
+iterating over wavelet transforms and complex modulus nonlinearities. 
 First order scattering coefficients
-are local averages of wavelet coefficient amplitudes:
+are local averages of wavelet amplitudes:
 \[
 \forall \la \in \La~~,~~S x(t,\la) = |\, x \ast \psi_\la| \ast \phi(t)~. 
 \]
 The Q-factor $Q_1$ adjusts the frequency resolution of 
 these wavelets, and for speech it is typically around $Q_1=32$.
  Due to the temporal average, first order scattering coefficients 
-provide no information on the time-variation of the scalogram
+provide no information on the time variation of the scalogram
 $|x \ast \psi_{\la_1} (t)|$ at temporal scales smaller than $2^J$. 
 It averages all modulations and 
-transient events, and thus lose perceptually important information.
+transient events, and thus loses perceptually important information.
  
 Second order scattering coefficients recover information on
 audio modulations and pitch temporal variations by computing
@@ -72,10 +68,9 @@ specify the amplitude modulations of $x(t)$ \cite{deepscatt} and
 thus have the capacity to detect rythmic structures appearing at different 
 frequency bands. 
 The Q-factor $Q_2$ of the second family of wavelets $\psi_{\la_2}$ 
-controls the time-frequency resolution of the transform. Smaller $Q_2$ 
-results in wavelets with good temporal resolution, and thus
-allows us to accurately measure the sharp transitions of
-amplitude modulations. 
+controls the time-frequency resolution of the transform. 
+Since the envelopes $| x \ast \psi_\la|$ have bandwidth $\sim 2^{-j} Q_1^{-1}$, 
+one typically chooses dyadic $Q_2=1$ second order wavelets.
 Scattering coefficients have a negligible amplitude for
 $\la_2 > \la_1$ because $|x \ast \psi_{\la_1}|$ is a regular envelop
 whose frequency support is below $\la_2$ \cite{pami}. 

@@ -1,35 +1,48 @@
 \section{Source Separation Algorithm}
 \label{algosec}
 We show in this section how the inverse problem of source separation 
-can be solved via a sparse coding in the scattering domain, followed by phase recovery.
-
+can be solved via a sparse NMF in the scattering domain, followed by phase recovery.
 We consider the supervised 
-monoaural source separation problem, in which one observes mixtures 
-\begin{equation}
-\label{ssep}
-x(t) = x_1(t) + x_2(t)~,
-\end{equation}
-where $x_i$ come from sources from which we assume training data $X_i=\{x_{ij}\}_{j \leq K}$, 
+monoaural source separation problem (\ref{ssep}), 
+ in which the components $x_i$, $i=1,2$ come from sources for 
+ which we have training data $X_i=\{x_{ij}\}_{j \leq K}$, 
 and one is asked to produce estimates $\widehat{x_i}$. 
-For example, we might consider a male-vs-female separation task, by 
-collecting male and female training examples. 
 
 The supervision provides  prior information on the nature of each of the 
 components. However, high-dimensional speech signals have large variability, 
 most of which is uninformative for the purposes of estimating $x_i$ in (\ref{ssep}).
 The training data can be exploited more efficiently in the scattering domain, since 
 intra-class variability given by small pitch and timber variations is linearized up to 
-larger temporal scales without loosing as much discriminative information as 
+ temporal scales $2^J$ without loosing as much discriminative information as 
 the spectrogram \cite{deepscatt,pami}.
 
+\begin{table*}[t]
+\centering
+\begin{tabular}{l|c|c|c || c |c |c }
+  \hline\hline
+  & \multicolumn{3}{c||}{Speaker-Specific} & \multicolumn{3}{c}{Multi-Speaker} \\
+  \hline
+ & SDR & SIR & SAR & SDR & SIR & SAR\\
+\hline
+NMF  & 5.6 [1.8] & 13.4 [2.8] &   6.9 [1.3] & 6.1 [2.9] &   14.1 [3.8] & 7.4 [2.1] \\
+\hline
+\emph{scatt-NMF\textsubscript{1}} & 8.6 [1.7]  & {\bf 16.8} [3.3]  & 9.6 [1.4] &  6.2 [2.8] &   13.5 [3.5] & 7.8 [2.2] \\
+\emph{scatt-NMF\textsubscript{2}} &  {\bf 8.9} [1.5] & {\bf 16.8} [2.4]  & {\bf 9.9} [1.3]  &  {\bf 6.9} [2.7] & {\bf 16.0} [3.5]  & {\bf 7.9} [2.2] \\
+  \hline
+  \hline
+\end{tabular}
+\caption{Separation with speakers-specific and multi-speaker settings. Average SDR, SIR and SAR (in $dB$) for NMF and proposed  and \emph{scatt-NMF\textsubscript{2}}. Standard deviation of each result shown between brackets. \label{ta:eval}}
+\vspace{-2ex}
+\end{table*}
+
+
 Let $\Phi(X_i)$ be the scattering representation of the training examples of each 
-source. We consider a non-linear approximation of each source using non-Negative
-matrix factorization:
+source. We consider a non-linear approximation of each source using sparse NMF:
 \begin{equation}
 \min_{D_i\geq 0, Z_i\geq 0} \frac{1}{2} \| \Phi(X_i) - D_i \, Z_i \|_F^2 + \lambda \| Z_i \|_1~.
 \end{equation}
 This model exploits the linearization properties of scattering coefficients since it 
-searches low-dimensional locally linear approximations. 
+searches low-dimensional linear approximations. 
 
 At test time, given and input $x$, $x_1$ and $x_2$ are estimated by minimizing
 \begin{equation}
@@ -40,21 +53,21 @@ Problem (\ref{model}) is minimized with an alternating gradient descent between 
 Fixing $z_i$ and minimizing with respect to $x'_i$ requires locally inverting the scattering 
 operator $\Phi$, which amounts to solve an overcomplete phase recovery problem and 
 can be solved with gradient descent, as shown in \cite{bruna2013audio}. 
-Fixed $x'_i$, solving for $z_i$ is a standard $\ell_1$ sparse coding problem, which can be solved 
-efficiently with proximal splitting algorithms. In this work, we use the LARS algorithm. 
+Fixed $x'_i$, solving for $z_i$ is a standard $\ell_1$ non-negative sparse coding problem, which can be solved 
+efficiently with proximal splitting algorithms. In this work, we use the LARS algorithm using the SPAMS package \cite{mairal2009online}. 
  
 %Explain the greedy algorithm.
 When the analysis operator $\Phi$ is able to produce sparse representations of the sources, 
 then 
+{\small
 \begin{eqnarray*}
-\| \Phi(x'_1) - D_1 z_1 \|_2^2 + \| \Phi(x'_2) - D_2 z_2 \|^2 &\approx& \\
-\| \Phi(x'_1) + \Phi(x'_2) - \sum_{i=1,2} D_i z_i \|_2^2 &\approx& \\
- \| \Phi(x) - D_1 z_1 - D_2 z_2 \|_2^2 ~,
-\end{eqnarray*}
+&&\| \Phi(x'_1) - D_1 z_1 \|_2^2 + \| \Phi(x'_2) - D_2 z_2 \|^2 \approx \\
+&&\| \Phi(x'_1) + \Phi(x'_2) - \sum_{i=1,2} D_i z_i \|_2^2  \approx \| \Phi(x) - D_1 z_1 - D_2 z_2 \|_2^2 ~,
+\end{eqnarray*}}
 which can be used in practice to produce a greedy initialization for (\ref{model}) as follows. 
 We first obtain $\widehat{\Phi(x_i)}= D_i z^*_i$, where the $z^*_i$ are defined as 
 $$z^*_i = \arg\min_{z_i} \frac{1}{2}\| \Phi(x) - \sum_{i=1,2} D_i z_i \|_2^2 +\lambda \| z_i \|_1~.$$
-Since the scattering $\Phi(x)$ is defined as \\$\Phi(x)= \{ A |W_1 x | \,,\, A | W_2 | W_1 x | | \}$, 
+Since the scattering satisfies {\small $\Phi(x)= \{ A |W_1 x | \,,\, A | W_2 | W_1 x | | \}$}, 
 where $A$ is the lowpass filter and $W_1$ and $W_2$ are respectively the first and 
 second layer wavelet decompositions, we can produce an estimate $\widehat{x}_i$ from 
 $\widehat{\Phi(x_i)}$ by using the complex phases of $W_1 x$ and $W_2 |W_1 x|$.

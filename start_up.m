@@ -10,3 +10,4 @@ addpath scripts/
 addpath benchmanrk_nmf_separation/
 addpath standard_tests/
 addpath bss_eval/
+addpath scatt/

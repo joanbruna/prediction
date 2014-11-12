@@ -9,6 +9,7 @@ function [Dout, Dgnout] = twolevelDL_gpu(Xin, options)
 
 %Joan Bruna 2014 Courant Institute
 
+Xin = Xin(:,1:end-1);
 
 [N,M]=size(Xin);
 
@@ -99,7 +100,11 @@ tlambdagn = t0gn * lambdagn;
 niters=round(nepochs*M/(batchsize));
 epochn=round(niters/nepochs);
 
-X=X(:,1:M);
+nepochs
+batchsize
+niters
+epochn
+
 
 t=1;
 
@@ -225,7 +230,8 @@ for n=1:epochn
 		cost(5) = .5*beta*norm(lout,'fro')^2;
 		cost(6) = .5*nu*betagn*norm(Zgn,'fro')^2;
 		fprintf(' -- it %d totcost %4.2f [ %4.2f %4.2f %4.2f %4.2f ] \n',i+1, sum(cost), cost(1)/(.5*norm(data,'fro')^2),cost(2), cost(3), cost(4))
-		end
+		
+        end
 	end
 
 	%%%%%%%update D%%%%%%%
@@ -247,6 +253,7 @@ for n=1:epochn
 	%%%%%%%%%%%%%%%
 
 	%%%%%update Dgn%%%%%%
+    if nu > 0
 	Agn = (((n-1)/n)^rho)*Agn + Zgn*Zgn';
 	Bgn = (((n-1)/n)^rho)*Bgn + Poole*Zgn';
 	if 1 
@@ -261,7 +268,8 @@ for n=1:epochn
 	Dgn(:,Ipg(j)) = u / max(1, norm(u));
 	end
 	end
-	end
+    end
+    end
 	%%%%%%
 	
 	if 1
@@ -276,14 +284,14 @@ for n=1:epochn
 	t0gn = t00 * (1/(betagn+(max(svd(Dgn))^2)));
 	tlambdagn = t0gn * lambdagn;
 	%%%%%
-	end
+    end
 
-
-	if plotstuff 
+    plotstuff = 0;
+	if plotstuff
 	caccum=[caccum sum(cost)];
-	if mod(n,16)==15
-	figure(1);
-	plot(caccum);drawnow;
+	if mod(n,16)==1
+ 	figure(1);
+ 	plot(caccum);drawnow;
 	figure(2);imagesc(D);drawnow;
 	figure(3);imagesc(Dgn);drawnow;
 	end

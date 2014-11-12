@@ -1,8 +1,9 @@
-function [y,z] = nmf_semisup(X,D,W,A,options)
+function [y,z,obj] = nmf_semisup(X,D,W,A,options)
 
-tau =0.5;
-iters=400;
-%iters = getoptions(options,'iter',iters);
+%tau =0.5;
+tau = getoptions(options,'tau',0);
+%iters=400;
+iters = getoptions(options,'iter',400);
 
 %alpha=getoptions(options,'iir_param',(.02)^(1/size(X,2)));
 % alpha = 0.9;
@@ -83,17 +84,14 @@ for i=1:iters
     newout = mexProximalFlat(aux_y, tparam);
     
     y = newout;
-% 	newt = (1+ sqrt(1+4*t^2))/2;
-% 	y = newout + ((t-1)/newt)*(newout-out);
-% 	out=newout;
-% 	t=newt;
     
-    obj(i) = compute_obj(X,[y;z],D,W,options);
+    %obj(i) = compute_obj(X,[y;z],D,W,options);
     
 %     compute_obj(X,[y;z],D,W,options,A)
     
 end
 %keyboard
+
 end
 
 

@@ -11,9 +11,9 @@ by modeling the speech at an appropriate temporal resolution.
 
 The decomposition of time-frequency representations, such as the power or magnitude spectrogram
 in terms of elementary atoms of a dictionary, has become a popular tool in audio processing. 
-Non-negative matrix factorization (NMF) \cite{NMF, smaragdis2006probabilistic},
+Non-negative matrix factorization (NMF) \cite{NMF},
 have been widely adopted in various audio processing tasks, including in particular source separation, see \cite{smaragdis2014static} for a recent review. 
-There are many works that follow this line in speech separation \cite{schmidt06speechseparation,shashanka_icassp07} and enhancement \cite{JoderWEVS12,DuanMS12,schmidt07mlsp,mohammadiha2013supervised}. %and robust automatic speech recognition \cite{GemmekeVH11,WeningerWGSGHVR12},
+There are many works that follow this line in speech separation \cite{schmidt06speechseparation,shashanka_icassp07} and enhancement \cite{DuanMS12,mohammadiha2013supervised}. %and robust automatic speech recognition \cite{GemmekeVH11,WeningerWGSGHVR12},
 %among many others.
 %bandwidth extension \cite{BansalRS05,HanMP12} and speaker recognition \cite{wu2010robust,joder2012exploring}.
 
@@ -31,10 +31,13 @@ In plain NMF, signals that can be well approximated with the learned dictionary 
 likely to resemble the training data on a frame by frame manner. They might, however, 
 not be temporally consistent at larger temporal scales.
  Standard NMF approaches treat different time-frames independently, ignoring the 
-temporal dynamics of the signals. In other words, there is additional structure in speech at a time-scale larger than
-the frame-length that cannot be learned (or exploited) with NMF. In order to overcome this limitation,  
+temporal dynamics of the signals. 
+%In other words, there is additional structure in speech at a time-scale larger than
+%the frame-length that cannot be learned (or exploited) with NMF. 
+In order to overcome this limitation,  
 %and achieve consistency at a larger temporal scale,
-many works have proposed regularized extensions of NMF to promote learned (or designed) structure in the codes. Examples of these approaches are, temporal smoothness of the activation coefficients \cite{fevotte2011majorization}, including  co-occurrence statistics of the basis functions \cite{WilsonRSD08}, and learned temporal dynamics \cite{MysoreS11,HanMP12,icassp13a,mohammadiha2013nonnegative}.
+many works have proposed regularized extensions of NMF to promote learned structure in the codes. 
+Examples of these approaches are, temporal smoothness of the activation coefficients \cite{fevotte2011majorization}, including  co-occurrence statistics of the basis functions \cite{WilsonRSD08}, and learned temporal dynamics \cite{MysoreS11,HanMP12,icassp13a}.
 %Recent studies have proposed regularized variants of NMF or PLCA trying to overcome this limitation,
 
 NMF-based source separation methods can be thought as the concatenation of two operators.
@@ -46,10 +49,11 @@ Then a synthesis operator, given by the dictionary learning stage, is applied to
 Performing the separation in the non-linear representation is key to the success of the algorithm. The magnitude STFT is in general sparse (simplifying the separation process) and invariant to variations in the phase, thus relieving the NMF from
 learning this irrelevant variability. 
 This comes at the expense of inverting the unmixed estimates in the feature space, normally known as the
-phase recovery problem \cite{yonina}. In the case of standard NMF, this is easily done via Wiener filtering technique discussed in Section \ref{sec:nmf}.
+phase recovery problem \cite{yonina}. In the case of standard NMF, this is 
+typically done via Wiener filtering. 
 
-In this work, rather than seeking a coding scheme with improved temporal coherence, 
-we concentrate in extracting discriminative and stable speech features. 
+In this work, rather than optimizing a coding scheme with improved temporal coherence, 
+we concentrate in the extracton of discriminative and stable features. 
 For that purpose, it is crucial to increase the temporal context of the representation, 
 reducing uninformative variability while preserving distinctive speech characteristics.
 Increasing the temporal scale of STFT or MEL representations results 
@@ -63,19 +67,21 @@ Scattering transforms achieve state-of-the-art results on auditory texture discr
 Recently they have been considered in the setting of blind source separation in \cite{stephane_bss}, 
 but here we concentrate in the supervised (and semi-supervised) framework.
 A dictionary learnt to represent the signal in this deep representation implicitly learns the short term temporal dynamics of the signal,
-capitalizing on the stability properties of scattering coefficients.
+capitalizing on the stability properties of scattering coefficients \cite{pami}.
 
 %Scattering transforms have recently been introduced \cite{XX} to represent audio signals and images, A scattering transform iterates on complex wavelet transforms and modulus operators which compute their envelop. It has close relations with psychophysical and physiological models \cite{XX}. %Their success in audio classification comes from the fact that they can reduce the intra class variability (like temporal redundancy).
 
 Our claim is that an important part of the consistency that is imposed via structured NMF, can be eliminated with a better signal representation.
-In this new setting one can learn the temporal dynamics with a very simple NMF encoding. However, the problem that becomes
-more difficult is that of inverting the representation. Recent studies in textured sound synthesis from scattering
+In this new setting one can learn the temporal dynamics with a very simple NMF encoding. 
+However, the problem that becomes
+more difficult is that of inverting the non-linear representation. 
+Recent studies in textured sound synthesis from scattering
 moments have solved this problem successfully using gradient descent algorithms \cite{bruna2013audio}.
-
 Synthesis models with coherent dictionaries are known to be highly unstable representations \cite{jenatton2012local}. 
-Thus, training them to satisfy slowness and temporal consistency can be challenging. For example, in \cite{icassp13a}
-the authors explain that the learning the temporal dynamics in NMF via a Kalman type of model, can become very difficult
-when the coding is sparse due to the instability and jitter in the codes.
+Thus, training them to satisfy slowness and temporal consistency can be challenging. 
+%For example, in \cite{icassp13a}
+%the authors explain that the learning the temporal dynamics in NMF via a Kalman type of model, can become very difficult
+%when the coding is sparse due to the instability and jitter in the codes.
 In contrast, analysis operators are stable by construction.
 
 Section \ref{nmfsec} reviews non-negative matrix factorization, while Section \ref{scattsec} describes scattering 

@@ -216,24 +216,25 @@ for i=1:itersout
 
 	else
 
-	%	tmp = y - t0*(Dsq * y - DX + beta*y + nu*dy);
-	%	if nmf
-	%	tmp = max(0,tmp);
-	%	end
-	%	aux=sqrt(conv2(tmp.^2,box,'valid'));
-	%	tPool=aux(1:f1:end,1:f2:end);	
-	%	dPool = max(0,tPool-tlambda);
-	%	aux=0*aux;
-	%	aux(1:f1:end,1:f2:end)=dPool./(eps+tPool);
-	%	new=conv2(aux,box,'full').*tmp;
-	%
-	%	newt = (1+ sqrt(1+4*t^2))/2;
-	%	y = new + ((t-1)/newt)*(new-lout);
-	%	lout=new;
+        %tmp = y - t0*(Dsq * y - DX + beta*y + nu*dy);
+% 	%	tmp = 2*y1 - yo1(:,:,k) - t01*(Dsq1 * y1 - DX1 + beta*y1 + nu*dy1 + D12*y2);
+%         if nmf
+%             tmp = max(0,tmp);
+%         end
+%         aux=sqrt(conv2(tmp.^2,box,'valid'));
+%         tPool=aux(1:f1:end,1:f2:end);
+%         dPool = max(0,tPool-tlambda);
+%         aux=0*aux;
+%         aux(1:f1:end,1:f2:end)=dPool./(eps+tPool);
+%         new=conv2(aux,box,'full').*tmp;
+%         
+%         newt = (1+ sqrt(1+4*t^2))/2;
+%         y = new + ((t-1)/newt)*(new-lout);
+%         lout=new;
 	end
 	
 	end
-		newt = (1+ sqrt(1+4*t^2))/2;
+	newt = (1+ sqrt(1+4*t^2))/2;
 
 	tmpgn = Zgn1  - t01gn *(Dgnsq1 * Zgn1 - Dgn1'*Poole1 + betagn * Zgn1);	
 	tmpgn = (tmpgn > tlambdagn1).*(tmpgn - tlambdagn1);
@@ -266,8 +267,14 @@ for i=1:itersout
 end
 
 Zout1=gather(lout1);
+if size(Zout1,2)<M
+Zout1(:,end:M) = 0;
+end
 Zgnout1 = gather(Zgn1);
 Zout2=gather(lout2);
+if size(Zout2,2)<M
+Zout2(:,end:M) = 0;
+end
 Zgnout2 = gather(Zgn2);
 
 end

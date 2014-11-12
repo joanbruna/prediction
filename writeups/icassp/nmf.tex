@@ -4,19 +4,23 @@
 %
 We consider the setting in which we are given a temporal signal $x(t)$ that is the sum of  
 two speech signals $x_i(t)$, $i=1,2$:
-$$ x(t) = x_1(t) + x_2(t),$$
+\begin{equation}
+\label{ssep}
+x(t) = x_1(t) + x_2(t)~,
+\end{equation}
 and we aim at finding estimates $\widehat{x_i}(t)$.
 NMF-based source separation 
-techniques typically operate on a (non-negative) time-frequency representation of $x(t)$ (such as the spectrogram or the power spectrum)
+techniques typically operate on a non-negative time-frequency representation of $x(t)$, 
+such as the spectrogram or the power spectrum,
 that we denote as $\Phi(x) \in \RR^{m \times n}$, comprising $m$ frequency bins and $n$ temporal frames. 
-NMF attempts to find the non-negative activations $\bb{Z}_i \in \RR^{q \times n}$, $i=1,2$ 
+NMF attempts to find the non-negative activations $Z_i \in \RR^{q \times n}$, $i=1,2$ 
 best representing the different speech components in two dictionaries ${D}_{i} \in \RR^{m \times q}$.
 %
 This task is achieved through the solution of %the minimization problem
 \begin{eqnarray}
 \label{eq:optim_general}
-\min_{ \bb{Z}_i \ge \bb{0}  } \mu( \Phi(x) |  \, \sum_{i=1,2} {D}_i \bb{Z}_{i}  ) + 
-\lambda\, \sum_{i=1,2} \mathcal{R}(\bb{Z}_i)~.
+\min_{ Z_i \ge 0 } D( \Phi(x) |  \, \sum_{i=1,2} {D}_i Z_i  ) + 
+\lambda\, \sum_{i=1,2} \mathcal{R}(Z_i)~.
 \end{eqnarray}
 The first term in the optimization objective measures the dissimilarity between the input data and the estimated channels. 
 %Typically, this data fitting term is assumed to be separable,  
@@ -43,12 +47,12 @@ In this work we concentrate on a reweighted Euclidean distance, but any other op
 %the Kullback-Leibler divergence ($\beta=1$), and the Itakura-Saito divergence ($\beta=0$).
 %For $\beta \ge 1$, the divergence is convex. The case of $\beta=0$ is attractive despite the lack of convexity, due to the scale-invariance of the Itakura-Saito divergence, which makes the NMF procedure insensitive to volume changes
 %
-The second (optional) term in the minimization objective is included to promote some desired structure of the activations. This is done using a designed regularization function $\mathcal{R}$ 
-and its relative importance is controlled by the parameters $\lambda$. 
-
+The second term in the minimization objective is included to promote some desired structure of the activations. 
 Once the optimal activations are solved for, the spectral envelopes of the speech and the noise are 
-estimated as $ {D}_{i} \bb{Z}_{i}$. Since these estimated speech spectrum envelope contains no phase information, 
-they are used to build soft masks to filter the signals mixture signal \cite{schmidt07mlsp}.
+estimated as $ {D}_{i} Z_{i}$. Since these estimated speech spectrum envelope contain no phase information, 
+they are used to build soft masks to filter the mixture signal \cite{schmidt07mlsp}.
+%This is done using a designed regularization function $\mathcal{R}$ 
+%and its relative importance is controlled by the parameters $\lambda$. 
 %Since these estimated speech spectrum envelope contains no phase information, speech signal is estimated
 %from the mixture by Wiener filtering. 
 
