@@ -6,8 +6,8 @@ im2 = imdb2.images.data(:,:,:,batch2) ;
 
 im_mix = im1 + im2;
 
-im = abs(im_mix);
-im = softNormalize(im,epsilon,3);
+im = sqrt(im_mix(:,:,1,:).^2 + im_mix(:,:,2,:).^2);
+im = softNormalize(im,epsilon);
 
 im1 = single(im1);
 im2 = single(im2);

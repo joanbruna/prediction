@@ -1,93 +1,74 @@
+clear
+close all
 
+addpath('../utils/')
+
+run('/home/bruna/matlab/matconvnet/matlab/vl_setupnn.m') ;
+
+C = 100;
+use_single = 1;
 
 representation = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/spect_fs16_NFFT1024_hop512/TRAIN/';
 
+load([representation 'female.mat']);
+name = 'female';
+imdb_f = prepareData_matconvnet(data,C,name,use_single);
+clear data
 
-epsilon = 0.0001;
+load([representation 'male.mat']);
+name = 'male';
+imdb_m = prepareData_matconvnet(data,C,name,use_single);
+clear data
 
 %%
 
-if ~exist('imdb_f','var')
-load([representation 'imdb_female.mat']);
-imdb_f = imdb;
-imdb_f.images.data = single(imdb_f.images.data); 
-imdb_f.images.set = ones(1,size(imdb_f.images.data,4));
-
-load([representation 'imdb_male.mat']) ;
-imdb_m = imdb;
-imdb_m.images.data = single(imdb_m.images.data); 
-imdb_m.images.set = ones(1,size(imdb_m.images.data,4));
-clear imdb;
-end
-%%
-
+NFFT = size(imdb_f.images.data,3);
 net.layers = {};
+filter_num = 1024;
+temp_context = 3;
 
-f = 1/100;
-filter_num = 32;
-filter_sz = 9;
 net.layers{end+1} = struct('type', 'conv', ...
-                           'filters', f*randn(filter_sz,filter_sz,1,filter_num, 'single'), ...
+                           'filters', 1/sqrt(temp_context*NFFT)*randn(1, temp_context, NFFT,filter_num, 'single'), ...
                            'biases', zeros(1, filter_num, 'single'), ...
                            'stride', 1, ...
-                           'pad',floor((filter_sz-1)/2)) ;
-                       
-net.layers{end+1} = struct('type', 'relu') ;
-
-filter_num2 = 16;
-filter_sz = 9;
-net.layers{end+1} = struct('type', 'conv', ...
-                           'filters', f*randn(filter_sz,filter_sz,filter_num,filter_num2, 'single'), ...
-                           'biases', zeros(1, filter_num2, 'single'), ...
-                           'stride', 1, ...
-                           'pad',floor((filter_sz-1)/2)) ;
+                           'pad',[0 0 floor(temp_context/2) floor(temp_context/2)]) ;
 
 net.layers{end+1} = struct('type', 'relu') ;
 
-filter_num3 = 2;
-filter_sz = 5;
 net.layers{end+1} = struct('type', 'conv', ...
-                           'filters', f*randn(filter_sz,filter_sz,filter_num2/2,filter_num3, 'single'), ...
-                           'biases', zeros(1, filter_num3, 'single'), ...
+                           'filters', 1/sqrt(filter_num)*randn(1,1,filter_num,2*NFFT, 'single'), ...
+                           'biases', zeros(1, 2*NFFT, 'single'), ...
                            'stride', 1, ...
-                           'pad',floor((filter_sz-1)/2)) ;
+                           'pad',0) ;
+%   PARAM = [N KAPPA ALPHA BETA], and N is the size of the window. The
 
-net.layers{end+1} = struct('type', 'relu');
-                       
-filter_num4 = 2;
-filter_sz = 3;
-net.layers{end+1} = struct('type', 'conv', ...
-                           'filters', f*randn(filter_sz,filter_sz,1,filter_num4, 'single'), ...
-                           'biases', zeros(1, filter_num4, 'single'), ...
-                           'stride', 1, ...
-                           'pad',floor((filter_sz-1)/2)) ;
-                       
+net.layers{end+1} = struct('type', 'relu') ;
 
-net.layers{end+1} = struct('type', 'filtermask', ...
-                           'p',2) ;
+net.layers{end+1} = struct('type', 'normalize', ...
+                           'param', [2 1e-8 1 0.5]) ;
 
 net.layers{end+1} = struct('type', 'fitting', ...
                            'loss', 'L2') ;
 
-                       
 
 
-opts.expDir = 'matconvnet/data/timit-cnn-test-2' ;
-opts.train.batchSize = 3 ;
-opts.train.numEpochs = 100;
+opts.expDir = '/misc/vlgscratch3/LecunGroup/bruna/audio_bss/dnn/timit-dnn-test-context1/' ;
+opts.train.batchSize = 100 ;
+opts.train.numEpochs = 50;
 opts.train.continue = true ;
-opts.train.useGpu = false ;
-opts.train.learningRate = 0.001;
+opts.train.useGpu = true ;
+opts.train.learningRate = [0.01*ones(1,10), 0.01*ones(1,20), 0.001];
 opts.train.expDir = opts.expDir ;
 
-
 % set validation set
-imdb_m.images.set(end-2*opts.train.batchSize-1:end) = 2;
-imdb_f.images.set(end-2*opts.train.batchSize-1:end) = 2;
+epsilon = 1e-2;
+V = 2;
+imdb_m.images.set(end-V*opts.train.batchSize+1:end) = 2;
+imdb_f.images.set(end-V*opts.train.batchSize+1:end) = 2;
 
-gB    = @(imdb1, imdb2, batch,batch2) getBatch_nmf(imdb1, imdb2, batch,batch2,epsilon);
+gB    = @(imdb1, imdb2, batch,batch2) getBatch_nmf(imdb1, imdb2, batch, batch2,epsilon);
 
+%
 
 [net,info_sc_init] = nmf_train(net, imdb_f, imdb_m, gB,opts.train) ;
 
-                       

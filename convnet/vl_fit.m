@@ -4,6 +4,9 @@ function varargout = vl_fit(X,Ymix,Y1,Y2,dzdy,varargin)
 %
 %
 
+%X is of size [1 x K x 2N x BS]
+%Yi is of size [1 x K x N x BS] (complex)
+
 
 if nargin <= 4
     dzdy = [];
@@ -18,29 +21,24 @@ opts.loss = 'L2';
 opts = vl_argparse(opts, varargin);
 %---------------------------------
 
-n_frames = size(X,2);
+nframes = size(X,2);
 
 switch opts.loss
     case 'L2'
         
-        X1 = repmat(X(:,:,1,:),[1,1,2,1]);
-        X2 = repmat(X(:,:,2,:),[1,1,2,1]);     
+	%keyboard
+	D1 = Ymix.*X(:,:,1:2:end,:) - Y1;
+	D2 = Ymix.*X(:,:,2:2:end,:) - Y2;
         
         if isempty(dzdy)
 
-        varargout{1} = 0.5*sum((Ymix(:).*X1(:) - Y1(:)).^2)/n_frames + 0.5*sum((Ymix(:).*X2(:) - Y2(:)).^2)/n_frames;
-        
+	varargout{1} = 0.5*sum(abs(D1(:)).^2)/nframes + .5 *sum(abs(D1(:)).^2)/nframes; 
         else
-            aux1 = Ymix(:,:,1,:).*( Ymix(:,:,1,:).*X(:,:,1,:) - Y1(:,:,1,:))/n_frames + Ymix(:,:,2,:).*(Ymix(:,:,2,:).*X(:,:,1,:) - Y1(:,:,2,:))/n_frames ;
-            aux2 = Ymix(:,:,1,:).*( Ymix(:,:,1,:).*X(:,:,2,:) - Y2(:,:,1,:))/n_frames + Ymix(:,:,2,:).*(Ymix(:,:,2,:).*X(:,:,2,:) - Y2(:,:,2,:))/n_frames ;
-            
-            varargout{1} = cat(3,aux1,aux2);
-            
+	    Df = zeros(size(X),'single','gpuArray');
+	   Df(:,:,1:2:end,:) = real(conj(Ymix).*D1);
+	   Df(:,:,2:2:end,:) = real(conj(Ymix).*D2);
+	  varargout{1} = Df/nframes;
         end
-        
-        
-        
-        
         
 end
 

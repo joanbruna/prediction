@@ -1,6 +1,5 @@
 
-function imdb = prepareData_matconvnet(data,batchsize,name,use_single)
-
+function imdb = prepareData_matconvnet(data,nframes,name,use_single)
 
 
 imdb.meta.name = name;
@@ -8,21 +7,14 @@ imdb.meta.NFFT = data.NFFT;
 imdb.meta.hop = data.hop;
 imdb.meta.fs = data.fs;
 
+n = floor(size(data.X,2)/nframes);
 
-n = floor(size(data.X,2)/batchsize);
+N = n*nframes;
+A = reshape(data.X(:,1:N),[size(data.X,1),nframes,1,n]);
+A = permute(A, [3 2 1 4]);
 
-N = n*batchsize;
-A = reshape(data.X(:,1:N),[size(data.X,1),batchsize,1,n]);
-
-
-
-B = zeros(size(data.X,1),batchsize,2,n);
-B(:,:,1,:) = real(A);
-B(:,:,2,:) = imag(A);
-
-
-imdb.images.set = ones(1,size(B,4));
-imdb.images.data = B;
+imdb.images.set = ones(1,size(A,4));
+imdb.images.data = A;
 
 if use_single
     imdb.images.data = single(imdb.images.data );

@@ -11,7 +11,7 @@ opts.train2 = [] ;
 opts.val2 = [] ;
 opts.numEpochs = 300 ;
 opts.batchSize = 256 ;
-opts.useGpu = false ;
+opts.useGpu = true ;
 opts.learningRate = 0.001 ;
 opts.continue = false ;
 opts.expDir = 'data/exp' ;
@@ -116,6 +116,9 @@ for t=1:opts.batchSize:numel(val)
     
     if opts.useGpu
         im = gpuArray(im) ;
+	im_mix = gpuArray(im_mix);
+	im1 = gpuArray(im1);
+	im2 = gpuArray(im2);
     end
     
     net.layers{end}.Ymix = im_mix;
