@@ -1,5 +1,6 @@
-clear
 close all
+gpud=gpuDevice(1);
+reset(gpud)
 
 addpath('../utils/')
 
@@ -28,7 +29,7 @@ filter_num = 1024;
 temp_context = 3;
 
 net.layers{end+1} = struct('type', 'conv', ...
-                           'filters', 1/sqrt(temp_context*NFFT)*randn(1, temp_context, NFFT,filter_num, 'single'), ...
+                           'filters', 1/sqrt(10*temp_context*NFFT)*randn(1, temp_context, NFFT,filter_num, 'single'), ...
                            'biases', zeros(1, filter_num, 'single'), ...
                            'stride', 1, ...
                            'pad',[0 0 floor(temp_context/2) floor(temp_context/2)]) ;
@@ -36,12 +37,10 @@ net.layers{end+1} = struct('type', 'conv', ...
 net.layers{end+1} = struct('type', 'relu') ;
 
 net.layers{end+1} = struct('type', 'conv', ...
-                           'filters', 1/sqrt(filter_num)*randn(1,1,filter_num,2*NFFT, 'single'), ...
+                           'filters', 1/sqrt(10*filter_num)*randn(1,1,filter_num,2*NFFT, 'single'), ...
                            'biases', zeros(1, 2*NFFT, 'single'), ...
                            'stride', 1, ...
                            'pad',0) ;
-%   PARAM = [N KAPPA ALPHA BETA], and N is the size of the window. The
-
 net.layers{end+1} = struct('type', 'relu') ;
 
 net.layers{end+1} = struct('type', 'normalize', ...
@@ -50,14 +49,12 @@ net.layers{end+1} = struct('type', 'normalize', ...
 net.layers{end+1} = struct('type', 'fitting', ...
                            'loss', 'L2') ;
 
-
-
 opts.expDir = '/misc/vlgscratch3/LecunGroup/bruna/audio_bss/dnn/timit-dnn-test-context1/' ;
 opts.train.batchSize = 100 ;
 opts.train.numEpochs = 50;
-opts.train.continue = true ;
+opts.train.continue = false ;
 opts.train.useGpu = true ;
-opts.train.learningRate = [0.01*ones(1,10), 0.01*ones(1,20), 0.001];
+opts.train.learningRate = [0.0001*ones(1,10), 0.01*ones(1,20), 0.001];
 opts.train.expDir = opts.expDir ;
 
 % set validation set
