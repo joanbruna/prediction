@@ -104,49 +104,49 @@ info.val.speed(end+1) = 0 ;
 
 modelPath = fullfile(opts.expDir, 'net-epoch-0.mat') ;
 
-% evaluation on validation set
-numel(val)
-for t=1:opts.batchSize:numel(val)
-    batch_time = tic ;
-    batch = val(t:min(t+opts.batchSize-1, numel(val)));
-    batch2 = val2(t:min(t+opts.batchSize-1, numel(val)));
-    fprintf('validation: epoch %02d: processing batch %3d of %3d ...', 0, ...
-        fix(t/opts.batchSize)+1, ceil(numel(val)/opts.batchSize)) ;
-    [im,im_mix, im1,im2] = getBatch(imdb, imdb2, batch,batch2) ;
-    
-    if opts.useGpu
-        im = gpuArray(im) ;
-	im_mix = gpuArray(im_mix);
-	im1 = gpuArray(im1);
-	im2 = gpuArray(im2);
-    end
-    
-    net.layers{end}.Ymix = im_mix;
-    net.layers{end}.Y1 = im1;
-    net.layers{end}.Y2 = im2;
-    res = vl_simplenn(net, im, [], res, ...
-        'disableDropout', true, ...
-        'conserveMemory', opts.conserveMemory, ...
-        'sync', opts.sync) ;
-    
-    % print information
-    batch_time = toc(batch_time) ;
-    speed = numel(batch)/batch_time ;
-    
-    info.val.objective(end) = info.val.objective(end) + sum(double(gather(res(end).x))) ;
-    info.val.speed(end) = info.val.speed(end) + speed ;
-    
-    fprintf(' %.2f s (%.1f images/s)', batch_time, speed) ;
-    fprintf('\n') ;
-end
-
-% save
-
-info.val.objective(end) = info.val.objective(end) / numel(val) ;
-info.val.speed(end) = numel(val) / info.val.speed(end) ;
-save(sprintf(modelPath,0), 'net', 'info') ;
-
-
+%
+%% evaluation on validation set
+%for t=1:opts.batchSize:numel(val)
+%    batch_time = tic ;
+%    batch = val(t:min(t+opts.batchSize-1, numel(val)));
+%    batch2 = val2(t:min(t+opts.batchSize-1, numel(val)));
+%    fprintf('validation: epoch %02d: processing batch %3d of %3d ...', 0, ...
+%        fix(t/opts.batchSize)+1, ceil(numel(val)/opts.batchSize)) ;
+%    [im,im_mix, im1,im2] = getBatch(imdb, imdb2, batch,batch2) ;
+%    
+%    if opts.useGpu
+%        im = gpuArray(im) ;
+%	im_mix = gpuArray(im_mix);
+%	im1 = gpuArray(im1);
+%	im2 = gpuArray(im2);
+%    end
+%    
+%    net.layers{end}.Ymix = im_mix;
+%    net.layers{end}.Y1 = im1;
+%    net.layers{end}.Y2 = im2;
+%    res = vl_simplenn(net, im, [], res, ...
+%        'disableDropout', true, ...
+%        'conserveMemory', opts.conserveMemory, ...
+%        'sync', opts.sync) ;
+%    
+%    % print information
+%    batch_time = toc(batch_time) ;
+%    speed = numel(batch)/batch_time ;
+%    
+%    info.val.objective(end) = info.val.objective(end) + sum(double(gather(res(end).x))) ;
+%    info.val.speed(end) = info.val.speed(end) + speed ;
+%    
+%    fprintf(' %.2f s (%.1f images/s)', batch_time, speed) ;
+%    fprintf('\n') ;
+%end
+%
+%% save
+%
+%info.val.objective(end) = info.val.objective(end) / numel(val) ;
+%info.val.speed(end) = numel(val) / info.val.speed(end) ;
+%save(sprintf(modelPath,0), 'net', 'info') ;
+%
+%
 
 lr = 0 ;
 res = [] ;
@@ -208,17 +208,16 @@ for epoch=1:opts.numEpochs
         fprintf('training: epoch %02d: processing batch %3d of %3d ...', epoch, ...
             fix(t/opts.batchSize)+1, ceil(N/opts.batchSize)) ;
         
-        %[im, labels] = getBatch(imdb, batch) ;
         [im,im_mix, im1,im2] = getBatch(imdb, imdb2, batch,batch2) ;
         
-        %     if opts.prefetch
-        %       nextBatch = train(t+opts.batchSize:min(t+2*opts.batchSize-1, numel(train))) ;
-        %       getBatch(imdb, nextBatch) ;
-        %     end
-        if opts.useGpu
+       if opts.useGpu
             im = gpuArray(im) ;
+	    im1 = gpuArray(im1);
+	    im2 = gpuArray(im2);
+	   im_mix = gpuArray(im_mix);
         end
         
+ 
         % backprop
         net.layers{end}.Ymix = im_mix;
         net.layers{end}.Y1 = im1;
@@ -309,7 +308,6 @@ for epoch=1:opts.numEpochs
         %----------------------------------------------------------------------
 
     % evaluation on validation set
-    numel(val)
     for t=1:opts.batchSize:numel(val)
         batch_time = tic ;
         batch = val(t:min(t+opts.batchSize-1, numel(val)));
@@ -320,6 +318,9 @@ for epoch=1:opts.numEpochs
         
         if opts.useGpu
             im = gpuArray(im) ;
+	    im1 = gpuArray(im1);
+	    im2 = gpuArray(im2);
+	   im_mix = gpuArray(im_mix);
         end
         
         net.layers{end}.Ymix = im_mix;
@@ -341,6 +342,7 @@ for epoch=1:opts.numEpochs
         fprintf('\n') ;
     end
     
+	fprintf('saving information for epoch ... ')
     % save
     info.train.objective(end) = info.train.objective(end) / numel(train) ;
     info.train.speed(end) = numel(train) / info.train.speed(end) ;
@@ -352,6 +354,7 @@ for epoch=1:opts.numEpochs
     fprintf('Objective function - Training: %.2f s, Validation: %.1f.', info.train.objective(end), info.val.objective(end)) ;
     fprintf('\n') ;
     
+	if 0
     figure(1) ; clf ;
     %  subplot(1,2,1) ;
     semilogy(1:epoch, info.train.objective, 'k') ; hold on ;
@@ -368,6 +371,8 @@ for epoch=1:opts.numEpochs
     title('error') ;
     drawnow ;
     print(1, modelFigPath, '-dpdf') ;
+	end
+	fprintf('done \n')
 end
 
 % -------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 close all
-gpud=gpuDevice(1);
+gpud=gpuDevice(3);
 reset(gpud)
 
 addpath('../utils/')
@@ -9,7 +9,8 @@ run('/home/bruna/matlab/matconvnet/matlab/vl_setupnn.m') ;
 C = 100;
 use_single = 1;
 
-representation = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/spect_fs16_NFFT1024_hop512/TRAIN/';
+%representation = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/spect_fs16_NFFT1024_hop512/TRAIN/';
+representation = '/tmp/';
 
 load([representation 'female.mat']);
 name = 'female';
@@ -20,6 +21,7 @@ load([representation 'male.mat']);
 name = 'male';
 imdb_m = prepareData_matconvnet(data,C,name,use_single);
 clear data
+fprintf('data ready \n')
 
 %%
 
@@ -29,7 +31,7 @@ filter_num = 1024;
 temp_context = 3;
 
 net.layers{end+1} = struct('type', 'conv', ...
-                           'filters', 1/sqrt(10*temp_context*NFFT)*randn(1, temp_context, NFFT,filter_num, 'single'), ...
+                           'filters', 1/sqrt(1*temp_context*NFFT)*randn(1, temp_context, NFFT,filter_num, 'single'), ...
                            'biases', zeros(1, filter_num, 'single'), ...
                            'stride', 1, ...
                            'pad',[0 0 floor(temp_context/2) floor(temp_context/2)]) ;
@@ -37,14 +39,14 @@ net.layers{end+1} = struct('type', 'conv', ...
 net.layers{end+1} = struct('type', 'relu') ;
 
 net.layers{end+1} = struct('type', 'conv', ...
-                           'filters', 1/sqrt(10*filter_num)*randn(1,1,filter_num,2*NFFT, 'single'), ...
+                           'filters', 1/sqrt(1*filter_num)*randn(1,1,filter_num,2*NFFT, 'single'), ...
                            'biases', zeros(1, 2*NFFT, 'single'), ...
                            'stride', 1, ...
                            'pad',0) ;
 net.layers{end+1} = struct('type', 'relu') ;
 
 net.layers{end+1} = struct('type', 'normalize', ...
-                           'param', [2 1e-8 1 0.5]) ;
+                           'param', [2 1e-5 1 0.5]) ;
 
 net.layers{end+1} = struct('type', 'fitting', ...
                            'loss', 'L2') ;
@@ -54,7 +56,7 @@ opts.train.batchSize = 100 ;
 opts.train.numEpochs = 50;
 opts.train.continue = false ;
 opts.train.useGpu = true ;
-opts.train.learningRate = [0.0001*ones(1,10), 0.01*ones(1,20), 0.001];
+opts.train.learningRate = [0.001*ones(1,10), 0.0001*ones(1,20), 0.0001];
 opts.train.expDir = opts.expDir ;
 
 % set validation set
