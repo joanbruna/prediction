@@ -4,7 +4,8 @@ reset(gpud)
 
 addpath('../utils/')
 
-run('/home/bruna/matlab/matconvnet/matlab/vl_setupnn.m') ;
+%run('/home/bruna/matlab/matconvnet/matlab/vl_setupnn.m') ;
+run('../matconvnet/matlab/vl_setupnn.m') ;
 
 C = 100;
 use_single = 1;
@@ -56,7 +57,7 @@ opts.train.batchSize = 100 ;
 opts.train.numEpochs = 50;
 opts.train.continue = false ;
 opts.train.useGpu = true ;
-opts.train.learningRate = [0.001*ones(1,10), 0.0001*ones(1,20), 0.0001];
+opts.train.learningRate = [0.001*ones(1,10), 0.001*ones(1,20), 0.001];
 opts.train.expDir = opts.expDir ;
 
 % set validation set
