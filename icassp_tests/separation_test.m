@@ -51,7 +51,7 @@ for i=1:N
     x2 = test_files_2{id2(j,1)}{id2(j,2)}{id2(j,3)}.x;
     
     T = min([length(x1),length(x2),Npad]);
-    x1 = x1(1:T)/norm(x1);
+    x1 = x1(1:T)/norm(x1(1:T));
     x2 = x2(1:T);
     
     if verbose

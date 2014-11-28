@@ -1,4 +1,4 @@
-function [out,pout] = batchscatt(in, filts, options)
+function [out,pout,out3] = batchscatt(in, filts, options)
 
 %first order scattering with oversampling
 
@@ -22,8 +22,10 @@ out(j,:,:)=tmpds;
 end
 tmp = (ifft(Xf.*repmat(filts.phi,1,L)));
 pout(J+1,:,:)=exp(i*angle(tmp));
-tmpds = abs(tmp(1:dse:end,:));
+out3 = tmp(1:dse:end,:);
+tmpds = abs(aux);
 out(J+1,:,:)=tmpds;
+
 
 
 

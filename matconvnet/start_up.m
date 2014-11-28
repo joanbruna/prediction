@@ -1,4 +1,4 @@
-
+addpath scripts/
 addpath matlab/xtest/
 addpath matlab/
 addpath matlab/src/

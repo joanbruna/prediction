@@ -11,7 +11,7 @@ id_2 = 6;
 %id_2 = 14;
 
 
-load(sprintf('%ss%d',representation,id_1));s
+load(sprintf('%ss%d',representation,id_1));
 data1 = data;
 clear data
 
@@ -21,13 +21,13 @@ data2 = data;
 clear data
 
 % epsilon = 1;
-param.epsilon = 0.5;
+param.epsilon = 0.1;
 epsilon = param.epsilon;
 data1.X = softNormalize(data1.X,epsilon);
 data2.X = softNormalize(data2.X,epsilon);
 
 param.renorm=0;
-param.save_files = 0;
+param.save_files = 1;
 
 
 if param.renorm
@@ -40,13 +40,79 @@ data1.X = renorm_spect_data(data1.X, stds);
 data2.X = renorm_spect_data(data2.X, stds);
 end
 
+valid.compute_Parms = 1;
+
+% create validation set
+
+    NFFT = data1.NFFT;
+    fs = data1.fs;
+    hop = data1.hop;
+    N_test = 200;
+    SDR = 0;
+    SIR = 0;
+
+
+
+N_valid = 15;
+
+xx1 = [];
+xx2 = [];
+mmix = [];
+
+for i = 1:N_valid
+    
+    [x1, Fs] = audioread(sprintf('%s%s',data1.folder,data1.d(data1.testing_idx(i) ).name) );
+    x1 = resample(x1,fs,Fs);
+    x1 = x1(:)'; T1 = length(x1);
+    
+    
+    [x2, Fs] = audioread(sprintf('%s%s',data2.folder,data2.d(data2.testing_idx(i) ).name) );
+    x2 = resample(x2,fs,Fs);
+    x2 = x2(:)'; T2 = length(x2);
+    
+    T = min(T1,T2);
+    
+    x1 = x1(1:T);
+    x2 = x2(1:T);
+    
+    %x1 = x1/norm(x1);
+    %x2 = x2/norm(x2);
+    
+    mix = (x1+x2);
+    
+    xx1 = [xx1 x1];
+    xx2 = [xx2 x2];
+    mmix = [mmix mix];
+    
+end
+
+valid.compute_Parms = 1;
+valid.x1 = xx1;
+valid.x2 = xx2;
+valid.mix = mmix;
+valid.S = compute_spectrum(mmix,NFFT,hop);
+
+valid.X1 = compute_spectrum(xx1,NFFT,hop);
+valid.X2 = compute_spectrum(xx2,NFFT,hop);
+
+
+%epsilon = 1;
+valid.V = softNormalize(abs(valid.S),epsilon);
+
+nn = size(valid.V,2);
+
+
+% eliminate data used for validation
+data1.X = data1.X(:,nn+1:end);
+data2.X = data2.X(:,nn+1:end);
 
 %% train models
 
 model = 'NMF-L2-softnorm';
 
-KK = [200];
+KK = [50];
 LL = [0.1];
+
 
 for ii = 1:length(KK)
 
@@ -57,7 +123,7 @@ for jj = 1:length(LL)
     param.posD = 1;
     param.pos = 1;
     param.lambda = LL(jj);
-    param.lambda2 = 0;
+    param.lambda2 = 0.001;
     param.iter = 500;
     
 
@@ -67,12 +133,13 @@ for jj = 1:length(LL)
     
  
     % bilevel
-    valid.X1 = data1.X(:,1:1000);
-    valid.X2 = data2.X(:,1:1000);
-    valid.S = valid.X1 +valid.X2;
+%     valid.X1 = data1.X(:,1:1000);
+%     valid.X2 = data2.X(:,1:1000);
+%     valid.S = valid.X1 +valid.X2;
     
-    data1.X = data1.X(:,1001:end);
-    data2.X = data2.X(:,1001:end);
+
+    
+    
     
 %     valid.overlap = hop;
 %     valid.x1 = x1;
@@ -80,20 +147,25 @@ for jj = 1:length(LL)
 %     valid.mix = mi
     options.valid = valid;
     
+    
     options.param0 = param;
     options.beta = 2;
     
+    options.step0 = 1;
+    options.totaliter = 3000;
+    
     %[Wv,Wn,fv,r,Wv_max,Wn_max] = nmf_supervised(Xt1,Xt2,W1,W2,options);
-    [Db1,Db2,fv] = nmf_supervised_complex(data1.X,data2.X,D1,D2,options);
+    [Db1,Db2,fv,r] = nmf_supervised_complex(data1.X,data2.X,D1,D2,options);
     
 
-    model_name = sprintf('%s-K%d-lambda%d-lambda2%d',model,param.K,round(10*param.lambda),round(10*param.lambda2));
+    model_name = sprintf('chapter/%s-K%d-lambda%d-lambda2%d',model,param.K,round(10*param.lambda),round(10*param.lambda2));
     
 
 
     %% test models
 
     % saving setting
+    param.save_files = 1;
     if param.save_files
         
         save_folder = sprintf('%s-s%d-s%d-%s/',model_name,id_1,id_2,date());
@@ -214,7 +286,7 @@ for jj = 1:length(LL)
         
         %%-----
         
-        if param.save_files
+        if 0
 
         file1 = sprintf('%s%dspeech-1.wav',save_folder,i);
         audiowrite(file1,speech1,fs);
@@ -231,8 +303,8 @@ for jj = 1:length(LL)
         end
 
     end
-    save_file = sprintf('%sresults.mat',save_folder,'s');
-    save(save_file,'output','D1','D2','param','NSDR','SIR')
+    save_file = sprintf('%sresults2.mat',save_folder,'s');
+    save(save_file,'output','D1','D2','param','fv','r')
     unix(sprintf('chmod 777 %s ',save_file));
     AA{ii,jj}.res = output;
     %clear output
