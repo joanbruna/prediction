@@ -32,12 +32,12 @@ switch opts.loss
         
         if isempty(dzdy)
 
-	varargout{1} = 0.5*sum(abs(D1(:)).^2)/nframes + .5 *sum(abs(D2(:)).^2)/nframes; 
+	varargout{1} = 0.5*sum(abs(D1(:)).^2) + .5 *sum(abs(D2(:)).^2); 
         else
 	    Df = zeros(size(X),'single','gpuArray');
 	   Df(:,:,1:2:end,:) = real(conj(Ymix).*D1);
 	   Df(:,:,2:2:end,:) = real(conj(Ymix).*D2);
-	  varargout{1} = Df/nframes;
+	  varargout{1} = Df;
         end
         
 end

@@ -29,7 +29,7 @@ obj_ = 0.5*sum( (Y(:) - M_(:).*Y(:)).^2);
 
 [obj_-obj, dzdx(:)'*dX(:)]/eps_1
 
-
+break
 
 %%
 

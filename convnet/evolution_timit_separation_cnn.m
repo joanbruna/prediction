@@ -50,51 +50,43 @@ options.fs = 16000;
 options.NFFT = 1024;
 options.hop = options.NFFT/2;
 
-clear param
-param.K = 400;
-param.posAlpha = 1;
-param.posD = 1;
-param.pos = 1;
-param.lambda = 0.1;
-param.lambda2 = 0;
-param.iter = 40;
 
 %model = 'matconvnet/data/timit-dnn-test-/';
 %model = '/misc/vlgscratch3/LecunGroup/pablo/models/dnn/timit-dnn-test/';
 %model = '/misc/vlgscratch3/LecunGroup/pablo/models/dnn/timit-dnn-test-context1-512H/';
-model = '/misc/vlgscratch3/LecunGroup/pablo/models/dnn/timit-dnn-test-context1/';
-
+%model = '/misc/vlgscratch3/LecunGroup/pablo/models/dnn/timit-cnn-test/' ;
+%model = '/tmp/pablo/timit-cnn-test/';
+%model = 'result/';
+model =  '/misc/vlgscratch3/LecunGroup/bruna/audio_bss/cnn/timit-cnn/' ;
+ 
 d = dir([model 'net-epoch-*']);
 
-for i=1:5:length(d)-1
+for i=1:length(d)
 
 %options.model_params = param;
 load([model 'net-epoch-' num2str(i) '.mat'])
 
-net_dnn.layers = {} ;
-net_dnn.layers{end+1} = net.layers{1};
-net_dnn.layers{end+1} = net.layers{2};
-net_dnn.layers{end+1} = net.layers{3};
-net_dnn.layers{end+1} = net.layers{4};
-net_dnn.layers{end+1} = net.layers{5};
-
+net_cnn.layers = {} ;
+for j =1:length(net.layers)-1
+net_cnn.layers{end+1} = net.layers{j};
+end
 % No ground_truth 
 % net_nmf.layers{end+1} = struct('type', 'fitting', ...
 %                            'loss', 'L2') ;
 
 
-testFun    = @(Xn) dnn_demix(Xn,net_dnn);
+testFun    = @(Xn) cnn_demix(Xn,net_cnn);
 
 options.SNR_dB = 0;
 output_net{i+1} = separation_test_net(testFun,test_female,test_male,options);
 
 %--
 
-NSDR_net2(i+1) = output_net{i+1}.stat.mean_NSDR;
+NSDR_net(i+1) = output_net{i+1}.stat.mean_NSDR;
 
 
 figure(1)
-plot(NSDR_net2,'r.-')
+plot(NSDR_net,'k.-')
 drawnow
 
 end

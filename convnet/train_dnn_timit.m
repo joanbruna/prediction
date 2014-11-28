@@ -23,7 +23,8 @@ NFFT = size(imdb_f.images.data,1);
 net.layers = {};
 
 f = 1;
-filter_num = 1024;
+%filter_num = 1024;
+filter_num = NFFT;
 net.layers{end+1} = struct('type', 'conv', ...
                            'filters', f*randn(NFFT,C,1,filter_num, 'single'), ...
                            'biases', zeros(1, filter_num, 'single'), ...
@@ -31,6 +32,7 @@ net.layers{end+1} = struct('type', 'conv', ...
                            'pad',0) ;
 
 net.layers{end+1} = struct('type', 'relu') ;
+
 
 net.layers{end+1} = struct('type', 'conv', ...
                            'filters', f*randn(1,1,filter_num,2*C*NFFT, 'single'), ...
@@ -54,7 +56,8 @@ net.layers{end+1} = struct('type', 'fitting', ...
 
 %%
 
-opts.expDir = '/misc/vlgscratch3/LecunGroup/pablo/models/dnn/timit-dnn-test-context1/' ;
+%opts.expDir = '/misc/vlgscratch3/LecunGroup/pablo/models/dnn/timit-dnn-test-context1-512H/' ;
+opts.expDir = '/tmp/pablo/timit-dnn-test/';
 opts.train.batchSize = 100 ;
 opts.train.numEpochs = 50;
 opts.train.continue = true ;
@@ -68,6 +71,7 @@ V = 100;
 imdb_m.images.set(end-V*opts.train.batchSize+1:end) = 2;
 imdb_f.images.set(end-V*opts.train.batchSize+1:end) = 2;
 
+epsilon = 0.001;
 %gB    = @(imdb1, imdb2, batch,batch2) getBatch_nmf_single(imdb1, imdb2, batch, batch2,epsilon);
 gB    = @(imdb1, imdb2, batch,batch2) getBatch_nmf(imdb1, imdb2, batch, batch2,epsilon);
 
