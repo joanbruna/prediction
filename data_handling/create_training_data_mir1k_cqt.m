@@ -1,5 +1,5 @@
 
-root = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/TRAIN/';
+root = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/TEST/';
 root_save = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/';
 
 % sampling parameters
@@ -24,7 +24,7 @@ save_folder_train = sprintf('%s%s_fs%d_NFFT%d_hop%d/',root_save,label,fs/1000,NF
 unix(sprintf('mkdir %s',save_folder_train));
 unix(sprintf('chmod 777 %s ',save_folder_train));
 
-save_folder = sprintf('%sTRAIN/',save_folder_train);
+save_folder = sprintf('%sTEST/',save_folder_train);
 
 unix(sprintf('mkdir %s',save_folder));
 unix(sprintf('chmod 777 %s ',save_folder));
@@ -67,7 +67,7 @@ for i = 1:length(d1)
             end
             
             
-            [~,~,X] = batchscatt(Xo,filts, scparam);    
+            X = batchscatt(Xo,filts, scparam);    
             
             
             data.X = X(:,:);
