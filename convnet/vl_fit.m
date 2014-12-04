@@ -26,7 +26,14 @@ nframes = size(X,2);
 switch opts.loss
     case 'L2'
         
-	%keyboard
+	if 1
+	padsize = round((size(Ymix,2) - size(X,2))/2);
+	if padsize>0
+		Ymix = Ymix(:,1+padsize:end-padsize,:,:);
+		Y1 = Y1(:,1+padsize:end-padsize,:,:);
+		Y2 = Y2(:,1+padsize:end-padsize,:,:);
+	end
+	end
 	D1 = Ymix.*X(:,:,1:2:end,:) - Y1;
 	D2 = Ymix.*X(:,:,2:2:end,:) - Y2;
         
