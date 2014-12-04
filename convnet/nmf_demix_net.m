@@ -10,7 +10,6 @@ res = vl_simplenn(net, Xn, [], res, ...
     'conserveMemory', 1, ...
     'sync', 1) ;
 
-
 W1H1 = res(end).x(:,:,1,1);
 W2H2 = res(end).x(:,:,2,1);
 

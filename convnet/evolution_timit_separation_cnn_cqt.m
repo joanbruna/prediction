@@ -1,4 +1,17 @@
 
+if ~exist('filts','var')
+
+representation = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/cqt_phase_fs16_NFFT2048_hop1024/TRAIN/';
+%representation = '/tmp/';
+
+load([representation 'female.mat']);
+scparam = data.scparam;
+filts = data.filts;
+clear data
+end
+
+
+%%
 
 if ~exist('test_male','var')
 load /misc/vlgscratch3/LecunGroup/pablo/TIMIT/TEST/male_audios_short.mat
@@ -44,11 +57,18 @@ clear options
 options.id1 = idf;
 options.id2 = idm;
 
-epsilon = 0.0001;
+epsilon = 1e-8;
 options.epsilon = epsilon;
 options.fs = 16000;
 options.NFFT = 1024;
-options.hop = options.NFFT/2;
+
+options.filts = filts;
+options.scparam = scparam;
+
+options.Npad = 2^15;
+options.verbose = 1;
+
+options.is_stft = 0;
 
 
 %model = 'matconvnet/data/timit-dnn-test-/';
@@ -57,12 +77,14 @@ options.hop = options.NFFT/2;
 %model = '/misc/vlgscratch3/LecunGroup/pablo/models/dnn/timit-cnn-test/' ;
 %model = '/tmp/pablo/timit-cnn-test/';
 %model = 'result/';
-model =  '/misc/vlgscratch3/LecunGroup/bruna/audio_bss/cnn/timit-cnn/' ;
+%model =  '/misc/vlgscratch3/LecunGroup/bruna/audio_bss/cnn/timit-cnn/' ;
+%model = '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt/';
+%model =  '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-2nd-comp/';
+model =  '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-debug/';
 
- 
 d = dir([model 'net-epoch-*']);
 
-for i=1:length(d)
+for i=395
 
 %options.model_params = param;
 load([model 'net-epoch-' num2str(i) '.mat'])

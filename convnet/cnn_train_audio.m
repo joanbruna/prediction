@@ -102,6 +102,8 @@ modelPath = fullfile(opts.expDir, 'net-epoch-0.mat') ;
 
 %
 
+C = size(imdb.images.data,2);
+
 lr = 0 ;
 res = [] ;
 for epoch=1:opts.numEpochs
@@ -164,11 +166,11 @@ for epoch=1:opts.numEpochs
         
         [im,im_mix, im1,im2] = getBatch(imdb, imdb2, batch,batch2) ;
         
-       if opts.useGpu
+        if opts.useGpu
             im = gpuArray(im) ;
-	    im1 = gpuArray(im1);
-	    im2 = gpuArray(im2);
-	   im_mix = gpuArray(im_mix);
+            im1 = gpuArray(im1);
+            im2 = gpuArray(im2);
+            im_mix = gpuArray(im_mix);
         end
         
  
@@ -179,7 +181,7 @@ for epoch=1:opts.numEpochs
         
         res = vl_simplenn(net, im, one, res, ...
             'conserveMemory', opts.conserveMemory, ...
-            'sync', opts.sync) ;
+            'sync', opts.sync);
         
         % gradient step
         for l=1:numel(net.layers)
@@ -190,13 +192,13 @@ for epoch=1:opts.numEpochs
                     opts.momentum * net.layers{l}.D1Momentum ...
                     - (lr * net.layers{l}.filtersLearningRate) * ...
                     (opts.weightDecay * net.layers{l}.filtersWeightDecay) * net.layers{l}.D1 ...
-                    - (lr * net.layers{l}.filtersLearningRate) / numel(batch) * res(l).dzdw{1} ;
+                    - (lr * net.layers{l}.filtersLearningRate) / C / numel(batch) * res(l).dzdw{1} ;
                 
                 net.layers{l}.D2Momentum = ...
                     opts.momentum * net.layers{l}.D2Momentum ...
                     - (lr * net.layers{l}.filtersLearningRate) * ...
                     (opts.weightDecay * net.layers{l}.filtersWeightDecay) * net.layers{l}.D2 ...
-                    - (lr * net.layers{l}.filtersLearningRate) / numel(batch) * res(l).dzdw{1} ;
+                    - (lr * net.layers{l}.filtersLearningRate) / C / numel(batch) * res(l).dzdw{1} ;
                 
                 
                 net.layers{l}.D1 = mexNormalize( max( net.layers{l}.D1 + net.layers{l}.D1Momentum,0) );
@@ -210,34 +212,34 @@ for epoch=1:opts.numEpochs
                 opts.momentum * net.layers{l}.filtersMomentum ...
                 - (lr * net.layers{l}.filtersLearningRate) * ...
                 (opts.weightDecay * net.layers{l}.filtersWeightDecay) * net.layers{l}.filters ...
-                - (lr * net.layers{l}.filtersLearningRate) / numel(batch) * res(l).dzdw{1} ;
+                - (lr * net.layers{l}.filtersLearningRate) / C / numel(batch) * res(l).dzdw{1} ;
             
             net.layers{l}.biasesMomentum = ...
                 opts.momentum * net.layers{l}.biasesMomentum ...
                 - (lr * net.layers{l}.biasesLearningRate) * ....
                 (opts.weightDecay * net.layers{l}.biasesWeightDecay) * net.layers{l}.biases ...
-                - (lr * net.layers{l}.biasesLearningRate) / numel(batch) * res(l).dzdw{2} ;
+                - (lr * net.layers{l}.biasesLearningRate) / C / numel(batch) * res(l).dzdw{2} ;
             
             net.layers{l}.filters = net.layers{l}.filters + net.layers{l}.filtersMomentum ;
             net.layers{l}.biases = net.layers{l}.biases + net.layers{l}.biasesMomentum ;
         end
-        
+
         % print information
         batch_time = toc(batch_time) ;
         speed = numel(batch)/batch_time ;
         %     info.train = updateError(opts, info.train, net, res, batch_time) ;
         
-        info.train.objective(end) = info.train.objective(end) + sum(double(gather(res(end).x))) ;
+
+        
+        info.train.objective(end) = info.train.objective(end) + sum(double(gather(res(end).x)))/C ;
         info.train.speed(end) = info.train.speed(end) + speed ;
         
         fprintf(' %.2f s (%.1f images/s)', batch_time, speed) ;
         n = t + numel(batch) - 1 ;
         fprintf(' obj %.1f', ...
             info.train.objective(end)/n) ;
+        
         fprintf('\n') ;
-
-        
-        
         % debug info
         if opts.plotDiagnostics
             figure(2) ; vl_simplenn_diagnose(net,res) ; drawnow ;
@@ -248,8 +250,8 @@ for epoch=1:opts.numEpochs
     
 	fprintf('saving information for epoch ... ')
     % save
-    info.train.objective(end) = info.train.objective(end) / numel(train) ;
-    info.train.speed(end) = numel(train) / info.train.speed(end) ;
+    info.train.objective(end) = info.train.objective(end) / numel(train)/C ;
+    info.train.speed(end) = numel(train) / info.train.speed(end)/C ;
 %     info.val.objective(end) = info.val.objective(end) / numel(val) ;
 %     info.val.speed(end) = numel(val) / info.val.speed(end) ;
 %     save(sprintf(modelPath,epoch), 'net', 'info') ;
@@ -260,16 +262,19 @@ for epoch=1:opts.numEpochs
     
     
     net_aux.layers = net.layers(1:end-1);
+    
+    if  ~mod(epoch,10)
     output = getValid(net_aux);
     fprintf('Validation: \n')
     disp(output.stat)
     
     info.val.NSDR(end) = output.stat.mean_NSDR;
     info.val.stat{end} = output.stat;
+    end
     
     if epoch>150 
         
-        if  ~mod(epoch,5) || max_SDR < output.stat.mean_NSDR
+        if  ~mod(epoch,10) %|| max_SDR < output.stat.mean_NSDR
         save(sprintf(modelPath,epoch), 'net', 'info') ;
         max_SDR = output.stat.mean_NSDR;
         end

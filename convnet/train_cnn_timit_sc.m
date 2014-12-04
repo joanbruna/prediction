@@ -1,7 +1,7 @@
 
 if ~exist('imdb_m','var')
 close all
-gpud=gpuDevice(2);
+gpud=gpuDevice(1);
 reset(gpud)
 
 addpath('../utils/')
@@ -16,16 +16,67 @@ use_single = 1;
 representation = '/tmp/';
 
 load([representation 'female.mat']);
-name = 'female';
-imdb_f = prepareData_matconvnet(data,C,name,use_single);
+data1 = data;
 clear data
 
 load([representation 'male.mat']);
-name = 'male';
-imdb_m = prepareData_matconvnet(data,C,name,use_single);
+data2 = data;
 clear data
 fprintf('data ready \n')
 end
+
+
+im  = gpuArray(permute(single(data1.X),[3,2,1]));
+
+epsilon = 0.001;
+im = softNormalize(im,epsilon,3);
+
+% load a pretrained network
+load('/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-512-2layer-lr/net-epoch-600.mat');
+
+net2.layers = net.layers(1:end-3);
+
+res = [];       
+res = vl_simplenn(net2, im, [], res, ...
+    'disableDropout', true, ...
+       'conserveMemory', 1, ...
+       'sync', 1) ;
+ 
+
+Xn = gather( permute( res(end).x, [3,2,1] ) );
+
+param.K=200; % learns a dictionary with 100 elements 
+param.lambda=0.1; 
+%param.numThreads=12;	%	number	of	threads 
+param.batchsize =1000;
+param.iter=1000; % let us see what happens after 1000 iterations .
+param.posD=1;
+param.posAlpha=1;
+param.pos=1;
+
+
+D1 = mexTrainDL(Xn, param);
+
+% ------------
+
+im  = gpuArray(permute(single(data2.X),[3,2,1]));
+
+epsilon = 0.001;
+im = softNormalize(im,epsilon,3);
+
+res = [];       
+res = vl_simplenn(net2, im, [], res, ...
+    'disableDropout', true, ...
+       'conserveMemory', 1, ...
+       'sync', 1) ;
+ 
+
+Xn = gather( permute( res(end).x, [3,2,1] ) );
+
+
+D = mexTrainDL(Xn, param);
+
+break
 
 %% Create validation set
 if ~exist('test_male','var')
@@ -81,7 +132,6 @@ clear options
 options.id1 = idf;
 options.id2 = idm;
 
-epsilon = 0.001;
 options.epsilon = epsilon;
 options.fs = 16000;
 options.NFFT = 1024;
