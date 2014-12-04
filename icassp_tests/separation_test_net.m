@@ -19,12 +19,16 @@ id2 = getoptions(options,'id2',[1,1,1]);
 
 % representation parameters
 if is_stft
-    
     NFFT = getoptions(options,'NFFT',1024);
     fs = getoptions(options,'fs',1600);
     hop = getoptions(options,'hop',NFFT/2);
     epsilon = getoptions(options,'epsilon',1e-3);
-    
+else
+    scparam = getoptions(options,'scparam',[]);
+    filts = getoptions(options,'filts',[]);
+    pp.scparam = scparam;
+    pp.filts = filts;
+    epsilon = getoptions(options,'epsilon',1e-3);
 end
 
 
@@ -68,6 +72,9 @@ for i=1:N
     if is_stft
         X = compute_spectrum(mix,NFFT,hop);
         Xn = softNormalize(abs(X),epsilon);
+    else
+        [X, phmix] = batchscatt(pad_mirror(mix',Npad), filts, scparam);
+        Xn = softNormalize(abs(X),epsilon);
     end
     
     
@@ -92,12 +99,16 @@ for i=1:N
     if is_stft
         speech1 = invert_spectrum(SPEECH1,NFFT,hop,T);
         speech2 = invert_spectrum(SPEECH2,NFFT,hop,T);
+    else
+        speech1 = audioreconstruct(SPEECH1, pp, phmix)';
+        speech2 = audioreconstruct(SPEECH2, pp, phmix)';
     end
 
-    Parms =  BSS_EVAL(x1', x2', speech1', speech2', mix');
+    %Parms =  BSS_EVAL(x1', x2', speech1', speech2', mix');
+    Parms =  BSS_EVAL(x1', x2', speech1(1:T)', speech2(1:T)', mix');
     
     Parms.SNR_in = [snr(x1,x2) snr(x2,x1)];
-    Parms.SNR_out = [snr(x1,x1-speech1) snr(x2,x2-speech2)];
+    Parms.SNR_out = [snr(x1,x1-speech1(1:T)) snr(x2,x2-speech2(1:T))];
     
     if verbose
        disp(Parms) 
@@ -114,7 +125,7 @@ for i=1:N
     count = count+1;
 end
 end
-count
+
 
 result.SDR = SDR;
 result.NSDR = NSDR;

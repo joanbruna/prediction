@@ -1,11 +1,17 @@
 
-function imdb = prepareData_matconvnet(data,nframes,name,use_single)
+function imdb = prepareData_matconvnet(data,nframes,name,use_single,is_stft)
 
+
+if ~exist('is_stft','var')
+    is_stft = 1;
+end
 
 imdb.meta.name = name;
+if is_stft
 imdb.meta.NFFT = data.NFFT;
 imdb.meta.hop = data.hop;
 imdb.meta.fs = data.fs;
+end
 
 n = floor(size(data.X,2)/nframes);
 
