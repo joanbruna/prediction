@@ -1,15 +1,19 @@
 
 if ~exist('imdb_m','var')
 close all
-gpud=gpuDevice(2);
+gpud=gpuDevice(4);
 reset(gpud)
 
 addpath('../utils/')
+addpath('../icassp_tests/')
+addpath('../bss_eval/')
+addpath('../spect/')
+
 
 %run('/home/bruna/matlab/matconvnet/matlab/vl_setupnn.m') ;
 run('../matconvnet/matlab/vl_setupnn.m') ;
 
-C = 1;
+C = 2;
 use_single = 1;
 
 %representation = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/spect_fs16_NFFT1024_hop512/TRAIN/';
@@ -98,24 +102,25 @@ valid_fun    = @(net) separation_test_net(@(net) cnn_demix(Xn,net),test_female,t
 NFFT = size(imdb_f.images.data,3);
 net.layers = {};
 filter_num = 512;
-temp_context = 1;
 
 %f1 = 1/sqrt(1*temp_context*NFFT);
 f1 = 1;
+temp_context = 1;
 net.layers{end+1} = struct('type', 'conv', ...
                            'filters', f1*randn(1, temp_context, NFFT,filter_num, 'single'), ...
                            'biases', zeros(1, filter_num, 'single'), ...
                            'stride', 1, ...
-                           'pad',[0 0 floor(temp_context/2) floor(temp_context/2)]) ;
+                           'pad',0);%[0 0 floor(temp_context/2) floor(temp_context/2)]) ;
 
 net.layers{end+1} = struct('type', 'relu') ;
 
 f1 = 1;
+temp_context = 1;
 net.layers{end+1} = struct('type', 'conv', ...
-                           'filters', f1*randn(1, 1, filter_num,filter_num, 'single'), ...
+                           'filters', f1*randn(1, temp_context, filter_num,filter_num, 'single'), ...
                            'biases', zeros(1, filter_num, 'single'), ...
                            'stride', 1, ...
-                           'pad',[0 0 floor(temp_context/2) floor(temp_context/2)]) ;
+                           'pad',0);%[0 0 floor(temp_context/2) floor(temp_context/2)]) ;
 
 net.layers{end+1} = struct('type', 'relu') ;
 
@@ -138,20 +143,22 @@ net.layers{end+1} = struct('type', 'normalize_audio', ...
 net.layers{end+1} = struct('type', 'fitting', ...
                            'loss', 'L2') ;
 
-opts.expDir = '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-512-2layer-lr/';
+%opts.expDir = '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-512-2layer-lr/';
 %opts.expDir = '/tmp/pablo/timit-cnn-test-lr/';
-opts.train.batchSize = 500 ;
+opts.expDir = '/misc/vlgscratch3/LecunGroup/bruna/speech/cnn_experiments/'
+opts.train.batchSize = 500/C ;
 opts.train.numEpochs = 600;
 opts.train.continue = false ;
 opts.train.useGpu = true ;
-opts.train.learningRate = [0.1*ones(1,10) 0.01*ones(1,30) 0.001*ones(1,100) 0.0001];
+
+lrbase = [0.1 0.01 0.001 0.0001]/C;%/sqrt(C);
+
+
+opts.train.learningRate = [lrbase(1)*ones(1,10) lrbase(2)*ones(1,30) lrbase(3)*ones(1,100) lrbase(4)];
 opts.train.expDir = opts.expDir ;
 
 % set validation set
 epsilon = 1e-2;
-V = 2;
-imdb_m.images.set(end-V*opts.train.batchSize+1:end) = 2;
-imdb_f.images.set(end-V*opts.train.batchSize+1:end) = 2;
 
 gB    = @(imdb1, imdb2, batch,batch2) getBatch_nmf(imdb1, imdb2, batch, batch2,epsilon);
 

@@ -13,17 +13,19 @@ dse = getoptions(options,'dse',round(T*2^(-floor(J/Q)-os)));
 Neff = floor(N/dse);
 Xf = fft(in);
 out=zeros(J+1,Neff, L);
+out3=zeros(J+1,Neff, L);
 pout=zeros(J+1,N, L);
 for j=1:J
 tmp = (ifft(Xf.*repmat(filts.psi{j},1,L)));
 pout(j,:,:)=exp(i*angle(tmp));
+out3(j,:,:) = tmp(1:dse:end,:);
 tmpds = abs(tmp(1:dse:end,:));
 out(j,:,:)=tmpds;
 end
 tmp = (ifft(Xf.*repmat(filts.phi,1,L)));
 pout(J+1,:,:)=exp(i*angle(tmp));
-out3 = tmp(1:dse:end,:);
-tmpds = abs(aux);
+out3(J+1,:,:) = tmp(1:dse:end,:);
+tmpds = abs(tmp(1:dse:end,:));
 out(J+1,:,:)=tmpds;
 
 

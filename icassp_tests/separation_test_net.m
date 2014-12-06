@@ -84,6 +84,15 @@ for i=1:N
     % wiener filter included in the net
 %     eps_1 = 1e-6;
 %     V_ap = W1H1.^2 +W2H2.^2 + eps_1;
+	if size(mask1,2) < size(X,2)
+		pad=(size(X,2) - size(mask1,2))/2;
+		nmask = .5*ones(size(X));
+		nmask(:,pad+1:end-pad) = mask1;
+		mask1 = nmask;
+		nmask(:,pad+1:end-pad) = mask2;
+		mask2 = nmask;
+	end	
+
      SPEECH1 = (mask1).*X;
      SPEECH2 = (mask2).*X;
     

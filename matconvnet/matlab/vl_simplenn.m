@@ -157,7 +157,13 @@ for i=1:n
       res(i+1).x = vl_sc(res(i).x, l.dict, l.lambda,[],'pos',l.pos,'output', l.output) ;
     case 'conv'
       res(i+1).x = vl_nnconv(res(i).x, l.filters, l.biases, 'pad', l.pad, 'stride', l.stride) ;
-    case 'pool'
+      if isnan(sum(res(i).x(:)))
+          keyboard
+      end
+      if isnan(sum(res(i+1).x(:)))
+          keyboard
+      end
+      case 'pool'
       res(i+1).x = vl_nnpool(res(i).x, l.pool, 'pad', l.pad, 'stride', l.stride, 'method', l.method) ;
     case 'normalize'
       res(i+1).x = vl_nnnormalize(res(i).x, l.param) ;
@@ -165,6 +171,8 @@ for i=1:n
       res(i+1).x = vl_nnnormalize_audio(res(i).x, l.param) ;
     case 'reshape_dnn'
       res(i+1).x = vl_reshape_dnn(res(i).x,l.N,l.C);
+    case 'channelPoole'
+      res(i+1).x = vl_channelPoole(res(i).x,l.nchannels);
     case 'filtermask'
         res(i+1).x = vl_filtermask(res(i).x,l.p);   
     case 'softmax'
@@ -240,7 +248,9 @@ if doder
         case 'softmax'
             res(i).dzdx = vl_nnsoftmax(res(i).x, res(i+1).dzdx) ;
       case 'reshape_dnn'
-            res(i).dzdx = vl_reshape_dnn(res(i).x,l.N,l.C,res(i+1).dzdx);
+          res(i).dzdx = vl_reshape_dnn(res(i).x,l.N,l.C,res(i+1).dzdx);
+      case 'channelPoole'
+            res(i).dzdx = vl_channelPoole(res(i).x,l.nchannels,res(i+1).dzdx);
       case 'filtermask'
         res(i).dzdx = vl_filtermask(res(i).x,l.p,res(i+1).dzdx);  
       case 'loss'
@@ -248,7 +258,7 @@ if doder
       case 'softmaxloss'
         res(i).dzdx = vl_nnsoftmaxloss(res(i).x, l.class, res(i+1).dzdx) ;
         case 'fitting'
-         res(i).dzdx = vl_fit(res(i).x,l.Ymix,l.Y1,l.Y2,res(i+1).dzdx);
+         res(i).dzdx = vl_fit(res(i).x,l.Ymix,l.Y1,l.Y2,res(i+1).dzdx,'loss',l.loss);
         case 'relu'
         res(i).dzdx = vl_nnrelu(res(i).x, res(i+1).dzdx) ;
       case 'noffset'
