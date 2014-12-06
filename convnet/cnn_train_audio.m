@@ -5,6 +5,10 @@ function [net, info] = cnn_train_audio(net, imdb, imdb2, getBatch, getValid,  va
 %    It can be used with different datasets by providing a suitable
 %    getBatch function.
 
+opts.fixedLayers = [];
+opts.validFreq = 5 ;
+opts.startSave = 150;
+
 opts.train = [] ;
 opts.val = [] ;
 opts.train2 = [] ;
@@ -186,6 +190,8 @@ for epoch=1:opts.numEpochs
         % gradient step
         for l=1:numel(net.layers)
             
+            if sum( opts.fixedLayers == l) == 1, continue; end
+            
             
             if strcmp(net.layers{l}.type, 'nmf'),
                 net.layers{l}.D1Momentum = ...
@@ -207,7 +213,7 @@ for epoch=1:opts.numEpochs
             end
             
             if ~strcmp(net.layers{l}.type, 'conv'), continue ; end
-            
+
             net.layers{l}.filtersMomentum = ...
                 opts.momentum * net.layers{l}.filtersMomentum ...
                 - (lr * net.layers{l}.filtersLearningRate) * ...
@@ -248,7 +254,7 @@ for epoch=1:opts.numEpochs
     
     %----------------------------------------------------------------------
     
-	fprintf('saving information for epoch ... ')
+	
     % save
     info.train.objective(end) = info.train.objective(end) / numel(train)/C ;
     info.train.speed(end) = numel(train) / info.train.speed(end)/C ;
@@ -260,10 +266,15 @@ for epoch=1:opts.numEpochs
 %     fprintf('Objective function - Training: %.2f s, Validation: %.1f.', info.train.objective(end), info.val.objective(end)) ;
 %     fprintf('\n') ;
     
+
+    if  ~mod(epoch, opts.validFreq )
     
     net_aux.layers = net.layers(1:end-1);
+    temp_context = size(net_aux.layers{1}.filters,2);
+    net_aux.layers{1}.pad = [0 0 floor(temp_context/2) floor(temp_context/2)];
+    temp_context2 = size(net_aux.layers{3}.filters,2);
+    net_aux.layers{3}.pad = [0 0 floor(temp_context2/2) floor(temp_context2/2)];
     
-    if  ~mod(epoch,10)
     output = getValid(net_aux);
     fprintf('Validation: \n')
     disp(output.stat)
@@ -272,11 +283,10 @@ for epoch=1:opts.numEpochs
     info.val.stat{end} = output.stat;
     end
     
-    if epoch>150 
-        
-        if  ~mod(epoch,10) %|| max_SDR < output.stat.mean_NSDR
-        save(sprintf(modelPath,epoch), 'net', 'info') ;
-        max_SDR = output.stat.mean_NSDR;
+    if epoch>opts.startSave 
+        if  ~mod(epoch, opts.validFreq ) %|| max_SDR < output.stat.mean_NSDR
+            fprintf('saving information for epoch ... ')
+            save(sprintf(modelPath,epoch), 'net', 'info') ;
         end
     end
     

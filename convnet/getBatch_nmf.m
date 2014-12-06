@@ -9,8 +9,10 @@ im_mix = im1 + im2;
 im = abs(im_mix);
 im = softNormalize(im,epsilon,3);
 
-im1 = single(im1);
-im2 = single(im2);
-im = single(im);
-
+tc = size(im,2);
+if tc > 1
+    im_mix = im_mix(:,ceil(tc/2),:,:);
+    im2 = im2(:,ceil(tc/2),:,:);
+    im1 = im1(:,ceil(tc/2),:,:);
+end
 

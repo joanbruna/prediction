@@ -1,7 +1,9 @@
 
+
+
 if ~exist('filts','var')
 
-representation = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/cqt_phase_fs16_NFFT2048_hop1024/TRAIN/';
+representation = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/cqt_phase_fs16_NFFT2048_hop1024_old/TRAIN/';
 %representation = '/tmp/';
 
 load([representation 'female.mat']);
@@ -80,38 +82,59 @@ options.is_stft = 0;
 %model =  '/misc/vlgscratch3/LecunGroup/bruna/audio_bss/cnn/timit-cnn/' ;
 %model = '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt/';
 %model =  '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-2nd-comp/';
-model =  '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-debug/';
+%model =  '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-debug/';
 
-d = dir([model 'net-epoch-*']);
 
-for i=395
+%%
+
+% single frame DNN
 
 %options.model_params = param;
-load([model 'net-epoch-' num2str(i) '.mat'])
+load /misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-2nd-comp/net-epoch-570.mat
 
-net_cnn.layers = {} ;
-for j =1:length(net.layers)-1
-net_cnn.layers{end+1} = net.layers{j};
-end
+net_cnn.layers = net.layers(1:end-1) ;
+
 % No ground_truth 
 % net_nmf.layers{end+1} = struct('type', 'fitting', ...
 %                            'loss', 'L2') ;
 
-
 testFun    = @(Xn) cnn_demix(Xn,net_cnn);
 
 options.SNR_dB = 0;
-output_net{i+1} = separation_test_net(testFun,test_female,test_male,options);
+output_net = separation_test_net(testFun,test_female,test_male,options);
 
-%--
+%% --
 
-NSDR_net(i+1) = output_net{i+1}.stat.mean_NSDR;
+%options.model_params = param;
+load /misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-cnn2/net-epoch-240.mat
+
+net_cnn_2.layers = net.layers(1:end-1) ;
+
+temp_context = size(net_cnn_2.layers{1}.filters,2);
+net_cnn_2.layers{1}.pad = [0 0 floor(temp_context/2) floor(temp_context/2)];
+temp_context2 = size(net_cnn_2.layers{3}.filters,2);
+net_cnn_2.layers{3}.pad = [0 0 floor(temp_context2/2) floor(temp_context2/2)];
+
+% No ground_truth 
+% net_nmf.layers{end+1} = struct('type', 'fitting', ...
+%                            'loss', 'L2') ;
+
+testFun    = @(Xn) cnn_demix(Xn,net_cnn_2);
+
+options.SNR_dB = 0;
+%output_net_2 = separation_test_net(testFun,test_female,test_male,options);
+
+%%
 
 
-figure(1)
-plot(NSDR_net,'k.-')
-drawnow
+net_multi{1}.layers = net_cnn.layers(1:2);
+net_multi{2}.layers = net_cnn.layers(3:end);
+net_multi{3}.layers = net_cnn_2.layers(3:end);
+net_multi{4}.layers = [];
 
-end
+testFun    = @(Xn) cnn_ensemble_demix(Xn,net_multi);
+
+options.SNR_dB = 0;
+output_net_3 = separation_test_net(testFun,test_female,test_male,options);
 
 

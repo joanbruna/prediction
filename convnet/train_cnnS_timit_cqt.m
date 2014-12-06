@@ -12,7 +12,7 @@ run('../matconvnet/matlab/vl_setupnn.m') ;
 C = 1;
 use_single = 1;
 
-representation = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/cqt_phase_fs16_NFFT2048_hop1024/TRAIN/';
+representation = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/cqt_phase_fs16_NFFT2048_hop1024_old/TRAIN/';
 %representation = '/tmp/';
 
 load([representation 'female.mat']);
@@ -149,7 +149,7 @@ net.layers{end+1} = struct('type', 'normalize_audio', ...
 net.layers{end+1} = struct('type', 'fitting', ...
                            'loss', 'L2') ;
 
-opts.expDir = '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-2nd-comp-complex/';
+opts.expDir = '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnnS-cqt/';
 %opts.expDir = '/tmp/pablo/timit-cnn-test-lr/';
 opts.train.batchSize = 1000;
 opts.train.numEpochs = 600;

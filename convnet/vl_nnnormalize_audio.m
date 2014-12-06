@@ -38,8 +38,5 @@ else
 %     Z(:,:,2,:) =  -dzdy(:,:,1,:).*GM + dzdy(:,:,2,:).*GM;
 end
 
-if isnan(sum(Z(:)))
-    keyboard
-end
 
 varargout{1} = Z;
