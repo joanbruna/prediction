@@ -12,8 +12,6 @@ if nargin <= 4
     dzdy = [];
 end
 
-
-
 % no division by zero
 %---------------------------------
 % Parameters
@@ -22,16 +20,6 @@ opts.find_match = 0;
 opts = vl_argparse(opts, varargin);
 find_match = opts.find_match;
 %---------------------------------
-
-%keyboard
-
-<<<<<<< HEAD
-
-
-=======
-if ~find_match
-    cost = 0.5*sum(abs(D1(:)).^2) + .5 *sum(abs(D2(:)).^2);
->>>>>>> ce80ec4f1053d115e60f4b82d12cd05de7fd3c4b
     
 switch opts.loss
     

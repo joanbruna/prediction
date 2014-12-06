@@ -131,6 +131,11 @@ if (nargin <= 2) || isempty(dzdy)
 else
   doder = true ;
 end
+if isempty(x)
+  dofp = false ;
+else
+  dofp = true ;
+end
 
 gpuMode = isa(x, 'gpuArray') ;
 
@@ -143,6 +148,7 @@ if nargin <= 3 || isempty(res)
     'time', num2cell(zeros(1,n+1)), ...
     'backwardTime', num2cell(zeros(1,n+1))) ;
 end
+if dofp
 res(1).x = x ;
 
 for i=1:n
@@ -211,6 +217,7 @@ for i=1:n
     wait(gpuDevice) ;
   end
   res(i).time = toc(res(i).time) ;
+end
 end
 
 if doder

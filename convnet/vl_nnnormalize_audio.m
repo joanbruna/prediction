@@ -25,7 +25,7 @@ if isempty(dzdy)
     Z = (X.^2)./DEN; 
 else 
     Z = 0*X;
-    
+ 
     AUX = dzdy(:,:,1:2:end,:) - dzdy(:,:,2:2:end,:);
     Z(:,:,1:2:end,:) = AUX.*( 2*X(:,:,1:2:end,:).*(kappa + X(:,:,2:2:end,:).^2 ) )./(DEN(:,:,1:2:end,:).^2 );
     
