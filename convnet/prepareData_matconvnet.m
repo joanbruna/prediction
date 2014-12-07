@@ -16,6 +16,7 @@ end
 n = floor(size(data.X,2)/nframes);
 
 N = n*nframes;
+data.X = circshift(data.X, [0 round(nframes*rand)]);
 A = reshape(data.X(:,1:N),[size(data.X,1),nframes,1,n]);
 A = permute(A, [3 2 1 4]);
 

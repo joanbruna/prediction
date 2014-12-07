@@ -1,4 +1,4 @@
-function [net, info] = cnn_train_audio_mr(net, imdb, imdb2, getBatch, getValid,  varargin)
+function [net, info] = cnn_train_audio_mr(net, data_f, data_m, getBatch, getValid,  varargin)
 % NMF_TRAIN   Demonstrates training a CNN
 %    CNN_TRAIN() is an example learner implementing stochastic gradient
 %    descent with momentum to train a CNN for image classification.
@@ -26,13 +26,12 @@ opts.weightDecay = 0.0005 ;
 opts.momentum = 0.9;
 opts.errorType = 'multiclass' ;
 opts.plotDiagnostics = false ;
+opts.C = 1;
+opts.use_single = 1;
 opts = vl_argparse(opts, varargin) ;
 
+
 if ~exist(opts.expDir), mkdir(opts.expDir) ; end
-if isempty(opts.train), opts.train = find(imdb.images.set==1) ; end
-if isempty(opts.train2), opts.train2 = find(imdb2.images.set==1) ; end
-if isempty(opts.val), opts.val = find(imdb.images.set==2) ; end
-if isempty(opts.val2), opts.val2 = find(imdb2.images.set==2) ; end
 if isnan(opts.train), opts.train = [] ; end
 
 % -------------------------------------------------------------------------
@@ -109,11 +108,17 @@ modelPath = fullfile(opts.expDir, 'net-epoch-0.mat') ;
 
 %
 
-C = size(imdb.images.data,2);
+%C = size(imdb.images.data,2);
 
 lr = 0 ;
 res = [] ;
 for epoch=1:opts.numEpochs
+ 	imdb_f = prepareData_matconvnet(data_f,opts.C,'female',opts.use_single,0);
+	imdb_m = prepareData_matconvnet(data_m,opts.C,'male',opts.use_single,0);
+	if isempty(opts.train), opts.train = find(imdb_f.images.set==1) ; end
+	if isempty(opts.train2), opts.train2 = find(imdb_m.images.set==1) ; end
+	if isempty(opts.val), opts.val = find(imdb_f.images.set==2) ; end
+	if isempty(opts.val2), opts.val2 = find(imdb_m.images.set==2) ; end
 
     prevLr = lr ;
     lr = opts.learningRate(min(epoch, numel(opts.learningRate))) ;
@@ -156,7 +161,7 @@ for epoch=1:opts.numEpochs
     
     
     N = min(numel(train),numel(train2));
-    for t=1:opts.batchSize:N
+	for t=1:opts.batchSize:N
         
         % get next image batch and labels
         batch = train(t:min(t+opts.batchSize-1, numel(train))) ;
@@ -173,7 +178,7 @@ for epoch=1:opts.numEpochs
         fprintf('training: epoch %02d: processing batch %3d of %3d ...', epoch, ...
             fix(t/opts.batchSize)+1, ceil(N/opts.batchSize)) ;
         
-        [im,im_mix, im1,im2] = getBatch(imdb, imdb2, batch,batch2) ;
+        [im,im_mix, im1,im2] = getBatch(imdb_f, imdb_m, batch,batch2) ;
         
         if opts.useGpu
             im = gpuArray(im) ;
@@ -203,13 +208,13 @@ for epoch=1:opts.numEpochs
                 opts.momentum * net{ii}.layers{l}.filtersMomentum ...
                 - (lr * net{ii}.layers{l}.filtersLearningRate) * ...
                 (opts.weightDecay * net{ii}.layers{l}.filtersWeightDecay) * net{ii}.layers{l}.filters ...
-                - (lr * net{ii}.layers{l}.filtersLearningRate) / C / numel(batch) * res{ii}(l).dzdw{1} ;
+                - (lr * net{ii}.layers{l}.filtersLearningRate) / opts.C / numel(batch) * res{ii}(l).dzdw{1} ;
             
             net{ii}.layers{l}.biasesMomentum = ...
                 opts.momentum * net{ii}.layers{l}.biasesMomentum ...
                 - (lr * net{ii}.layers{l}.biasesLearningRate) * ....
                 (opts.weightDecay * net{ii}.layers{l}.biasesWeightDecay) * net{ii}.layers{l}.biases ...
-                - (lr * net{ii}.layers{l}.biasesLearningRate) / C / numel(batch) * res{ii}(l).dzdw{2} ;
+                - (lr * net{ii}.layers{l}.biasesLearningRate) / opts.C / numel(batch) * res{ii}(l).dzdw{2} ;
             
             net{ii}.layers{l}.filters = net{ii}.layers{l}.filters + net{ii}.layers{l}.filtersMomentum ;
             net{ii}.layers{l}.biases = net{ii}.layers{l}.biases + net{ii}.layers{l}.biasesMomentum ;
@@ -239,8 +244,8 @@ for epoch=1:opts.numEpochs
     
 	
     % save
-    info.train.objective(end) = info.train.objective(end) / numel(train)/C ;
-    info.train.speed(end) = numel(train) / info.train.speed(end)/C ;
+    info.train.objective(end) = info.train.objective(end) / numel(train)/opts.C ;
+    info.train.speed(end) = numel(train) / info.train.speed(end)/opts.C ;
 %     info.val.objective(end) = info.val.objective(end) / numel(val) ;
 %     info.val.speed(end) = numel(val) / info.val.speed(end) ;
 %     save(sprintf(modelPath,epoch), 'net', 'info') ;
@@ -251,16 +256,8 @@ for epoch=1:opts.numEpochs
     
 
     if  ~mod(epoch, opts.validFreq )
-    
-	for ii=1:size(net,2)
-	    net_aux{ii}.layers = net{ii}.layers(1:end-1);
-	    temp_context = size(net_aux{ii}.layers{1}.filters,2);
-	    net_aux{ii}.layers{1}.pad = [0 0 floor(temp_context/2) floor(temp_context/2)];
-	    temp_context2 = size(net_aux{ii}.layers{3}.filters,2);
-	    net_aux{ii}.layers{3}.pad = [0 0 floor(temp_context2/2) floor(temp_context2/2)];
-    	end
 
-    output = getValid(net_aux);
+    output = getValid(net);
     fprintf('Validation: \n')
     disp(output.stat)
     

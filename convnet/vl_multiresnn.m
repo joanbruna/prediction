@@ -7,7 +7,9 @@ opts.conserveMemory = false ;
 opts.sync = false ;
 opts.disableDropout = false ;
 opts.freezeDropout = false ;
+opts.test=false;
 opts = vl_argparse(opts, varargin);
+
 
 
 m = numel(net) ;
@@ -38,7 +40,7 @@ for i=1:m-1
 end
 
 % ensemble
-res = vl_ensemble(net{m},res);
+res = vl_ensemble(net{m},res, opts.test);
 for i=1:m-1
 res{i} = vl_simplenn(net{i}, [], res{i}(end).dzdx, res{i}, ...
         'conserveMemory', opts.conserveMemory, ...

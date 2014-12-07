@@ -1,10 +1,12 @@
-
 if ~exist('imdb_m','var')
 close all
 gpud=gpuDevice(4);
 reset(gpud)
 
 addpath('../utils/')
+addpath('../scatt/')
+addpath('../icassp_tests/')
+addpath('../bss_eval/')
 
 %run('/home/bruna/matlab/matconvnet/matlab/vl_setupnn.m') ;
 run('../matconvnet/matlab/vl_setupnn.m') ;
@@ -17,16 +19,20 @@ representation = '/scratch/';
 
 load([representation 'female.mat']);
 name = 'female';
-imdb_f = prepareData_matconvnet(data,C,name,use_single,0);
-imdb_f.images.data = 100*imdb_f.images.data;
+%imdb_f = prepareData_matconvnet(data,C,name,use_single,0);
+%imdb_f.images.data = 100*imdb_f.images.data;
+data_f = data;
+data_f. X = 100* data_f.X;
 scparam = data.scparam;
 filts = data.filts;
 clear data
 
 load([representation 'male.mat']);
 name = 'male';
-imdb_m = prepareData_matconvnet(data,C,name,use_single,0);
-imdb_m.images.data = 100*imdb_m.images.data;
+%imdb_m = prepareData_matconvnet(data,C,name,use_single,0);
+%imdb_m.images.data = 100*imdb_m.images.data;
+data_m = data;
+data_m. X = 100* data_m.X;
 clear data
 fprintf('data ready \n')
 end
@@ -106,102 +112,107 @@ valid_fun    = @(net) separation_test_net(@(net) cnn_demix(Xn,net),test_female,t
 %create an ensemble 
 net = {};
 
-NFFT = size(imdb_f.images.data,3);
-net{1}.layers = {};
+%NFFT = size(imdb_f.images.data,3);
+NFFT = size(data_f.X,1);
+net{end+1}.layers = {};
 filter_num = 512;
 temp_context = 1;
 
 f1 = 1;
-net{1}.layers{end+1} = struct('type', 'conv', ...
+net{end}.layers{end+1} = struct('type', 'conv', ...
                            'filters', f1*randn(1, temp_context, NFFT,filter_num, 'single'), ...
                            'biases', zeros(1, filter_num, 'single'), ...
                            'stride', 1, ...
                            'pad',[0 0 floor(temp_context/2) floor(temp_context/2)]) ;
 
-net{1}.layers{end+1} = struct('type', 'relu') ;
+net{end}.layers{end+1} = struct('type', 'relu') ;
 
 f1 = 1;
 filter_num2 = 100;
-net{1}.layers{end+1} = struct('type', 'conv', ...
+net{end}.layers{end+1} = struct('type', 'conv', ...
                            'filters', f1*randn(1, 1, filter_num,filter_num2, 'single'), ...
                            'biases', zeros(1, filter_num2, 'single'), ...
                            'stride', 1, ...
                            'pad',[0 0 floor(temp_context/2) floor(temp_context/2)]) ;
 
-net{1}.layers{end+1} = struct('type', 'relu') ;
+net{end}.layers{end+1} = struct('type', 'relu') ;
 
 %f2 = 1/sqrt(1*filter_num);
 f2 = 1;
-net{1}.layers{end+1} = struct('type', 'conv', ...
+net{end}.layers{end+1} = struct('type', 'conv', ...
                            'filters', f2*randn(1,1,filter_num2,2*NFFT, 'single'), ...
                            'biases', zeros(1, 2*NFFT, 'single'), ...
                            'stride', 1, ...
                            'pad',0) ;
                        
-net{1}.layers{end+1} = struct('type', 'normalize_audio', ...
+net{end}.layers{end+1} = struct('type', 'normalize_audio', ...
                            'param', [2 1e-5 1 0.5]) ;
 
 
 
+if 1
 %%%%%%%%%second net %%%%%%
 
-net{2}.layers = {};
+net{end+1}.layers = {};
 filter_num = 512;
 temp_context = 3;
 
 f1 = 1;
-net{2}.layers{end+1} = struct('type', 'conv', ...
+net{end}.layers{end+1} = struct('type', 'conv', ...
                            'filters', f1*randn(1, temp_context, NFFT,filter_num, 'single'), ...
                            'biases', zeros(1, filter_num, 'single'), ...
                            'stride', 1, ...
                            'pad',[0 0 floor(temp_context/2) floor(temp_context/2)]) ;
 
-net{2}.layers{end+1} = struct('type', 'relu') ;
+net{end}.layers{end+1} = struct('type', 'relu') ;
 
 f1 = 1;
 filter_num2 = 100;
-net{2}.layers{end+1} = struct('type', 'conv', ...
+net{end}.layers{end+1} = struct('type', 'conv', ...
                            'filters', f1*randn(1, temp_context, filter_num,filter_num2, 'single'), ...
                            'biases', zeros(1, filter_num2, 'single'), ...
                            'stride', 1, ...
                            'pad',[0 0 floor(temp_context/2) floor(temp_context/2)]) ;
 
-net{2}.layers{end+1} = struct('type', 'relu') ;
+net{end}.layers{end+1} = struct('type', 'relu') ;
 
 %f2 = 1/sqrt(1*filter_num);
 f2 = 1;
-net{2}.layers{end+1} = struct('type', 'conv', ...
+net{end}.layers{end+1} = struct('type', 'conv', ...
                            'filters', f2*randn(1,1,filter_num2,2*NFFT, 'single'), ...
                            'biases', zeros(1, 2*NFFT, 'single'), ...
                            'stride', 1, ...
                            'pad',0) ;
                        
-net{2}.layers{end+1} = struct('type', 'normalize_audio', ...
+net{end}.layers{end+1} = struct('type', 'normalize_audio', ...
                            'param', [2 1e-5 1 0.5]) ;
 
+end
 
-                       
-net{3}.layers = {};
-net{3}.layers{end+1} = struct('type', 'fitting', ...
+%%%% mixing layer       
+                
+net{end+1}.layers = {};
+net{end}.layers{end+1} = struct('type', 'fitting', ...
                            'loss', 'L2_center') ;
 
 %opts.expDir = '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-cnn2/';
-opts.expDir = '/scratch/bruna/cnn/'
+opts.expDir = '/scratch/bruna/cnn/twolayer'
 opts.train.batchSize = 1000;
 opts.train.numEpochs = 600;
 opts.train.continue = false ;
 opts.train.useGpu = true ;
 opts.train.validFreq = 5;
 opts.train.startSave = 50;
+opts.train.C = 9;
 
 opts.train.fixedLayers = [];
 
-opts.train.learningRate = C*[0.1*ones(1,10) 0.01*ones(1,30) 0.001*ones(1,100) 0.0001];
+opts.train.learningRate = opts.train.C*[0.1*ones(1,10) 0.01*ones(1,30) 0.001*ones(1,100) 0.0001];
 opts.train.expDir = opts.expDir ;
 
 gB    = @(imdb1, imdb2, batch,batch2) getBatch_nmf(imdb1, imdb2, batch, batch2,epsilon);
 
 getValid    = @(net) separation_test_net(@(Xn) cnn_ensemble_demix(Xn,net),test_female,test_male,options);
 
-[net,info_sc_init] = cnn_train_audio_mr(net, imdb_f, imdb_m, gB, getValid, opts.train) ;
+[net,info_sc_init] = cnn_train_audio_mr(net, data_f, data_m, gB, getValid, opts.train) ;
 
