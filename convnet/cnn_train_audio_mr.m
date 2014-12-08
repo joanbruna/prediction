@@ -28,8 +28,10 @@ opts.errorType = 'multiclass' ;
 opts.plotDiagnostics = false ;
 opts.C = 1;
 opts.use_single = 1;
+opts.epsilon = 1e-8;
 opts = vl_argparse(opts, varargin) ;
 
+training_proportion = 0.95;
 
 if ~exist(opts.expDir), mkdir(opts.expDir) ; end
 if isnan(opts.train), opts.train = [] ; end
@@ -113,12 +115,12 @@ modelPath = fullfile(opts.expDir, 'net-epoch-0.mat') ;
 lr = 0 ;
 res = [] ;
 for epoch=1:opts.numEpochs
- 	imdb_f = prepareData_matconvnet(data_f,opts.C,'female',opts.use_single,0);
-	imdb_m = prepareData_matconvnet(data_m,opts.C,'male',opts.use_single,0);
-	if isempty(opts.train), opts.train = find(imdb_f.images.set==1) ; end
-	if isempty(opts.train2), opts.train2 = find(imdb_m.images.set==1) ; end
-	if isempty(opts.val), opts.val = find(imdb_f.images.set==2) ; end
-	if isempty(opts.val2), opts.val2 = find(imdb_m.images.set==2) ; end
+ %	imdb_f = prepareData_matconvnet(data_f,opts.C,'female',opts.use_single,0);
+%	imdb_m = prepareData_matconvnet(data_m,opts.C,'male',opts.use_single,0);
+%	if isempty(opts.train), opts.train = find(imdb_f.images.set==1) ; end
+%	if isempty(opts.train2), opts.train2 = find(imdb_m.images.set==1) ; end
+%	if isempty(opts.val), opts.val = find(imdb_f.images.set==2) ; end
+%	if isempty(opts.val2), opts.val2 = find(imdb_m.images.set==2) ; end
 
     prevLr = lr ;
     lr = opts.learningRate(min(epoch, numel(opts.learningRate))) ;
@@ -134,10 +136,10 @@ for epoch=1:opts.numEpochs
         end
     end
     
-    train = opts.train(randperm(numel(opts.train))) ;
-    train2 = opts.train2(randperm(numel(opts.train2))) ;
-    val = opts.val ;
-    val2 = opts.val2 ;
+    %train = opts.train(randperm(numel(opts.train))) ;
+    %train2 = opts.train2(randperm(numel(opts.train2))) ;
+    %val = opts.val ;
+    %val2 = opts.val2 ;
     
     info.train.objective(end+1) = 0 ;
     info.train.error(end+1) = 0 ;
@@ -145,6 +147,7 @@ for epoch=1:opts.numEpochs
     info.train.speed(end+1) = 0 ;
     info.val.NSDR(end+1) = 0 ;
     info.val.stat{end+1} = [] ;
+    info.val.objective(end+1) = 0 ;
     
 
     % reset momentum if needed
@@ -159,43 +162,88 @@ for epoch=1:opts.numEpochs
 	end
     end
     
+	nframes_train_1 = round(training_proportion * size(data_f.X,2));
+	nframes_train_2 = round(training_proportion * size(data_m.X,2));
+
+	train1 = round(opts.C/2) + randperm(nframes_train_1-opts.C);
+	train2 = round(opts.C/2) + randperm(nframes_train_2-opts.C);
+	train1 = train1(1:min(nframes_train_1, nframes_train_2)-opts.C);	
+	train2 = train2(1:min(nframes_train_1, nframes_train_2)-opts.C);	
+
+	if epoch==1
+	nframes_val_1 = size(data_f.X,2) - nframes_train_1 ;
+	nframes_val_2 = size(data_m.X,2) - nframes_train_2 ;
+	val1 = length(train1) + round(opts.C/2) + randperm(nframes_val_1-opts.C);
+	val2 = length(train1) + round(opts.C/2) + randperm(nframes_val_2-opts.C);
+	val1 = val1(1:min(nframes_val_1, nframes_val_2)-opts.C);	
+	val2 = val2(1:min(nframes_val_1, nframes_val_2)-opts.C);	
+	end
+
+	%input has 4 dimensions: 1 x C x F x bs
+
+
+	N = length(train1);
+	im = zeros(1, opts.C, size(data_f.X,1), opts.batchSize, 'single','gpuArray');
+	im_mix = zeros(1, opts.C, size(data_f.X,1), opts.batchSize, 'single','gpuArray');
+	im1 = zeros(1, opts.C, size(data_f.X,1), opts.batchSize, 'single','gpuArray');
+	im2 = zeros(1, opts.C, size(data_f.X,1), opts.batchSize, 'single','gpuArray');
+
+	for t=1:opts.batchSize:N-opts.batchSize+1
+		I1 = train1(t:t+opts.batchSize-1);
+		I2 = train2(t:t+opts.batchSize-1);
+		for c=-floor(opts.C/2):floor(opts.C/2)
+			im1(1,c+floor(opts.C/2)+1,:,:) = data_f.X(:,I1+c);	
+			im2(1,c+floor(opts.C/2)+1,:,:) = data_m.X(:,I2+c);	
+		end
+		im_mix = im1+im2;
+		im = abs(im_mix);
+		tmp = sqrt(sum(sum(im.^2,2),3));
+		im = im./repmat(opts.epsilon + tmp, [1 opts.C size(im,3) 1]) ;
+	
     
-    N = min(numel(train),numel(train2));
-	for t=1:opts.batchSize:N
+    %N = min(numel(train),numel(train2));
+	%for t=1:opts.batchSize:N
         
         % get next image batch and labels
-        batch = train(t:min(t+opts.batchSize-1, numel(train))) ;
-        batch2 = train2(t:min(t+opts.batchSize-1, numel(train2))) ;
+      %  batch = train(t:min(t+opts.batchSize-1, numel(train))) ;
+      %  batch2 = train2(t:min(t+opts.batchSize-1, numel(train2))) ;
         
-        if length(batch)~=length(batch2)
-            m = min(length(batch),length(batch2));
-            batch = batch(1:m);
-            batch2 = batch2(1:m);
-        end
+      %  if length(batch)~=length(batch2)
+      %      m = min(length(batch),length(batch2));
+      %      batch = batch(1:m);
+      %      batch2 = batch2(1:m);
+      %  end
         
         
         batch_time = tic ;
         fprintf('training: epoch %02d: processing batch %3d of %3d ...', epoch, ...
             fix(t/opts.batchSize)+1, ceil(N/opts.batchSize)) ;
         
-        [im,im_mix, im1,im2] = getBatch(imdb_f, imdb_m, batch,batch2) ;
+       % [im,im_mix, im1,im2] = getBatch(imdb_f, imdb_m, batch,batch2) ;
         
-        if opts.useGpu
-            im = gpuArray(im) ;
-            im1 = gpuArray(im1);
-            im2 = gpuArray(im2);
-            im_mix = gpuArray(im_mix);
-        end
+       % if opts.useGpu
+       %     im = gpuArray(im) ;
+       %     im1 = gpuArray(im1);
+       %     im2 = gpuArray(im2);
+       %     im_mix = gpuArray(im_mix);
+       % end
         
  
-        % backprop
-	net{end}.layers{end}.Ymix = im_mix;
-	net{end}.layers{end}.Y1 = im1;
-	net{end}.layers{end}.Y2 = im2;
+        % fprop and backprop
+%	if t==1
+%	size(im)
+%	size(im1)
+%	size(im2)
+%	keyboard
+%	end
+	net{end}.layers{end}.Ymix = im_mix(:,ceil(opts.C/2),:,:);
+	net{end}.layers{end}.Y1 = im1(:,ceil(opts.C/2),:,:);
+	net{end}.layers{end}.Y2 = im2(:,ceil(opts.C/2),:,:);
 	res = vl_multiresnn(net,im,one,[], ...
             'conserveMemory', opts.conserveMemory, ...
             'sync', opts.sync);
 	        
+        batch_time = toc(batch_time) ;
         % gradient step
 	for ii=1:size(net,2)
         for l=1:numel(net{ii}.layers)
@@ -208,28 +256,27 @@ for epoch=1:opts.numEpochs
                 opts.momentum * net{ii}.layers{l}.filtersMomentum ...
                 - (lr * net{ii}.layers{l}.filtersLearningRate) * ...
                 (opts.weightDecay * net{ii}.layers{l}.filtersWeightDecay) * net{ii}.layers{l}.filters ...
-                - (lr * net{ii}.layers{l}.filtersLearningRate) / opts.C / numel(batch) * res{ii}(l).dzdw{1} ;
+                - (lr * net{ii}.layers{l}.filtersLearningRate) / opts.C / opts.batchSize * res{ii}(l).dzdw{1} ;
             
             net{ii}.layers{l}.biasesMomentum = ...
                 opts.momentum * net{ii}.layers{l}.biasesMomentum ...
                 - (lr * net{ii}.layers{l}.biasesLearningRate) * ....
                 (opts.weightDecay * net{ii}.layers{l}.biasesWeightDecay) * net{ii}.layers{l}.biases ...
-                - (lr * net{ii}.layers{l}.biasesLearningRate) / opts.C / numel(batch) * res{ii}(l).dzdw{2} ;
+                - (lr * net{ii}.layers{l}.biasesLearningRate) / opts.C / opts.batchSize * res{ii}(l).dzdw{2} ;
             
             net{ii}.layers{l}.filters = net{ii}.layers{l}.filters + net{ii}.layers{l}.filtersMomentum ;
             net{ii}.layers{l}.biases = net{ii}.layers{l}.biases + net{ii}.layers{l}.biasesMomentum ;
         end
         end
         % print information
-        batch_time = toc(batch_time) ;
-        speed = numel(batch)/batch_time ;
+        speed = opts.batchSize/batch_time ;
         
         info.train.objective(end) = info.train.objective(end) + sum(double(gather(res{end}(end).x))) ;
         info.train.speed(end) = info.train.speed(end) + speed ;
         
         fprintf(' %.2f s (%.1f images/s)', batch_time, speed) ;
-        n = t + numel(batch) - 1 ;
-        fprintf(' obj %.1f', ...
+        n = t + opts.batchSize - 1 ;
+        fprintf(' obj %.4f', ...
             info.train.objective(end)/n) ;
         
         fprintf('\n') ;
@@ -241,11 +288,45 @@ for epoch=1:opts.numEpochs
     end % next batch
     
     %----------------------------------------------------------------------
-    
-	
+	if 1
+   
+	%validation using the same cost function
+	for t=1:opts.batchSize:length(val1)-opts.batchSize+1
+		I1 = val1(t:t+opts.batchSize-1);
+		I2 = val2(t:t+opts.batchSize-1);
+		for c=-floor(opts.C/2):floor(opts.C/2)
+			im1(1,c+floor(opts.C/2)+1,:,:) = data_f.X(:,I1+c);	
+			im2(1,c+floor(opts.C/2)+1,:,:) = data_m.X(:,I2+c);	
+		end
+		im_mix = im1+im2;
+		im = abs(im_mix);
+		tmp = sqrt(sum(sum(im.^2,2),3));
+		im = im./repmat(opts.epsilon + tmp, [1 opts.C size(im,3) 1]) ;
+        
+        batch_time = tic ;
+        fprintf('validation: epoch %02d: processing batch %3d of %3d ...', epoch, ...
+            fix(t/opts.batchSize)+1, ceil(N/opts.batchSize)) ;
+ 
+        % fprop and backprop
+	net{end}.layers{end}.Ymix = im_mix(:,ceil(opts.C/2),:,:);
+	net{end}.layers{end}.Y1 = im1(:,ceil(opts.C/2),:,:);
+	net{end}.layers{end}.Y2 = im2(:,ceil(opts.C/2),:,:);
+	res = vl_multiresnn(net,im,[],[], ...
+            'conserveMemory', opts.conserveMemory, ...
+            'sync', opts.sync);
+ 
+        info.val.objective(end) = info.val.objective(end) + sum(double(gather(res{end}(end).x))) ;
+        n = t + opts.batchSize - 1 ;
+        fprintf(' obj %.4f', ...
+            info.val.objective(end)/n) ;
+        fprintf('\n') ;
+
+	end	
+
+	end
     % save
-    info.train.objective(end) = info.train.objective(end) / numel(train)/opts.C ;
-    info.train.speed(end) = numel(train) / info.train.speed(end)/opts.C ;
+    info.train.objective(end) = info.train.objective(end) / numel(train1)/opts.C ;
+    info.train.speed(end) = numel(train1) / info.train.speed(end)/opts.C ;
 %     info.val.objective(end) = info.val.objective(end) / numel(val) ;
 %     info.val.speed(end) = numel(val) / info.val.speed(end) ;
 %     save(sprintf(modelPath,epoch), 'net', 'info') ;

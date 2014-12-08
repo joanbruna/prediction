@@ -44,6 +44,7 @@ SIR = zeros(M,N);
 SAR = zeros(M,N);
 
 count = 1;
+totobj = 0;
 
 for j=1:M
 for i=1:N
@@ -80,7 +81,9 @@ for i=1:N
     
     %[Hs,Hn,Wn,obj] = denoising_nmf(Xn,D,nparam);
     [mask1,mask2] = testFun(Xn);
-    
+	    
+
+
     % wiener filter included in the net
 %     eps_1 = 1e-6;
 %     V_ap = W1H1.^2 +W2H2.^2 + eps_1;

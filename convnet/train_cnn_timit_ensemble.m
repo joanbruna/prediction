@@ -1,6 +1,6 @@
-if ~exist('imdb_m','var')
+if ~exist('data_f','var')
 close all
-gpud=gpuDevice(4);
+gpud=gpuDevice(2);
 reset(gpud)
 
 addpath('../utils/')
@@ -150,7 +150,7 @@ net{end}.layers{end+1} = struct('type', 'normalize_audio', ...
 
 
 
-if 1
+if 0
 %%%%%%%%%second net %%%%%%
 
 net{end+1}.layers = {};
@@ -196,18 +196,20 @@ net{end}.layers{end+1} = struct('type', 'fitting', ...
                            'loss', 'L2_center') ;
 
 %opts.expDir = '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-cnn2/';
-opts.expDir = '/scratch/bruna/cnn/twolayer'
+cup=fix(clock);
+opts.expDir = sprintf('/scratch/bruna/cnn/batch_depth_%d_%d_%d_%d_%d_%d/',size(net,2),cup(2), cup(3), cup(4), cup(5), cup(6));
 opts.train.batchSize = 1000;
 opts.train.numEpochs = 600;
 opts.train.continue = false ;
 opts.train.useGpu = true ;
 opts.train.validFreq = 5;
-opts.train.startSave = 50;
-opts.train.C = 9;
+opts.train.startSave = 5;
+opts.train.C = 1;
+opts.train.C = 2*(floor(opts.train.C/2)) + 1;
 
 opts.train.fixedLayers = [];
 
-opts.train.learningRate = opts.train.C*[0.1*ones(1,10) 0.01*ones(1,30) 0.001*ones(1,100) 0.0001];
+opts.train.learningRate = opts.train.C*[0.1*ones(1,10) 0.01*ones(1,40) 0.001*ones(1,100) 0.001];
 opts.train.expDir = opts.expDir ;
 
 gB    = @(imdb1, imdb2, batch,batch2) getBatch_nmf(imdb1, imdb2, batch, batch2,epsilon);

@@ -4,7 +4,6 @@ function varargout = vl_nnnormalize_audio(X,param,dzdy)
 %
 %
 
-
 if nargin <= 2
     dzdy = [];
 end
@@ -40,3 +39,4 @@ end
 
 
 varargout{1} = Z;
+

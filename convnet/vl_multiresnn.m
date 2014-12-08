@@ -41,6 +41,7 @@ end
 
 % ensemble
 res = vl_ensemble(net{m},res, opts.test);
+
 for i=1:m-1
 res{i} = vl_simplenn(net{i}, [], res{i}(end).dzdx, res{i}, ...
         'conserveMemory', opts.conserveMemory, ...

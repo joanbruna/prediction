@@ -15,5 +15,6 @@ res = vl_multiresnn(net, single(Xn), [], res, ...
 
 Yn = permute(res{end}(end).x, [3 2 1]);
 
+
 W1H1 = gather( Yn(1:2:end,:) );
 W2H2 = gather( Yn(2:2:end,:) );
