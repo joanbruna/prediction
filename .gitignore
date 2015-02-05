@@ -20,3 +20,5 @@ writeups/icassp/paper_icassp.pdf
 writeups/prediction.log
 
 writeups/prediction.pdf
+
+*.nc
