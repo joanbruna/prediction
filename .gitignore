@@ -22,3 +22,7 @@ writeups/prediction.log
 writeups/prediction.pdf
 
 *.nc
+
+*.log
+
+*.pdf
