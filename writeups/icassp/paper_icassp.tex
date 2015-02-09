@@ -122,19 +122,20 @@
 %	yann@cs.nyu.edu}
 %
 \begin{document}
-%\ninept
+\ninept
 %
 \maketitle
 %
 \begin{abstract}
 This paper presents a single-channel source separation method
-that extendes the ideas of Nonnegative Matrix Factorization (NMF).
+that extends the ideas of Nonnegative Matrix Factorization (NMF).
 We interpret the approach of audio demixing via NMF as a cascade of a pooled analysis operator, given
-for example by the magnitude spectrogram, and a synthesis operators given bye the matrix decomposition.
+for example by the magnitude spectrogram, and a synthesis operators given by the matrix decomposition.
 Instead of imposing the temporal consistency of the decomposition through
 sophisticated structured penalties in the synthesis stage,
-we propose to change the analysis operator for a deep scattering representation. This new signal representation is
-invariant to smooth changes in the signal, consistent with its temporal dynamics.
+we propose to change the analysis operator for a deep scattering representation,
+where signals are represented at several time resolutions. 
+This new signal representation is invariant to smooth changes in the signal, consistent with its temporal dynamics.
 We evaluate the proposed approach in a speech separation task obtaining promising results.
 \end{abstract}
 %
@@ -145,7 +146,8 @@ source separation, scattering, non-negative matrix factorization.
 
 \input{introduction}
 \input{nmf}
-\input{scatt}
+%\input{scatt}
+\input{scatt_new}
 \input{algo}
 \input{results}
 

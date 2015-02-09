@@ -46,6 +46,13 @@ N.~Mohammadiha, P.~Smaragdis, and A.~Leijon,
 \newblock {\em Audio, Speech, and Language Processing, IEEE Transactions on},
   vol. 21, no. 10, pp. 2140--2151, 2013.
 
+\bibitem{smaragdis2007convolutive}
+Paris Smaragdis,
+\newblock ``Convolutive speech bases and their application to supervised speech
+  separation,''
+\newblock {\em Audio, Speech, and Language Processing, IEEE Transactions on},
+  vol. 15, no. 1, pp. 1--12, 2007.
+
 \bibitem{fevotte2011majorization}
 C.~F{\'e}votte,
 \newblock ``Majorization-minimization algorithm for smooth itakura-saito
@@ -114,6 +121,30 @@ R.~Jenatton, R.~Gribonval, and F.~Bach,
   presence of noise,''
 \newblock {\em arXiv preprint arXiv:1210.0685}, 2012.
 
+\bibitem{weninger2014discriminative}
+Felix Weninger, Jonathan Le~Roux, John~R Hershey, and Shinji Watanabe,
+\newblock ``Discriminative nmf and its application to single-channel source
+  separation,''
+\newblock {\em Proc. of ISCA Interspeech}, 2014.
+
+\bibitem{sprechmann2014supervised}
+P.~Sprechmann, A.~M. Bronstein, and G.~Sapiro,
+\newblock ``Supervised non-euclidean sparse {NMF} via bilevel optimization with
+  applications to speech enhancement,''
+\newblock in {\em HSCMA}. IEEE, 2014, pp. 11--15.
+
+\bibitem{merl}
+Felix Weninger, Jonathan Le~Roux, John~R Hershey, and Bj{\"o}rn Schuller,
+\newblock ``Discriminatively trained recurrent neural networks for
+  single-channel speech separation,''
+\newblock in {\em Proc. IEEE GlobalSIP 2014 Symposium on Machine Learning
+  Applications in Speech Processing}, 2014.
+
+\bibitem{Huang_DNN_Separation_ICASSP2014}
+P.-S. Huang, M.~Kim, M.~Hasegawa-Johnson, and P.~Smaragdis,
+\newblock ``Deep learning for monaural speech separation,''
+\newblock in {\em ICASSP}, 2014, pp. 1562--1566.
+
 \bibitem{fevotte2011algorithms}
 C.~F{\'e}votte and J.~Idier,
 \newblock ``Algorithms for nonnegative matrix factorization with the
@@ -142,16 +173,5 @@ E.~Vincent, R.~Gribonval, and C.~F{\'e}votte,
 \newblock ``Performance measurement in blind audio source separation,''
 \newblock {\em IEEE Trans. on Audio, Speech, and Lang. Proc.}, vol. 14, no. 4,
   pp. 1462--1469, 2006.
-
-\bibitem{Huang_DNN_Separation_ICASSP2014}
-P.-S. Huang, M.~Kim, M.~Hasegawa-Johnson, and P.~Smaragdis,
-\newblock ``Deep learning for monaural speech separation,''
-\newblock in {\em ICASSP}, 2014, pp. 1562--1566.
-
-\bibitem{sprechmann2014supervised}
-P.~Sprechmann, A.~M. Bronstein, and G.~Sapiro,
-\newblock ``Supervised non-euclidean sparse {NMF} via bilevel optimization with
-  applications to speech enhancement,''
-\newblock in {\em HSCMA}. IEEE, 2014, pp. 11--15.
 
 \end{thebibliography}

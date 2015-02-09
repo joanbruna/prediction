@@ -1,0 +1,203 @@
+\section{Scattering transform}
+\label{scattsec}
+
+Discriminative features having longer temporal context can be constructed with the 
+scattering transform \cite{deepscatt,pami}. 
+While these features have shwon excellent performance in various classification tasks, 
+in the context of source separation we would like to obtain a representation 
+preserving temporal locality as much as possible.
+For this reason, we propose to cunstruct a multi-level representation consisting of a pyramid of scattering coefficients 
+with a different temporal resolutions at each level. 
+This section reviews its definition and main properties when applied to speech signals.
+
+\subsection{Wavelet Filter Bank}
+
+A wavelet $\psi (t)$ is a band-pass filter with good frequency and spatial localization.
+ We consider a complex wavelet with a quadrature phase, 
+whose Fourier transform satisfies
+$\mathcal{F} \psi(\om) \approx 0$ for $\om < 0$.
+We assume that the center frequency of $\mathcal{F} \psi$ is $1$ and 
+that its bandwidth is of the order of $Q^{-1}$. 
+Wavelet filters centered
+at the frequencies $\lambda = 2^{j/Q}$ are computed by dilating $\psi$:
+$\psi_\la (t) = \la\, \psi(\la\, t)$, and hence $\mathcal{F} \psi_\la (\om) = \widehat \psi(\la^{-1} \omega)$.
+We denote by $\Lambda$ the index set of $\la = 2^{j/Q}$ over
+the signal frequency support, with $j \leq J$, 
+and we impose that these filters fully cover the positive frequencies:
+\begin{equation}
+\label{consdf}
+\forall \om \geq 0~,~ 1- \epsilon 
+\leq |\mathcal{F}{\phi}(\omega)|^2 + \frac 1 2 \sum_{\la \in \Lambda} |\mathcal{F}{\psi}_{\lambda}(\omega)|^2 \leq 1~,
+\end{equation}
+for some $\epsilon <1$, where $\phi(t)$ is the lowpass filter carrying the 
+low frequency information at scales larger than $2^J$.
+The resulting filter bank has a constant number $Q$ of bands per 
+octave. The wavelet transform of a signal $x(t)$ is
+\[
+W x = \{x \ast \phi(t)~,~x \ast \psi_\la(t)  \}_{\la \in \Lambda}~.
+\]
+Thanks to (\ref{consdf}), one can verify that 
+\begin{equation}
+\label{lp_basic}
+\| x \|^2 (1- \epsilon) \leq \| x \ast \phi \|^2 + \sum_{\la \in \Lambda} \| x \ast \psi_\la \|^2  \leq \| x \|^2~.
+\end{equation}
+
+\subsection{Joint Time-Frequency Pyramid Scattering}
+
+Scattering coefficients provide a nonlinear representation 
+computed by iterating over wavelet transforms and complex modulus nonlinearities. 
+%We sample the scalograms at critical rate given by . Note that this contrasts with standard scattering transform, were a fixed bandwidth smoothing kernel is used at every layer \cite{deepscatt,pami}.  
+%
+%First order scattering coefficients
+%are local averages of wavelet amplitudes:
+%\[
+%\forall \la \in \La~~,~~S x(t,\la) = |\, x \ast \psi_\la| \ast \phi(t)~. 
+%\]
+%The Q-factor $Q_1$ adjusts the frequency resolution of 
+%these wavelets, and for speech it is typically around $Q_1=32$.
+% Due to the temporal average, first order scattering coefficients 
+%provide no information on the time variation of the scalogram
+%$|x \ast \psi_{\la_1} (t)|$ at temporal scales smaller than $2^J$. 
+%It averages all modulations and 
+%transient events, and thus loses perceptually important information.
+We start by removing the complex phase of wavelet coefficients in $W^1x$ with a 
+complex modulus nonlinearity. We arrange these first layer coefficients as nodes in the first level of the tree,
+\[
+|W^1| x = \{ x^1_i \}_{i=1\dots 1+|\Lambda|}= \{x \ast \phi_1(\Delta_1 n)~,~|x \ast \psi_{\lambda_1}(\Delta_1 n)|  \}_{\lambda \in \Lambda}~.
+\]
+where $\Delta_1$ the critical sampling rate (the reciprocal of the largest bandwidth present
+in the filter bank).
+These first layer coefficients give localized information both in
+time and frequency, with a trade-off dictated by the Q factor, $Q_1$, that adjusts the frequency resolution of 
+these wavelets.  For speech a typical choice is around $Q_1=32$.
+
+In order to increase the robustness of the representation, we transform each of the down sampled signals 
+with a new wavelet filter bank and take the complex modulus of the oscillatory component, 
+%For simplicity, we assume a dyadic transformation, 
+%which reduces the filter bank to a pair of conjugate mirror filters $\{ \phi_2, \psi_2\} $ \cite{wavelettour}, 
+%carrying respectively the low-frequencies and high-frequencies of the discrete signal from above the tree:
+$$|W^2| x = \{ x^1_i \ast \phi_{\lambda_2}  (\Delta_2 n)~,~| x^1_i \ast \psi_{\lambda_2} (\Delta_2 n)| \}_{i=1\dots |W^1|}~,$$
+where $\Delta_2$ is again the critical sampling rate. These multiscale variations of each envelope specify the amplitude modulations of $x(t)$ \cite{deepscatt} and 
+thus have the capacity to detect rythmic structures appearing at different 
+frequency bands. 
+The Q-factor $Q_2$ of the second family of wavelets $\psi_{\la_2}$ 
+controls the time-frequency resolution of the transform. 
+Since the envelopes $| x \ast \psi_{\la_1}|$ have bandwidth $\sim 2^{-j} Q_1^{-1}$, 
+one typically chooses dyadic $Q_2=1$ second order wavelets.
+Scattering coefficients have a negligible amplitude for
+$\la_2 > \la_1$ because $|x \ast \psi_{\la_1}|$ is a regular envelop
+whose frequency support is below $\la_2$ \cite{pami}. 
+Scattering coefficients are thus computed only for $\la_2 < \la_1$. 
+
+%Second order scattering coefficients recover information on
+%audio modulations and pitch temporal variations by computing
+%the wavelet coefficients of the envelopes $|x \ast \psi_{\la_1}|$, and their
+%local averages:
+%\[
+%\forall \la_2~~,~~
+%S x(t,\la_1,\la_2) = ||\, x \ast \psi_{\la_1}| \ast \psi_{\la_2}| \ast \phi(t)~ .
+%\]
+%These multiscale variations of each envelope $|x \ast \psi_{\la_1}|$ 
+%specify the amplitude modulations of $x(t)$ \cite{deepscatt} and 
+%thus have the capacity to detect rythmic structures appearing at different 
+%frequency bands. 
+%The Q-factor $Q_2$ of the second family of wavelets $\psi_{\la_2}$ 
+%controls the time-frequency resolution of the transform. 
+%Since the envelopes $| x \ast \psi_\la|$ have bandwidth $\sim 2^{-j} Q_1^{-1}$, 
+%one typically chooses dyadic $Q_2=1$ second order wavelets.
+%Scattering coefficients have a negligible amplitude for
+%$\la_2 > \la_1$ because $|x \ast \psi_{\la_1}|$ is a regular envelop
+%whose frequency support is below $\la_2$ \cite{pami}. 
+%Scattering coefficients are thus computed only for $\la_2 < \la_1$. 
+
+%
+%
+%Applying more wavelet transform envelopes defines
+%scattering coefficients at any order $m \geq 1$:
+%\begin{equation}
+%\label{expansdf}
+%S I(\la_1,...,\la_m; t) =  |~|I \ast \psi_{\la_1}| \ast ... | \ast \psi_{\la_m}| \ast \phi(t)~.
+%\end{equation}
+%By iterating on the inequality (\ref{lp_basic}), one can 
+%verify \cite{stephane}
+%that the Euclidean norm of scattering coefficients
+%\begin{equation}
+%\label{enfsondf}
+%\|S I\|^2 = \sum_{m=1}^{\infty} \sum_{(\la_1,...,\la_m) \in \La_m}
+%\|S I (\la_1,...,\la_m; \cdot )\|^2 
+%\end{equation}
+%satisfies
+%\[
+%\|S I\|^2 \leq  \| I \|^2~.
+%\]
+%
+%For most audio signals, the energy of the scattering
+%vector $\|S I\|^2$ is concentrated over first and second layers. 
+%In practice, we thus only compute $S I(\la_1)$ and
+%$S I(\la_1,\la_2)$ for $1 \leq \la_1 = 2^{j_1/Q_1} \leq N$
+%and $1 \leq \la_2 = 2^{j_2/Q_2} < \la_1$. 
+%
+Scattering transforms have been extended along the frequency
+variables to capture the joint time-frequency 
+variability of spectral envelopes and therefore provide 
+ representations locally stable to pitch variations \cite{deepscatt}. 
+We denote $\gamma = \log_2 \lambda_1$, and consider
+the scalogram as a two-dimensional function of $\gamma$ and $t$: 
+\[
+F (\gamma, t) = |x \ast \psi_{2^{\gamma}} (t)|~.
+\]
+
+In this work, we consider a second layer scattering with 
+a separable wavelet transform $F \ast \Psi_{\gamma_2, \la_2} (\gamma, t)~,$
+with
+$$\Psi_{{\gamma_2}, {\la_2}}(\gamma,t) = \widetilde{\psi}_{\gamma_2}(\gamma) \psi_{\la_2}(t)~.$$
+The temporal wavelets $\psi(t)$ are dyadic complex Morlet wavelets. 
+In this implementation, 
+we choose $\widetilde{\psi}$ to be dyadic real Haar wavelets to preserve good frequency localization.
+
+%The resulting second order scattering coefficients are thus
+%\[
+%\tilde{S} x (t, \la_1, \gamma_2,  \la_2) = 
+%|F \ast \bar \Psi_{\gamma_2, \la_2} | \ast \overline{\phi}( \log_2 \la_1, t)~,
+%\]
+%where $\overline{\phi}(\gamma, t)$ is a two-dimensional blurring kernel with temporal 
+%scale $2^J$ and log-frequency scale $2^{J_h}$. 
+We can reapply the same operator as many times $k$ as desired until reaching a temporal 
+context $T = 2^k \Delta_1$. If the wavelet filters are chosen such that they define a non-expansive mapping \cite{pami}, it results that every layer defines a metric which is increasingly contracting:
+
+$$\| |W^k| x - |W^k| x' \| \leq \| |W^{k-1}| x - |W^{k-1}| x' \| \leq \| x - x' \| ~.$$
+
+Every layer thus produces new feature maps at a lower temporal resolution. 
+In the end we obtain a tree of different representations,
+$$\Phi_j(x) = |W^j| x, \quad \textrm{with} \quad j=1,\ldots, k.$$ 
+
+
+%\subsection{Pyramid Wavelet Scattering}
+%
+%Therefor, instead of using a fixed bandwidth smoothing kernel 
+%at all layers of the representation we sample each layer at critical rate. In this way, we cunstruct a pyramid of
+%scattering coefficients with a different temporal resolutions at each level.
+%
+%
+%
+%These first layer coefficients give localized information both in time and frequency, 
+%with a trade-off dictated by the $Q$ factor.
+%
+%$$|W^2| x = \{ x^1_i \ast \phi_2 (2 n)~,~| x^1_i \ast \psi_2 (2n)| \}_{i=1\dots |W^1|}~.$$
+%Every layer thus produces new feature maps at a lower temporal resolution.
+%
+%We can reapply the same operator as many times $k$ as desired until reaching a temporal 
+%context $T = 2^k \Delta_1$. If the wavelet filters are chosen such that they define a non-expansive mapping \cite{pami}, 
+%it results that every layer defines a metric which is increasingly contracting:
+%
+%$$\| |W^k| x - |W^k| x' \| \leq \| |W^{k-1}| x - |W^{k-1}| x' \| \leq \| x - x' \| ~.$$
+
+%
+%
+%\subsection{Analysis operator}
+%
+%Common choices are the (non-negative) spectrogram or the the constant $Q-$transform \cite{}. 
+%
+%Given the observed noisy signal $x$, we denote it's spectrogram as $\bb{\Phi}(x) = |\bb{X}| \in \RR^{m \times n}$ comprising $m$ frequency bins and $n$ temporal frames. $\bb{X} \in \CC^{m \times n}$ contains in it's $i-$th column the Discrete Fourier Transform (DFT) of the $i-th$ frame of $x$, $\bb{x}_i\in \RR^{m}$ ,and it is given by, $\bb{X}_i = \bb{W}^\Tr \bb{x}_i$.
+%
+%

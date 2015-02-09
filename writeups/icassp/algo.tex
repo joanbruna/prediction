@@ -1,20 +1,12 @@
 \section{Source Separation Algorithm}
 \label{algosec}
 We show in this section how the inverse problem of source separation 
-can be solved via a sparse NMF in the scattering domain, followed by phase recovery.
+can be solved via a sparse NMF in the pyramid scattering domain, followed by phase recovery.
 We consider the supervised 
 monoaural source separation problem (\ref{ssep}), 
  in which the components $x_i$, $i=1,2$ come from sources for 
  which we have training data $X_i=\{x_{ij}\}_{j \leq K}$, 
 and one is asked to produce estimates $\widehat{x_i}$. 
-
-The supervision provides  prior information on the nature of each of the 
-components. However, high-dimensional speech signals have large variability, 
-most of which is uninformative for the purposes of estimating $x_i$ in (\ref{ssep}).
-The training data can be exploited more efficiently in the scattering domain, since 
-intra-class variability given by small pitch and timber variations is linearized up to 
- temporal scales $2^J$ without loosing as much discriminative information as 
-the spectrogram \cite{deepscatt,pami}.
 
 \begin{table*}[t]
 \centering
@@ -32,48 +24,65 @@ NMF  & 5.6 [1.8] & 13.4 [2.8] &   6.9 [1.3] & 6.1 [2.9] &   14.1 [3.8] & 7.4 [2.
   \hline
 \end{tabular}
 \caption{Separation with speakers-specific and multi-speaker settings. Average SDR, SIR and SAR (in $dB$) for NMF and proposed  and \emph{scatt-NMF\textsubscript{2}}. Standard deviation of each result shown between brackets. \label{ta:eval}}
-\vspace{-2ex}
+%\vspace{-2ex}
 \end{table*}
 
-
-Let $\Phi(X_i)$ be the scattering representation of the training examples of each 
-source. We consider a non-linear approximation of each source using sparse NMF:
+Let us consider for simplicity the features $\Phi_j(x_i)$, $j=1,2$, $i=1,2$, $x_i \in X_i$, obtained by localizing the scattering features of two different resolutions at their 
+corresponding sampling rates. Therefore, $\Phi_1$ is equivalent to a CQT and carries more localized information than $\Phi_2$. 
+On the other hand, $\Phi_2$ is stable at representing longer temporal contexts. We train independent models for each source at each resolution by solving,
 \begin{equation}
-\min_{D_i\geq 0, Z_i\geq 0} \frac{1}{2} \| \Phi(X_i) - D_i \, Z_i \|_F^2 + \lambda \| Z_i \|_1~.
+\min_{D^i_j \geq 0} \, \sum_{x\in X_i}   \min_{z \geq 0}  \frac{1}{2}  \| \Phi_j(x) - D^j_i z \|^2 + \lambda_j \| z \|_1~.
+\nonumber
 \end{equation}
+%\begin{equation}
+%\min_{D_i\geq 0, Z_i\geq 0} \frac{1}{2} \| \Phi(X_i) - D_i \, Z_i \|_F^2 + \lambda \| Z_i \|_1~.
+%\end{equation}
+where $D^j_i$ represents the non-negative dictionary of source $i$ at resolution $j$. 
 This model exploits the linearization properties of scattering coefficients since it 
 searches low-dimensional linear approximations. 
 
 At test time, given and input $x$, $x_1$ and $x_2$ are estimated by minimizing
 \begin{equation}
 \label{model}
-\min_{x'_i, z_i} \sum_{i=1,2} \frac{1}{2} \| \Phi(x'_i) - D_i z_i \|_2^2 + \lambda \| z_i \|_1 \quad\,s.t. ~x=x'_1 + x'_2~.
+\min_{x'_i, z_i}  \sum_{j=1,2} \sum_{i=1,2} \frac{1}{2} \| \Phi_j(x'_i) - D^j_i z^j_i \|_2^2 + \lambda \| z^j_i \|_1 \,\,\,s.t. ~x=x'_1 + x'_2~.
 \end{equation}
-Problem (\ref{model}) is minimized with an alternating gradient descent between $x'_i$ and $z_i$. 
-Fixing $z_i$ and minimizing with respect to $x'_i$ requires locally inverting the scattering 
-operator $\Phi$, which amounts to solve an overcomplete phase recovery problem and 
+Problem (\ref{model}) is minimized with an alternating gradient descent between $x'_i$ and  $z^j_i$. 
+Fixing the $z^j_i$ variables and minimizing with respect to $x'_i$ requires locally inverting the scattering 
+operators $\Phi_j$, which amounts to solve an overcomplete phase recovery problem and 
 can be solved with gradient descent, as shown in \cite{bruna2013audio}. 
-Fixed $x'_i$, solving for $z_i$ is a standard $\ell_1$ non-negative sparse coding problem, which can be solved 
-efficiently with proximal splitting algorithms. In this work, we use the LARS algorithm using the SPAMS package \cite{mairal2009online}. 
- 
+Fixed $x'_i$, solving for $z^j_i$ are four independent $\ell_1$ non-negative sparse coding problems, which can be solved 
+efficiently. In this work, we use the SPAMS package \cite{mairal2009online}. 
+% 
+Note that unlike standard NMF problems, the optimization in \ref{model} is carried out directly on the temporal signal.
+%We are looking for a decomposition in which the signals are well represented by the models at different
+%temporal resolutions.
+
 %Explain the greedy algorithm.
-When the analysis operator $\Phi$ is able to produce sparse representations of the sources, 
-then 
-{\small
-\begin{eqnarray*}
-&&\| \Phi(x'_1) - D_1 z_1 \|_2^2 + \| \Phi(x'_2) - D_2 z_2 \|^2 \approx \\
-&&\| \Phi(x'_1) + \Phi(x'_2) - \sum_{i=1,2} D_i z_i \|_2^2  \approx \| \Phi(x) - D_1 z_1 - D_2 z_2 \|_2^2 ~,
-\end{eqnarray*}}
+When the analysis operators $\Phi_j$ are able to produce sparse representations of the sources, 
+then at each level we have
+
+\begin{eqnarray}
+\sum_{i=1,2}  \| \Phi_j(x'_i) - D^j_i z^j_i \|_2^2 \approx \| \Phi_j(x) - D^j_1 z_1 - D^j_2 z_2 \|_2^2 ~,
+%&&\| \Phi_j(x'_1) + \Phi_j(x'_2) - \sum_{i=1,2} D^j_i z_i \|_2^2  \approx \| \Phi_j(x) - D^j_1 z_1 - D^j_2 z_2 \|_2^2 ~,
+\end{eqnarray}
 which can be used in practice to produce a greedy initialization for (\ref{model}) as follows. 
-We first obtain $\widehat{\Phi(x_i)}= D_i z^*_i$, where the $z^*_i$ are defined as 
-$$z^*_i = \arg\min_{z_i} \frac{1}{2}\| \Phi(x) - \sum_{i=1,2} D_i z_i \|_2^2 +\lambda \| z_i \|_1~.$$
-Since the scattering satisfies {\small $\Phi(x)= \{ A |W_1 x | \,,\, A | W_2 | W_1 x | | \}$}, 
-where $A$ is the lowpass filter and $W_1$ and $W_2$ are respectively the first and 
-second layer wavelet decompositions, we can produce an estimate $\widehat{x}_i$ from 
-$\widehat{\Phi(x_i)}$ by using the complex phases of $W_1 x$ and $W_2 |W_1 x|$.
+%We first obtain $\widehat{\Phi_2(x_i)}= D^2_i z^{2*}_i$, where the $z^{2*}_i$ are defined as 
+%$$z^{2*}_i = \arg\min_{z_i \geq>0} \frac{1}{2}\| \Phi_2(x) - \sum_{i=1,2} D^2_i z_i \|_2^2 +\lambda \| z_i \|_1~.$$
+We obtain an estimator $\widehat{\Phi_1(x_i)}= D^1_i z^{1*}_i$, where the $z^{1*}_i$ are defined as 
+$$z^{1*}_i = \arg\min_{z_i \geq>0} \frac{1}{2}\| \widehat{\Phi(x)} - \sum_{i=1,2} D^1_i z_i \|_2^2 +\lambda \| z_i \|_1~.$$
+We can produce an estimate $\widehat{x}_i$ from  $\widehat{\Phi_1(x_i)}$ by using the complex phases of $W_1 x$.
+This can be thought as running standard NMF with CQT features.
 
-
-
+%The supervision provides  prior information on the nature of each of the 
+%components. However, high-dimensional speech signals have large variability, 
+%most of which is uninformative for the purposes of estimating $x_i$ in (\ref{ssep}).
+%The training data can be exploited more efficiently in this multi-resolution domain. 
+In the proposed framework, the decomposition needs to be coherent at both levels of temporal resolution.
+The first level representation is well located temporally and allows for a high resolution rerepentation of the signals,
+while the deeper representations can be thought as a regularizer imposing temporal coherence. 
+In the deep representation, intra-class variability given by small pitch and timber variations is linearized up to 
+ temporal scales $2^J$ without loosing as much discriminative information as 
+the spectrogram \cite{deepscatt,pami}.
 %
 %
 %\subsection{Analysis operator}

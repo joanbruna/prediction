@@ -20,7 +20,7 @@ all female-male combinations (144 mixtures).
 %
 %When dealing with several frames, we computed a global score (GSDR, GSIR, GSAR and GSNR) by averaging the metrics over all test clips from the same speaker and noise weighted by the clip duration.
 
-\mypara{Training setting} We evaluated the proposed scattering NMF model with one and two layers, reffered
+\mypara{Training setting} We evaluated the proposed scattering NMF model with pyramids of one and two layers, reffered
 as \emph{scatt-NMF\textsubscript{1}} and \emph{scatt-NMF\textsubscript{2}} respectively. As a baseline we used standard NMF 
 with frame lengths of 1024 samples and 50\% overlap. 
 %
@@ -39,6 +39,8 @@ In all cases, the features were frame-wise normalized and we used $\lambda=0.1$.
 
 \mypara{Results} Table~\ref{ta:eval} shows the results obtained for the speaker-specific and multi-speaker settings. \footnote{Audio samples are available at \url{www.cims.nyu.edu/~bruna/scatt_source_separation}.}
 In all cases we observe that the one layer scattering transform outperforms the STFT in terms of SDR.
+These results go in line with the ones obtained in \cite{merl}, showing that the choice of stable
+features has a strong effect in the performance. 
 Furthermore, there is a tangible gain in including a deeper representation; \emph{scatt-NMF\textsubscript{2}} 
 performs always better than \emph{scatt-NMF\textsubscript{1}}. 
 As expected, the results obtained with the speaker-specific setting are better than those of the more challanging problem
@@ -52,7 +54,6 @@ due to the very small available training data (less than 10 seconds per speaker)
 \emph{scatt-NMF\textsubscript{2}} outperforms the benchmark KL-NMF in SDR and SIR, and is competitive 
 with the best performing networks
 reported in \cite{Huang_DNN_Separation_ICASSP2014}, with and without joint discriminative training, see Table~\ref{ta:eval2}.
-We expect further gains by applying discriminative dictionary learning \cite{sprechmann2014supervised}.
 
 In summary, these results confirm that inverse problems such as speech source separation 
 can benefit from the properties of stable and highly discriminative non-linear representations, 
@@ -60,15 +61,14 @@ such as scattering operators. Sparse inference is able to extract more relevant 
 to the stability to time-frequency deformations, while the phase recovery can still be efficiently performed
 with gradient descent.
 
-%In all the experiments with  \emph{scatt-NMF\textsubscript} , we using a greedy approximation explained in Section \ref{scattsec}. We expect that solving it explicitly would bring some additional improvement.
+%In all the experiments with  \emph{scatt-NMF\textsubscript} , we used the greedy approximation explained in Section \ref{scattsec}. We expect that solving it explicitly would bring some additional improvement.
 
 
 \begin{table}[tb]
 \caption{Comparison RNN based separation, with and without joint discriminative training
 with soft masks \cite{Huang_DNN_Separation_ICASSP2014}. \label{ta:eval2}}
-\vspace{-5.5ex}
+\vspace{-1.5ex}
 \begin{center}
-\footnotesize{
 \begin{tabular}{l|c|c|c}
   \hline\hline
 & SDR & SIR & SAR \\
@@ -81,9 +81,8 @@ RNN joint disc. training \cite{Huang_DNN_Separation_ICASSP2014} & {\bf 7.4}  &  
 \emph{scatt-NMF\textsubscript{2}} &  6.7 & 11.1  & 6.9 \\
   \hline\hline
 \end{tabular}
-}
 \end{center}
-\vspace{-4.5ex}
+\vspace{-2.5ex}
 \end{table}
 
 
@@ -98,6 +97,7 @@ leads to a tangible improvement in performance in challenging source separation 
 A natural extension of this work is to investigate the use of learned representations instead, or on top of,
 the designed ones.
 %
+We expect further gains by applying discriminative dictionary learning \cite{sprechmann2014supervised}.
 Future work includes testing more thoroughly the potential of the proposed model in combination
 with convolutional neural networks, which have been very successful in other signal and image processing problems.
 
