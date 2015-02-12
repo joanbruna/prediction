@@ -64,7 +64,7 @@ complex modulus nonlinearity. We arrange these first layer coefficients as nodes
 \[
 |W^1| x = \{ x^1_i \}_{i=1\dots 1+|\Lambda|}= \{x \ast \phi_1(\Delta_1 n)~,~|x \ast \psi_{1,\lambda_1}(\Delta_1 n)|  \}_{\lambda \in \Lambda}~.
 \]
-where $\Delta_1$ the critical sampling rate of the highest frequency wavelet sub-band. 
+where $\Delta_1$ is the critical sampling rate of the highest frequency wavelet sub-band 
 (the reciprocal of the largest bandwidth present
 in the filter bank) and $\psi_1$ has bandwidth $Q_1^{-1}$.
 These first layer coefficients give localized information both in
@@ -81,10 +81,8 @@ In order to sample each channel using the same temporal resolution, this time we
 \label{scatnonjoint}
 |W^2| x = \{ x^1_i \ast \phi_{2}  (\Delta_2 n)~,~| x^1_i \ast \psi_{2,\lambda_2} | \ast \phi_{2}(\Delta_2 n)| \}_{i=1\dots |W^1|}~,
 \end{equation}
-where $\Delta_2$ is this time the critical sampling rate of $\phi_2$. 
-The multiscale variations of each envelope specify the amplitude modulations of $x(t)$ \cite{deepscatt} and  thus have the capacity to detect rhythmic structures appearing at different 
-frequency bands. 
-The Q-factor $Q_2$ of the second family of wavelets $\psi_{2,\la_2}$ 
+where $\Delta_2$ is this time the critical sampling rate of the averaging filter $\phi_2$. 
+The multiscale variations of each envelope specify the amplitude modulations of $x(t)$ \cite{deepscatt} and  thus have the capacity to detect rhythmic structures appearing at different frequency bands. The Q-factor $Q_2$ of the second family of wavelets $\psi_{2,\la_2}$ 
 controls the time-frequency resolution of the transform. 
 Since the envelopes $| x \ast \psi_{\la_1}|$ have bandwidth $\sim 2^{-j} Q_1^{-1}$, 
 one typically chooses dyadic $Q_2=1$ second order wavelets.
@@ -157,7 +155,6 @@ with
 $$\overline{\psi}_{{\gamma_2}, {\la_2}}(\gamma,t) = \widetilde{\psi}_{\gamma_2}(\gamma) \psi_{2,\la_2}(t)~,~\overline{\psi}_{{0}, {\la_2}}(\gamma,t) = \widetilde{\phi}(\gamma) \psi_{2,\la_2}(t)~$$
 $$\overline{\psi}_{{\gamma_2}, {0}}(\gamma,t) = \widetilde{\psi}_{\gamma_2}(\gamma) \phi_{2}(t)~,~\overline{\phi}(\gamma,t) = \widetilde{\phi}(\gamma) \phi_{2}(t)~$$
 By replacing $\psi$ and $\phi$ in (\ref{scatnonjoint}) by $\overline{\psi}$ and $\overline{\phi}$ respectively, we obtain the joint scattering pyramid transform.
-The . 
 In this implementation, 
 we choose temporal wavelets $\psi(t)$ to be dyadic complex Morlet wavelets,
 and $\widetilde{\psi}$ to be dyadic real Haar wavelets to preserve good frequency localization,
