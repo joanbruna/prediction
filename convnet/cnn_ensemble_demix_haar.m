@@ -1,4 +1,4 @@
-function  [W1H1,W2H2] = cnn_ensemble_demix(Xn,net,J,epsilon)
+function  [W1H1,W2H2] = cnn_ensemble_demix_haar(Xn,net,J,epsilon)
 
 
 
@@ -11,7 +11,7 @@ Xn = gpuArray(Xn);
 
 if nargin > 2
 %keyboard
-Xn = wavelet_transf_batch_3conv(Xn, J);
+Xn = wavelet_transf_batch(Xn, J);
 %tmp = sqrt(sum(Xn.^2,3));
 %Xn = Xn./repmat(epsilon + tmp, [1 1 size(Xn,3) 1]) ;
 %J=0;

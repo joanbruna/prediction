@@ -55,7 +55,7 @@ switch opts.loss
         
         if isempty(dzdy)
             
-            varargout{1} = cost;
+            varargout{1} = cost / (.5*sum(Y1(:).^2) + .5*sum(Y2(:).^2));
             
         else
             

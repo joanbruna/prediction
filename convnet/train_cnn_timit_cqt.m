@@ -5,6 +5,9 @@ gpud=gpuDevice(3);
 reset(gpud)
 
 addpath('../utils/')
+addpath('../scatt/')
+addpath('../icassp_tests/')
+addpath('../bss_eval/')
 
 %run('/home/bruna/matlab/matconvnet/matlab/vl_setupnn.m') ;
 run('../matconvnet/matlab/vl_setupnn.m') ;
@@ -149,8 +152,10 @@ net.layers{end+1} = struct('type', 'normalize_audio', ...
 net.layers{end+1} = struct('type', 'fitting', ...
                            'loss', 'L2') ;
 
-opts.expDir = '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-2nd-comp-complex/';
+%opts.expDir = '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-2nd-comp-complex/';
 %opts.expDir = '/tmp/pablo/timit-cnn-test-lr/';
+cup=fix(clock);
+opts.expDir = sprintf('/scratch/joan/cnn/batch_depth_%d_%d_%d_%d_%d_%d/',size(net,2),cup(2), cup(3), cup(4), cup(5), cup(6));
 opts.train.batchSize = 1000;
 opts.train.numEpochs = 600;
 opts.train.continue = false ;

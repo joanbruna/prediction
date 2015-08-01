@@ -1,6 +1,6 @@
 if ~exist('data_f','var')
 close all
-gpud=gpuDevice(1);
+gpud=gpuDevice(4);
 reset(gpud)
 
 addpath('../utils/')
@@ -11,7 +11,7 @@ addpath('../bss_eval/')
 %run('/home/bruna/matlab/matconvnet/matlab/vl_setupnn.m') ;
 run('../matconvnet/matlab/vl_setupnn.m') ;
 
-C = 9;
+C = 1;
 use_single = 1;
 
 %representation = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/cqt_phase_fs16_NFFT2048_hop1024/TRAIN/';
@@ -110,100 +110,57 @@ valid_fun    = @(net) separation_test_net(@(net) cnn_demix(Xn,net),test_female,t
 
 %%
 
-%create an ensemble 
-net = {};
-
 J = 5
 %NFFT = size(imdb_f.images.data,3);
 
-insize = size(data_f.X,1)*(J+1);
+%insize = size(data_f.X,1)*(J+1);
+insize = size(data_f.X,1)*(3*J);
 	NFFT = size(data_f.X,1);
-net{end+1}.layers = {};
+net.layers = {};
 temp_context = 1;
 filter_num = 512 ; % * (J/2);
                         %'filters', f1*randn(1, temp_context, NFFT,filter_num, 'single'), ...
 
 f1 = 1/sqrt(temp_context * insize);
-net{end}.layers{end+1} = struct('type', 'conv', ...
+net.layers{end+1} = struct('type', 'conv', ...
                            'filters', f1*randn(1, temp_context,insize,filter_num, 'single'), ...
                            'biases', zeros(1, filter_num, 'single'), ...
                            'stride', 1, ...
                            'pad',0);%[0 0 floor(temp_context/2) floor(temp_context/2)]) ;
 
-net{end}.layers{end+1} = struct('type', 'relu') ;
+net.layers{end+1} = struct('type', 'relu') ;
 
 f1 = 1/sqrt(filter_num);
 filter_num2 = 100;
 temp_context = 1;
-net{end}.layers{end+1} = struct('type', 'conv', ...
+net.layers{end+1} = struct('type', 'conv', ...
                            'filters', f1*randn(1, temp_context, filter_num,filter_num2, 'single'), ...
                            'biases', zeros(1, filter_num2, 'single'), ...
                            'stride', 1, ...
                            'pad',[0 0 floor(temp_context/2) floor(temp_context/2)]) ;
 
-net{end}.layers{end+1} = struct('type', 'relu') ;
+net.layers{end+1} = struct('type', 'relu') ;
 
 %f2 = 1/sqrt(1*filter_num);
 f2 = 1;
-net{end}.layers{end+1} = struct('type', 'conv', ...
+net.layers{end+1} = struct('type', 'conv', ...
                            'filters', f2*randn(1,1,filter_num2,2*NFFT, 'single'), ...
                            'biases', zeros(1, 2*NFFT, 'single'), ...
                            'stride', 1, ...
                            'pad',0) ;
                        
-net{end}.layers{end+1} = struct('type', 'normalize_audio', ...
+net.layers{end+1} = struct('type', 'normalize_audio', ...
                            'param', [2 1e-5 1 0.5]) ;
 
+net.layers{end+1} = struct('type', 'fitting', ...
+                           'loss', 'L2') ;
 
 
-if 0
-%%%%%%%%%second net %%%%%%
-
-net{end+1}.layers = {};
-filter_num = 512;
-temp_context = 1;
-
-f1 = 0.1;
-net{end}.layers{end+1} = struct('type', 'conv', ...
-                           'filters', f1*randn(1, temp_context, NFFT,filter_num, 'single'), ...
-                           'biases', zeros(1, filter_num, 'single'), ...
-                           'stride', 1, ...
-                           'pad',[0 0 floor(temp_context/2) floor(temp_context/2)]) ;
-
-net{end}.layers{end+1} = struct('type', 'relu') ;
-
-f1 = 0.1;
-filter_num2 = 100;
-net{end}.layers{end+1} = struct('type', 'conv', ...
-                           'filters', f1*randn(1, temp_context, filter_num,filter_num2, 'single'), ...
-                           'biases', zeros(1, filter_num2, 'single'), ...
-                           'stride', 1, ...
-                           'pad',[0 0 floor(temp_context/2) floor(temp_context/2)]) ;
-
-net{end}.layers{end+1} = struct('type', 'relu') ;
-
-%f2 = 1/sqrt(1*filter_num);
-f2 = 1;
-net{end}.layers{end+1} = struct('type', 'conv', ...
-                           'filters', f2*randn(1,1,filter_num2,2*NFFT, 'single'), ...
-                           'biases', zeros(1, 2*NFFT, 'single'), ...
-                           'stride', 1, ...
-                           'pad',0) ;
-                       
-net{end}.layers{end+1} = struct('type', 'normalize_audio', ...
-                           'param', [2 1e-5 1 0.5]) ;
-
-end
-
-%%%% mixing layer       
-                
-net{end+1}.layers = {};
-net{end}.layers{end+1} = struct('type', 'fitting', ...
-                           'loss', 'L2_center') ;
 
 %opts.expDir = '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-cnn2/';
 cup=fix(clock);
-opts.expDir = sprintf('/scratch/joan/cnn/batch_depth_%d_%d_%d_%d_%d_%d_J%d/',size(net,2),cup(2), cup(3), cup(4), cup(5), cup(6), J);
+%opts.expDir = sprintf('/scratch/joan/cnn/batch_depth_%d_%d_%d_%d_%d_%d_J%d/',size(net,2),cup(2), cup(3), cup(4), cup(5), cup(6), J);
+opts.expDir = '/scratch/joan/cnn/batch_depth_1_12_18_15_23_7_J5/';
 opts.train.batchSize = 1000;
 opts.train.numEpochs = 600;
 opts.train.continue = false ;
@@ -212,14 +169,17 @@ opts.train.validFreq = 5;
 opts.train.saveFreq = 5;
 opts.train.startSave = 5;
 %opts.train.C = 2^(J+3);
-opts.train.C = 2^(J) + J;
+opts.train.C = round(1.5*2^(J));
 opts.train.C = 2*(floor(opts.train.C/2)) + 1;
 opts.train.J = J;
-opts.train.filts = create_secfilters(opts.train.C, opts.train.J);
+%opts.train.filts = create_secfilters(opts.train.C, opts.train.J);
+%opts.train.Hm = precompute_haar(opts.train.C, opts.train.J);
+opts.train.Hm = precompute_haar_3conv(opts.train.C, opts.train.J);
 
 opts.train.fixedLayers = [];
 
-opts.train.learningRate = [0.1*ones(1,10) 0.01*ones(1,40) 0.001*ones(1,100) 0.0001];
+opts.train.learningRate = [0.01*ones(1,20) 0.01*ones(1,30) 0.001*ones(1,100) 0.0001];
+%opts.train.learningRate = [0.01*(1./[1:100].^(1/2))];
 opts.train.expDir = opts.expDir ;
 
 gB    = @(imdb1, imdb2, batch,batch2) getBatch_nmf(imdb1, imdb2, batch, batch2,epsilon);

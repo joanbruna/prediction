@@ -29,7 +29,7 @@ opts.errorType = 'multiclass' ;
 opts.plotDiagnostics = false ;
 opts.C = 1;
 opts.J = 1;
-opts.Hm = [];
+opts.filts = [];
 opts.use_single = 1;
 opts.epsilon = 1e-8;
 opts = vl_argparse(opts, varargin) ;
@@ -43,40 +43,44 @@ if isnan(opts.train), opts.train = [] ; end
 %                                                    Network initialization
 % -------------------------------------------------------------------------
 
-for i=1:numel(net.layers)
-    if ~strcmp(net.layers{i}.type,'conv') && ~strcmp(net.layers{i}.type,'nmf'), continue; end
+for ii=1:size(net,2)
+for i=1:numel(net{ii}.layers)
+    if ~strcmp(net{ii}.layers{i}.type,'conv') && ~strcmp(net{ii}.layers{i}.type,'nmf'), continue; end
     
-    if strcmp(net.layers{i}.type,'conv') ,
-        net.layers{i}.filtersMomentum = zeros('like',net.layers{i}.filters) ;
-        net.layers{i}.biasesMomentum = zeros('like',net.layers{i}.biases) ;
-    end
-    
-    
-    if strcmp(net.layers{i}.type,'nmf') ,
-        net.layers{i}.D1Momentum = zeros('like',net.layers{i}.D1) ;
-        net.layers{i}.D2Momentum = zeros('like',net.layers{i}.D2) ;
+    if strcmp(net{ii}.layers{i}.type,'conv') ,
+        net{ii}.layers{i}.filtersMomentum = zeros('like',net{ii}.layers{i}.filters) ;
+        net{ii}.layers{i}.biasesMomentum = zeros('like',net{ii}.layers{i}.biases) ;
     end
     
-    if ~isfield(net.layers{i}, 'filtersLearningRate')
-        net.layers{i}.filtersLearningRate = 1 ;
+    
+    if strcmp(net{ii}.layers{i}.type,'nmf') ,
+        net{ii}.layers{i}.D1Momentum = zeros('like',net{ii}.layers{i}.D1) ;
+        net{ii}.layers{i}.D2Momentum = zeros('like',net{ii}.layers{i}.D2) ;
     end
-    if ~isfield(net.layers{i}, 'biasesLearningRate')
-        net.layers{i}.biasesLearningRate = 1 ;
+    
+    if ~isfield(net{ii}.layers{i}, 'filtersLearningRate')
+        net{ii}.layers{i}.filtersLearningRate = 1 ;
     end
-    if ~isfield(net.layers{i}, 'filtersWeightDecay')
-        net.layers{i}.filtersWeightDecay = 1 ;
+    if ~isfield(net{ii}.layers{i}, 'biasesLearningRate')
+        net{ii}.layers{i}.biasesLearningRate = 1 ;
     end
-    if ~isfield(net.layers{i}, 'biasesWeightDecay')
-        net.layers{i}.biasesWeightDecay = 1 ;
+    if ~isfield(net{ii}.layers{i}, 'filtersWeightDecay')
+        net{ii}.layers{i}.filtersWeightDecay = 1 ;
+    end
+    if ~isfield(net{ii}.layers{i}, 'biasesWeightDecay')
+        net{ii}.layers{i}.biasesWeightDecay = 1 ;
     end
 end
+end
+for ii=1:size(net,2)
 if opts.useGpu
-    net = vl_simplenn_move(net, 'gpu') ;
-    for i=1:numel(net.layers)
-        if ~strcmp(net.layers{i}.type,'conv'), continue; end
-        net.layers{i}.filtersMomentum = gpuArray(net.layers{i}.filtersMomentum) ;
-        net.layers{i}.biasesMomentum = gpuArray(net.layers{i}.biasesMomentum) ;
+    net{ii} = vl_simplenn_move(net{ii}, 'gpu') ;
+    for i=1:numel(net{ii}.layers)
+        if ~strcmp(net{ii}.layers{i}.type,'conv'), continue; end
+        net{ii}.layers{i}.filtersMomentum = gpuArray(net{ii}.layers{i}.filtersMomentum) ;
+        net{ii}.layers{i}.biasesMomentum = gpuArray(net{ii}.layers{i}.biasesMomentum) ;
     end
+end
 end
 
 % -------------------------------------------------------------------------
@@ -110,11 +114,9 @@ modelPath = fullfile(opts.expDir, 'net-epoch-0.mat') ;
 %
 
 %C = size(imdb.images.data,2);
-setval=0;
+
 lr = 0 ;
 res = [] ;
-load(fullfile(opts.expDir,'net-epoch-30.mat'));
-
 for epoch=1:opts.numEpochs
  %	imdb_f = prepareData_matconvnet(data_f,opts.C,'female',opts.use_single,0);
 %	imdb_m = prepareData_matconvnet(data_m,opts.C,'male',opts.use_single,0);
@@ -155,11 +157,13 @@ for epoch=1:opts.numEpochs
     if prevLr ~= lr
     %if  ~mod(epoch, opts.saveFreq )
         fprintf('learning rate changed (%f --> %f): resetting momentum\n', prevLr, lr) ;
-        for l=1:numel(net.layers)
-            if ~strcmp(net.layers{l}.type, 'conv'), continue ; end
-            net.layers{l}.filtersMomentum = 0 * net.layers{l}.filtersMomentum ;
-            net.layers{l}.biasesMomentum = 0 * net.layers{l}.biasesMomentum ;
+	for ii=1:size(net,2)
+        for l=1:numel(net{ii}.layers)
+            if ~strcmp(net{ii}.layers{l}.type, 'conv'), continue ; end
+            net{ii}.layers{l}.filtersMomentum = 0 * net{ii}.layers{l}.filtersMomentum ;
+            net{ii}.layers{l}.biasesMomentum = 0 * net{ii}.layers{l}.biasesMomentum ;
         end
+	end
     end
     
 	nframes_train_1 = round(training_proportion * size(data_f.X,2));
@@ -170,14 +174,13 @@ for epoch=1:opts.numEpochs
 	train1 = train1(1:min(nframes_train_1, nframes_train_2)-opts.C);	
 	train2 = train2(1:min(nframes_train_1, nframes_train_2)-opts.C);	
 
-	if setval==0
+	if epoch==1
 	nframes_val_1 = size(data_f.X,2) - nframes_train_1 ;
 	nframes_val_2 = size(data_m.X,2) - nframes_train_2 ;
 	val1 = length(train1) + round(opts.C/2) + randperm(nframes_val_1-opts.C);
 	val2 = length(train1) + round(opts.C/2) + randperm(nframes_val_2-opts.C);
 	val1 = val1(1:min(nframes_val_1, nframes_val_2)-opts.C);	
 	val2 = val2(1:min(nframes_val_1, nframes_val_2)-opts.C);	
-	setval = 1;
 	end
 
 	%input has 4 dimensions: 1 x C x F x bs
@@ -205,49 +208,47 @@ for epoch=1:opts.numEpochs
 		%keyboard
 		tmp = sqrt(sum(abs(im_mix).^2,3));
 		im = abs(im_mix)./repmat(opts.epsilon + tmp, [1 1 size(im_mix,3) 1]) ;
-		%im = wavelet_transf_batch(im, opts.J,1,opts.Hm);
-		im = wavelet_transf_batch_3conv(im, opts.J,1,opts.Hm);
+		im = wavelet_transf_batch(im, opts.J,1);
         
         fprintf('training: epoch %02d: processing batch %3d of %3d ...', epoch, ...
             fix(t/opts.batchSize)+1, ceil(N/opts.batchSize)) ;
         
-	net.layers{end}.Ymix = im_mix(:,ceil(opts.C/2),:,:);
-	net.layers{end}.Y1 = im1(:,ceil(opts.C/2),:,:);
-	net.layers{end}.Y2 = im2(:,ceil(opts.C/2),:,:);
-
-	res = vl_simplenn(net,im,one,res, ...
+	net{end}.layers{end}.Ymix = im_mix(:,ceil(opts.C/2),:,:);
+	net{end}.layers{end}.Y1 = im1(:,ceil(opts.C/2),:,:);
+	net{end}.layers{end}.Y2 = im2(:,ceil(opts.C/2),:,:);
+	res = vl_multiresnn(net,im,one,[], ...
             'conserveMemory', opts.conserveMemory, ...
             'sync', opts.sync);
 	        
         batch_time = toc(batch_time) ;
         % gradient step
-	%for ii=1:size(net,2)
-        for l=1:numel(net.layers)
+	for ii=1:size(net,2)
+        for l=1:numel(net{ii}.layers)
             
             if sum( opts.fixedLayers == l) == 1, continue; end
                    
-            if ~strcmp(net.layers{l}.type, 'conv'), continue ; end
+            if ~strcmp(net{ii}.layers{l}.type, 'conv'), continue ; end
 
-            net.layers{l}.filtersMomentum = ...
-                opts.momentum * net.layers{l}.filtersMomentum ...
-                - (lr * net.layers{l}.filtersLearningRate) * ...
-                (opts.weightDecay * net.layers{l}.filtersWeightDecay) * net.layers{l}.filters ...
-                - (lr * net.layers{l}.filtersLearningRate) / opts.batchSize * res(l).dzdw{1} ;
+            net{ii}.layers{l}.filtersMomentum = ...
+                opts.momentum * net{ii}.layers{l}.filtersMomentum ...
+                - (lr * net{ii}.layers{l}.filtersLearningRate) * ...
+                (opts.weightDecay * net{ii}.layers{l}.filtersWeightDecay) * net{ii}.layers{l}.filters ...
+                - (lr * net{ii}.layers{l}.filtersLearningRate) / opts.batchSize * res{ii}(l).dzdw{1} ;
             
-            net.layers{l}.biasesMomentum = ...
-                opts.momentum * net.layers{l}.biasesMomentum ...
-                - (lr * net.layers{l}.biasesLearningRate) * ....
-                (opts.weightDecay * net.layers{l}.biasesWeightDecay) * net.layers{l}.biases ...
-                - (lr * net.layers{l}.biasesLearningRate) / opts.batchSize * res(l).dzdw{2} ;
+            net{ii}.layers{l}.biasesMomentum = ...
+                opts.momentum * net{ii}.layers{l}.biasesMomentum ...
+                - (lr * net{ii}.layers{l}.biasesLearningRate) * ....
+                (opts.weightDecay * net{ii}.layers{l}.biasesWeightDecay) * net{ii}.layers{l}.biases ...
+                - (lr * net{ii}.layers{l}.biasesLearningRate) / opts.batchSize * res{ii}(l).dzdw{2} ;
             
-            net.layers{l}.filters = net.layers{l}.filters + net.layers{l}.filtersMomentum ;
-            net.layers{l}.biases = net.layers{l}.biases + net.layers{l}.biasesMomentum ;
+            net{ii}.layers{l}.filters = net{ii}.layers{l}.filters + net{ii}.layers{l}.filtersMomentum ;
+            net{ii}.layers{l}.biases = net{ii}.layers{l}.biases + net{ii}.layers{l}.biasesMomentum ;
         end
-        %end
+        end
         % print information
         speed = opts.batchSize/batch_time ;
         
-        info.train.objective(end) = info.train.objective(end) + sum(double(gather(res(end).x))) ;
+        info.train.objective(end) = info.train.objective(end) + sum(double(gather(res{end}(end).x))) ;
         info.train.speed(end) = info.train.speed(end) + speed ;
         
         fprintf(' %.2f s (%.1f images/s)', batch_time, speed) ;
@@ -282,7 +283,7 @@ for epoch=1:opts.numEpochs
 		%im = wavelet_transf(abs(im_mix), opts.J);
 		tmp = sqrt(sum(abs(im_mix).^2,3));
 		im = abs(im_mix)./repmat(opts.epsilon + tmp, [1 1 size(im_mix,3) 1]) ;
-		im = wavelet_transf_batch(im, opts.J,1,opts.Hm);
+		im = wavelet_transf_batch(im, opts.J,1);
         
         batch_time = tic ;
         fprintf('validation: epoch %02d: processing batch %3d of %3d ...', epoch, ...
@@ -290,15 +291,15 @@ for epoch=1:opts.numEpochs
  
         % fprop and backprop
 	%im = reshape(im,1,1,size(im,2)*size(im,3),size(im,4));
-	net.layers{end}.Ymix = im_mix(:,ceil(opts.C/2),:,:);
-	net.layers{end}.Y1 = im1(:,ceil(opts.C/2),:,:);
-	net.layers{end}.Y2 = im2(:,ceil(opts.C/2),:,:);
+	net{end}.layers{end}.Ymix = im_mix(:,ceil(opts.C/2),:,:);
+	net{end}.layers{end}.Y1 = im1(:,ceil(opts.C/2),:,:);
+	net{end}.layers{end}.Y2 = im2(:,ceil(opts.C/2),:,:);
 	%size(im)
-	res = vl_simplenn(net,im,[],[], ...
+	res = vl_multiresnn(net,im,[],[], ...
             'conserveMemory', opts.conserveMemory, ...
             'sync', opts.sync);
  
-        info.val.objective(end) = info.val.objective(end) + sum(double(gather(res(end).x))) ;
+        info.val.objective(end) = info.val.objective(end) + sum(double(gather(res{end}(end).x))) ;
         n = t + opts.batchSize - 1 ;
         fprintf(' obj %.4f', ...
             info.val.objective(end)/n) ;
@@ -310,8 +311,6 @@ for epoch=1:opts.numEpochs
     % save
     info.train.objective(end) = info.train.objective(end) / numel(train1);
     info.train.speed(end) = numel(train1) / info.train.speed(end) ;
-
-
 %     info.val.objective(end) = info.val.objective(end) / numel(val) ;
 %     info.val.speed(end) = numel(val) / info.val.speed(end) ;
 %     save(sprintf(modelPath,epoch), 'net', 'info') ;
@@ -323,13 +322,7 @@ for epoch=1:opts.numEpochs
 
     if  ~mod(epoch, opts.validFreq )
 
-    net_aux.layers = net.layers(1:end-1);
-    temp_context = size(net_aux.layers{1}.filters,2);
-    net_aux.layers{1}.pad = [0 0 floor(temp_context/2) floor(temp_context/2)];
-    temp_context2 = size(net_aux.layers{3}.filters,2);
-    net_aux.layers{3}.pad = [0 0 floor(temp_context2/2) floor(temp_context2/2)];
-
-    output = getValid(net_aux);
+    output = getValid(net);
     fprintf('Validation: \n')
     disp(output.stat)
     

@@ -33,6 +33,7 @@ tmp = ifft(Xf.*repmat(filts{1}.phi,1,L));
 scratch.X{1}(J1+1,:,:) = tmp(1:filts{1}.ds(J1+1):end,:);
 P(J1+1,:,:)=exp(i*angle(tmp));
 
+scratch.P = P;
 U=abs(scratch.X{1});
 
 
@@ -41,11 +42,15 @@ U=abs(scratch.X{1});
 
 [K1, Neff, L]=size(U);
 
+scratch.Usize = size(U);
 if dohaar
 
 Utmp = U(:,:);
+scratch.Utmpsize7 = size(Utmp);
 
 Jhaar = size(filts{2}.haar,2);
+scratch.Jhaar = Jhaar;
+
 Ubis = zeros(size(Utmp,1)*size(filts{2}.haar,2),size(Utmp,2));
 rast=1;
 for j=1:Jhaar
@@ -60,16 +65,21 @@ rast=rast+st;
 end
 Ubis=Ubis(1:rast-1,:);
 K1bis = size(Ubis,1);
+scratch.Ubissize = size(Ubis);
 
 Ubis = reshape(Ubis,K1bis,Neff, L);
 else
 Ubis = U;
 K1bis=K1;
 end
+
 scratch.K1bis = K1bis;
 scratch.dohaar=dohaar;
 
 Ubis = permute(Ubis, [2 1 3]);
+
+scratch.Utmpsize6 = size(Utmp);
+
 Utmp = Ubis(:,:);
 
 scratch.M0 = Neff;
@@ -88,26 +98,34 @@ end
 tmp = ifft( Uf.*repmat(filts{4}.phi,1,size(Uf,2)));
 %scratch.X{3} = tmp;
 PSlp = exp(i*angle(tmp));
+scratch.PSlp = PSlp;
 Utmp = abs(tmp);
 Utmp=Utmp(1:filts{4}.dsphi:end,:);
+scratch.Utmpsize5 = size(Utmp);
 Ulp = reshape(Utmp, size(Utmp,1),K1bis,L);
 
 %psi output
 PShp = exp(i*angle(Ubis));
+scratch.PShp = PShp;
 Utmp = abs(Ubis);
+scratch.Utmpsize4 = size(Utmp);
 Utmp = Utmp(:,:);
 Uf = fft(Utmp);
 Utmp = ifft(Uf.*repmat(filts{4}.phi,1,size(Uf,2)));
+scratch.Utmpsize3 = size(Utmp);
 Utmp = Utmp(1:filts{4}.dsphi:end,:);
+scratch.Utmpsize2 = size(Utmp);
 Utmp = reshape(Utmp,size(Utmp,1),size(filts{4}.psi,2),K1bis,L);
 Utmp(:,size(filts{4}.psi,2)+1,:,:)=Ulp;
 K2bis = size(filts{4}.psi,2)+1;
 
 scratch.K2bis = K2bis;
-
+scratch.Utmpsize1 = size(Utmp);
 Utmp = reshape(Utmp, size(Utmp,1), K1bis*K2bis, L);
 %Utmp(:,end+1,:)=S0;
 S = permute(Utmp,[2 1 3]);
+%this is unnecessary if the lowpass filter is positive
+scratch.PSaux = exp(i*angle(S));
 S=abs(S);
 
 

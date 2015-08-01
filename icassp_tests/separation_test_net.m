@@ -76,6 +76,7 @@ for i=1:N
     else
         [X, phmix] = batchscatt(pad_mirror(mix',Npad), filts, scparam);
         Xn = softNormalize(abs(X),epsilon);
+        %Xn = abs(X);
     end
     
     

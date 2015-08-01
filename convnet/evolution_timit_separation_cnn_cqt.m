@@ -1,4 +1,9 @@
 
+addpath('../utils/')
+addpath('../scatt/')
+addpath('../icassp_tests/')
+addpath('../bss_eval/')
+run('../matconvnet/matlab/vl_setupnn.m') ;
 if ~exist('filts','var')
 
 representation = '/misc/vlgscratch3/LecunGroup/pablo/TIMIT/cqt_phase_fs16_NFFT2048_hop1024/TRAIN/';
@@ -80,11 +85,18 @@ options.is_stft = 0;
 %model =  '/misc/vlgscratch3/LecunGroup/bruna/audio_bss/cnn/timit-cnn/' ;
 %model = '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt/';
 %model =  '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-2nd-comp/';
-model =  '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-debug/';
+%model =  '/misc/vlgscratch3/LecunGroup/pablo/models/cnn/timit-cnn-cqt-debug/';
+
+%model = '/scratch/joan/cnn/batch_depth_1_12_17_12_16_40_J5/';
+model = '/scratch/joan/cnn/batch_depth_1_12_18_15_23_7_J5/';
+%model = '/scratch/joan/cnn/batch_depth_1_12_16_21_16_19/';
 
 d = dir([model 'net-epoch-*']);
 
-for i=395
+epsilon = 1e-8;
+J=5;
+
+for i=250
 
 %options.model_params = param;
 load([model 'net-epoch-' num2str(i) '.mat'])
@@ -98,7 +110,8 @@ end
 %                            'loss', 'L2') ;
 
 
-testFun    = @(Xn) cnn_demix(Xn,net_cnn);
+%testFun    = @(Xn) cnn_ensemble_demix_haar(Xn,net_cnn,J,epsilon);
+testFun    = @(Xn) cnn_ensemble_demix(Xn,net_cnn,J,epsilon);
 
 options.SNR_dB = 0;
 output_net{i+1} = separation_test_net(testFun,test_female,test_male,options);
